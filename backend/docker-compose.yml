@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: be-papyrus
-    restart: restart-always
+    restart: always
     ports:
       - "8080:8080"
     networks:

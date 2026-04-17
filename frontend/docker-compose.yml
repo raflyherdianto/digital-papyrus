@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fe-papyrus
-    restart: restart-always
+    restart: always
     ports:
       - "4321:80"
     networks:
