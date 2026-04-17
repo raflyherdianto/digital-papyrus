@@ -65,9 +65,9 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	uploadDir := filepath.Join("..", "frontend", "public", "uploads")
+	uploadDir := filepath.Join("frontend", "public", "uploads")
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		response.InternalError(c, "Failed to create upload directory")
+		response.InternalError(c, "Failed to create upload directory: " + err.Error())
 		return
 	}
 
