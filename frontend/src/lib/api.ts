@@ -3,7 +3,7 @@
  * Handles all HTTP communication with the Go/Gin REST API.
  */
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'https://api.digitalpapyrus.web.id';
 
 // ─── Types ───────────────────────────────────────────────────────────
 

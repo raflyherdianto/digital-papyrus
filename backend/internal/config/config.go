@@ -77,7 +77,7 @@ func Load() *Config {
 			ExpiryTime: time.Duration(getEnvAsInt("JWT_EXPIRY_HOURS", 24)) * time.Hour,
 		},
 		CORS: CORSConfig{
-			AllowedOrigins: getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"https://digitalpapyrus.web.id"}, ","),
+			AllowedOrigins: getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"https://digitalpapyrus.web.id", "https://www.digitalpapyrus.web.id", "http://localhost:4321"}, ","),
 		},
 		Rate: RateConfig{
 			General: getEnvAsInt("RATE_LIMIT_GENERAL", 100),
