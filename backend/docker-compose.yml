@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: be-papyrus
+    restart: restart-always
+    ports:
+      - "8080:8080"
+    networks:
+      - shared-network
+    volumes:
+      # Map the local data output for SQLite persistence
+      - ./data:/app/data
+      # Map the upload location shared alongside frontend
+      - ../frontend/public/uploads:/app/frontend/public/uploads
+
+networks:
+  shared-network:
+    name: shared-network
+    external: true

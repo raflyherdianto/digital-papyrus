@@ -1,0 +1,143 @@
+---
+/**
+ * Admin Login Page
+ * Route: /admin-login
+ */
+import AuthLayout from '../layouts/AuthLayout.astro';
+---
+
+<AuthLayout title="Admin Login | Digital Papyrus">
+  <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-xl p-8 md:p-10 border border-outline-variant/10">
+    <div class="text-center mb-8 md:mb-10">
+      <h2 class="font-headline text-2xl md:text-3xl font-bold tracking-tight text-primary">Admin Login</h2>
+      <p class="text-on-surface-variant text-sm md:text-base mt-2">Access the publishing management console.</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="login-error" class="hidden mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-3">
+      <span class="material-symbols-outlined text-lg">error</span>
+      <span id="login-error-msg">Invalid email or password</span>
+    </div>
+
+    <form class="space-y-5 md:space-y-6" id="login-form" novalidate>
+      <div>
+        <label class="block text-sm font-medium text-primary mb-2" for="email-input">Email</label>
+        <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+          <span class="material-symbols-outlined text-outline text-lg mr-3">mail</span>
+          <input
+            id="email-input"
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
+            required
+            class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant"
+          />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-primary mb-2" for="password-input">Password</label>
+        <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+          <span class="material-symbols-outlined text-outline text-lg mr-3">lock</span>
+          <input
+            id="password-input"
+            type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+            class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant"
+          />
+          <button type="button" id="togglePassword" class="text-outline hover:text-primary transition-colors" aria-label="Toggle password visibility">
+            <span class="material-symbols-outlined text-lg">visibility_off</span>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-sm pt-1">
+        <label class="flex items-center gap-2 cursor-pointer text-on-surface-variant">
+          <input type="checkbox" class="accent-primary w-4 h-4 rounded" />
+          <span>Remember me</span>
+        </label>
+        <a href="#" class="text-primary font-semibold hover:underline">Forgot Password?</a>
+      </div>
+      <button
+        type="submit"
+        id="login-submit-btn"
+        class="w-full py-3 md:py-4 mt-2 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:bg-primary/90 flex items-center justify-center gap-2 transition-all text-sm md:text-base disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <span class="material-symbols-outlined text-sm" id="login-icon">login</span>
+        <span id="login-btn-text">Sign in</span>
+      </button>
+    </form>
+  </div>
+</AuthLayout>
+
+<script>
+  import { login, setToken, isAuthenticated } from '../lib/api';
+
+  // Redirect if already logged in
+  if (isAuthenticated()) {
+    window.location.href = '/admin-dashboard';
+  }
+
+  // Toggle password visibility
+  const toggleBtn = document.getElementById('togglePassword');
+  const pwInput = document.getElementById('password-input') as HTMLInputElement;
+  if (toggleBtn && pwInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isPassword = pwInput.getAttribute('type') === 'password';
+      pwInput.setAttribute('type', isPassword ? 'text' : 'password');
+      const icon = toggleBtn.querySelector('span');
+      if (icon) icon.textContent = isPassword ? 'visibility' : 'visibility_off';
+    });
+  }
+
+  // Login form handler
+  const form = document.getElementById('login-form') as HTMLFormElement;
+  const errorBox = document.getElementById('login-error')!;
+  const errorMsg = document.getElementById('login-error-msg')!;
+  const submitBtn = document.getElementById('login-submit-btn') as HTMLButtonElement;
+  const btnIcon = document.getElementById('login-icon')!;
+  const btnText = document.getElementById('login-btn-text')!;
+
+  function showError(msg: string) {
+    errorMsg.textContent = msg;
+    errorBox.classList.remove('hidden');
+  }
+
+  function setLoading(loading: boolean) {
+    submitBtn.disabled = loading;
+    btnText.textContent = loading ? 'Signing in...' : 'Sign in';
+    btnIcon.textContent = loading ? 'hourglass_empty' : 'login';
+    if (loading) btnIcon.classList.add('animate-spin');
+    else btnIcon.classList.remove('animate-spin');
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.add('hidden');
+
+      const emailInput = document.getElementById('email-input') as HTMLInputElement;
+      const email = emailInput.value.trim();
+      const password = pwInput.value;
+
+      if (!email || !password) {
+        showError('Please fill in all fields.');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const result = await login(email, password);
+        setToken(result.token);
+        // Store user info for dashboard
+        localStorage.setItem('dp_user', JSON.stringify(result.user));
+        window.location.href = '/admin-dashboard';
+      } catch (err: any) {
+        const message = err?.message || 'Login failed. Please try again.';
+        showError(message);
+        setLoading(false);
+      }
+    });
+  }
+</script>

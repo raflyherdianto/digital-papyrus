@@ -1,0 +1,53 @@
+---
+/**
+ * AdminTopbar — Fixed top header for admin dashboard.
+ */
+---
+
+<header id="topHeader" class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 glass-nav flex justify-between items-center px-4 md:px-8 z-40 border-b border-stone-200/20 transition-all duration-300">
+  <div class="flex items-center gap-4 flex-1">
+    <div class="relative w-full max-w-md">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
+      <input
+        class="w-full bg-surface-container py-2 pl-10 pr-4 rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-stone-400"
+        placeholder="Search archives, orders, or authors..."
+        type="text"
+        aria-label="Search admin"
+      />
+    </div>
+  </div>
+  <div class="flex items-center gap-4 md:gap-6">
+    <button class="relative text-stone-600 hover:text-tertiary transition-colors" aria-label="Notifications">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="absolute top-0 right-0 w-2 h-2 bg-tertiary rounded-full border-2 border-surface"></span>
+    </button>
+    <div class="flex items-center gap-2 text-stone-600">
+      <span class="material-symbols-outlined">account_circle</span>
+      <span id="topbarUserName" class="text-sm font-medium font-headline hidden md:inline">Admin</span>
+    </div>
+    <button id="logoutBtn" class="text-stone-500 hover:text-error transition-colors flex items-center gap-1" title="Logout">
+      <span class="material-symbols-outlined text-lg">logout</span>
+    </button>
+  </div>
+</header>
+
+<script>
+  import { removeToken } from '../lib/api';
+
+  // Display user name
+  const userData = localStorage.getItem('dp_user');
+  if (userData) {
+    try {
+      const user = JSON.parse(userData);
+      const nameEl = document.getElementById('topbarUserName');
+      if (nameEl) nameEl.textContent = user.name || 'Admin';
+    } catch {}
+  }
+
+  // Logout handler
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    removeToken();
+    localStorage.removeItem('dp_user');
+    window.location.href = '/admin-login';
+  });
+</script>

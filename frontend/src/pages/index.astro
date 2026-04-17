@@ -1,0 +1,302 @@
+---
+/**
+ * Landing Page — Homepage for Digital Papyrus.
+ * Route: /
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import BookCard from '../components/BookCard.astro';
+
+const services = [
+  { icon: 'design_services', title: 'Layout & Desain Kover', description: 'Tata letak interior naskah yang rapi dan rancangan desain sampul paling menarik, disesuaikan dengan permintaan serta tren visual buku eksklusif.' },
+  { icon: 'gavel', title: 'Pengurusan ISBN & HaKI', description: 'Proses legalisasi naskah bebas repot. Kami bantu daftarkan International Standard Book Number (ISBN) dari Perpusnas dan melindungi HaKI karya orisinil Anda.' },
+  { icon: 'print', title: 'Cetak Satuan & Print on Demand', description: 'Dari satu eksemplar hingga cetak oplah besar menggunakan kertas terbaik (Book Paper/HVS) dengan opsi Softcover atau Hardcover eksekutif (Doff/Glossy).' },
+];
+
+// Books will be fetched dynamically from the API
+
+const packagesData = {
+  basic: { title: 'Paket Basic', price: 'Rp. 275.000', features: ['E-ISBN Perpusnas RI','Cover Design','Surat bukti proses/LOA*','Surat Bukti Terbit*','Full e-Book (PDF)','Sertifikat Penulis*','Royalti Penjualan','Upload ke Repository','Template Buku','Diskon HAKI Rp. 25.000','Maksimal 150 Hal','Ukuran A5, B5 (Unesco/Reguler)'] },
+  silver: { title: 'Paket Silver', price: 'Rp. 455.000', features: ['ISBN Perpusnas RI','Layout Naskah Buku','Cover Design','Surat bukti proses/LOA*','Surat Bukti Terbit*','Buku untuk Penulis (2 buku A5 atau 1 buku B5)','2 Buku Arsip Perpusnas','1 Buku Arsip Perpusda','1 Buku Arsip Penerbit','Full e-Book (PDF)','Sertifikat Penulis*','Royalti Penjualan','Upload ke Repository','GRATIS Packing Buku','Template Buku','Laminasi Doff atau Glossy','Book Paper/HVS','Wrapping Buku','Diskon HaKI Rp. 50.000','GRATIS Ongkos Kirim*','Maksimal 150 Hal','Ukuran A5, B5 (Unesco/Reguler)'] },
+  gold: { title: 'Paket Gold', price: 'Rp. 765.000', features: ['ISBN Perpusnas RI','Digital Object Identifier (DOI)','Layout Naskah Buku','Cover Design','Surat bukti proses/LOA*','Surat Bukti Terbit*','Buku untuk Penulis (5 buku A5 atau 4 buku B5)','2 Buku Arsip Perpusnas','1 Buku Arsip Perpusda','1 Buku Arsip Penerbit','Full e-Book (PDF)','Preview e-Book (PDF)','Sertifikat Penulis','Royalti Penjualan','Upload ke Repository','GRATIS Packing Buku','Template Buku','Mockup 3D*','Laminasi Doff atau Glossy','Book Paper/HVS','Wrapping Buku','Diskon HaKI Rp. 75.000','GRATIS Ongkos Kirim*','Maksimal 200 Hal','Ukuran A5, B5 (Unesco/Reguler)'] },
+  platinum: { title: 'Paket Platinum', price: 'Rp. 965.000', features: ['ISBN Perpusnas RI','Digital Object Identifier (DOI)','Layout Naskah Buku','Cover Design','Surat bukti proses/LOA*','Surat Bukti Terbit*','Buku untuk Penulis (10 buku A5 atau 8 buku B5)','2 Buku Arsip Perpusnas','1 Buku Arsip Perpusda','1 Buku Arsip Penerbit','Full e-Book (PDF)','Preview e-Book (PDF)','Sertifikat Penulis','Royalti Penjualan','Upload ke Repository','GRATIS Packing Buku','Template Buku','Mockup 3D*','Laminasi Doff atau Glossy','Book Paper/HVS','Wrapping Buku','Diskon HaKI Rp. 100.000','GRATIS Ongkos Kirim*','Maksimal 250 Hal','Ukuran A5, B5 (Unesco/Reguler)'] },
+};
+---
+
+<BaseLayout title="Jasa Penerbitan Buku Profesional | Digital Papyrus" readingProgress={30}>
+
+  <!-- Hero Section -->
+  <header class="relative px-4 md:px-8 lg:px-24 py-12 md:py-20 lg:py-32 overflow-hidden">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 md:gap-16">
+      <div class="flex-1 space-y-6 md:space-y-8 text-left">
+        <h1 class="font-headline text-4xl md:text-[3.5rem] lg:text-[5.25rem] leading-[1.05] font-extrabold tracking-[-0.02em] text-primary">
+          Warisan Karya <span class="text-tertiary block">Bertemu Era Digital.</span>
+        </h1>
+        <p class="text-base md:text-lg lg:text-xl text-on-surface-variant max-w-xl leading-relaxed">
+          Wujudkan impian penerbitan Anda bersama <strong>Digital Papyrus</strong>. Percayakan seluruh proses kepada tim ahli kami—mulai dari tata letak profesional, desain kover memikat, hingga perizinan legal ISBN.
+        </p>
+        <div class="flex flex-wrap gap-4 pt-4">
+          <a href="#promo" class="px-6 md:px-8 py-3 md:py-4 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 group shadow-xl text-sm md:text-base">
+            Mulai Menerbitkan
+            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+          </a>
+          <a href="/katalog" class="px-6 md:px-8 py-3 md:py-4 bg-transparent border-2 border-outline-variant text-primary rounded-xl font-bold hover:bg-surface-container-low transition-all items-center justify-center flex text-sm md:text-base">
+            Jelajahi Katalog
+          </a>
+        </div>
+      </div>
+      <div class="flex-1 relative w-full aspect-square lg:aspect-auto">
+        <div class="absolute -top-10 -right-10 w-64 h-64 bg-tertiary-fixed-dim/20 rounded-full blur-3xl"></div>
+        <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+          <img
+            class="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700"
+            alt="Layanan penerbitan buku dari naskah hingga cetak bersama ahli"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB62RXZaFGHmFX-atd05bXkB4qRcBBnfOhJ-qOeT9WzPe9iici4GQHLABWwo1mT8dcQEbXyp7PF_o3_0xK54IAuUuX3fH__MPwHMwNEkS0MxIS2mNtIVlu8YrQ6BZN7k-32kWBG4FelmGZc3PSzkGS81G3r5foSQZ56h6rvpV7VHFB2mcMzsXf9RPQmUKeutK2_BpcDZlvi8rtlLK-FQUEAnZSDSVbrEqldqPC7E2kNWzWVKBSZef6y5K7B3nxKJ1eMGmI4PX5Og38"
+            loading="eager"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Layanan Kami Section -->
+  <section id="layanan" class="py-16 md:py-24 px-4 md:px-8 lg:px-24 bg-surface-container-low">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-12 md:mb-16 space-y-4">
+        <h2 class="font-headline text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary">Layanan Kami</h2>
+        <p class="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg leading-relaxed">Berbagai penawaran jasa terkait penerbitan untuk memastikan proses publikasi karya Anda menjadi lebih mudah dan berkualitas tinggi.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        {services.map((svc) => <ServiceCard {...svc} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Katalog Buku Slider Section -->
+  <section class="py-16 md:py-24 px-4 md:px-8 lg:px-24">
+    <div class="max-w-7xl mx-auto">
+      <div class="mb-8 md:mb-12">
+        <h2 class="font-headline text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-primary mb-2">Karya Penerbitan Kami</h2>
+        <p class="text-on-surface-variant max-w-xl text-base md:text-lg">Jelajahi karya fiksi maupun antologi yang sukses menembus pasaran.</p>
+      </div>
+      <div id="katalog-slider" class="flex gap-4 md:gap-6 overflow-x-auto pb-8 snap-x snap-mandatory cursor-grab active:cursor-grabbing no-scrollbar select-none">
+        <!-- Loading skeleton cards -->
+        <div class="skeleton-card min-w-[200px] md:min-w-[240px] lg:min-w-[260px] snap-start animate-pulse"><div class="aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
+        <div class="skeleton-card min-w-[200px] md:min-w-[240px] lg:min-w-[260px] snap-start animate-pulse"><div class="aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
+        <div class="skeleton-card min-w-[200px] md:min-w-[240px] lg:min-w-[260px] snap-start animate-pulse"><div class="aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
+        <div class="skeleton-card min-w-[200px] md:min-w-[240px] lg:min-w-[260px] snap-start animate-pulse"><div class="aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
+      </div>
+      <div class="mt-8 flex justify-center">
+        <a href="/katalog" class="inline-flex px-6 md:px-8 py-3 md:py-4 bg-primary text-on-primary font-bold rounded-xl hover:bg-primary/90 transition-all items-center gap-2 shadow-lg group text-sm md:text-base">
+          Cek Katalog Lainnya
+          <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promo Section -->
+  <section id="promo" class="bg-surface-container-low py-16 md:py-24 px-4 md:px-8 lg:px-24">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-12 md:mb-16 space-y-4">
+        <h2 class="font-headline text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary">Promo Terbaik</h2>
+        <p class="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg leading-relaxed">Nikmati penawaran eksklusif dan beli paket penerbitan dengan diskon terbaik untuk kemudahan karya Anda.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <!-- Basic -->
+        <div class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl flex flex-col h-full border border-outline-variant/20 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-package="basic">
+          <div class="mb-6"><span class="text-xs font-label uppercase tracking-widest text-outline">Starter</span><h3 class="text-xl font-headline font-bold text-primary mt-2">Paket Basic</h3></div>
+          <div class="text-3xl font-headline font-extrabold text-primary mb-6">Rp 275k <span class="text-xs font-body font-normal text-on-surface-variant tracking-normal block mt-1">/ naskah</span></div>
+          <ul class="space-y-3 mb-8 flex-grow text-sm">
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>E-ISBN Perpusnas RI</span></li>
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>Cover Design</span></li>
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>Maksimal 150 Hal</span></li>
+          </ul>
+          <button class="w-full py-3 border border-outline-variant text-primary font-bold rounded-xl hover:bg-surface-container transition-colors">Lihat Detail</button>
+        </div>
+        <!-- Silver -->
+        <div class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl flex flex-col h-full border border-outline-variant/20 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-package="silver">
+          <div class="mb-6"><span class="text-xs font-label uppercase tracking-widest text-outline">Menengah</span><h3 class="text-xl font-headline font-bold text-primary mt-2">Paket Silver</h3></div>
+          <div class="text-3xl font-headline font-extrabold text-primary mb-6">Rp 455k <span class="text-xs font-body font-normal text-on-surface-variant tracking-normal block mt-1">/ naskah</span></div>
+          <ul class="space-y-3 mb-8 flex-grow text-sm">
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>ISBN Perpusnas RI</span></li>
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>Layout & Cover Design</span></li>
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>3 Buku Cetak (Arsip+Penulis)</span></li>
+          </ul>
+          <button class="w-full py-3 border border-outline-variant text-primary font-bold rounded-xl hover:bg-surface-container transition-colors">Lihat Detail</button>
+        </div>
+        <!-- Gold (Featured) -->
+        <div class="bg-primary text-on-primary p-6 md:p-8 rounded-2xl flex flex-col h-full shadow-[0px_20px_40px_rgba(20,56,63,0.3)] relative scale-100 xl:scale-105 z-10 cursor-pointer hover:-translate-y-1 transition-all duration-300" data-package="gold">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-md">Terpopuler</div>
+          <div class="mb-6"><span class="text-xs font-label uppercase tracking-widest opacity-70">Profesional</span><h3 class="text-xl font-headline font-bold mt-2">Paket Gold</h3></div>
+          <div class="text-3xl font-headline font-extrabold mb-6">Rp 765k <span class="text-xs font-body font-normal opacity-70 tracking-normal block mt-1">/ naskah</span></div>
+          <ul class="space-y-3 mb-8 flex-grow text-sm">
+            <li class="flex items-start gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim text-sm mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>ISBN & DOI</span></li>
+            <li class="flex items-start gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim text-sm mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>Buku Penulis (5 A5 / 4 B5)</span></li>
+            <li class="flex items-start gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim text-sm mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>Desain Mockup 3D</span></li>
+          </ul>
+          <button class="w-full py-3 bg-tertiary-fixed text-on-tertiary-fixed font-bold rounded-xl hover:bg-tertiary-fixed-dim transition-colors">Lihat Detail</button>
+        </div>
+        <!-- Platinum -->
+        <div class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl flex flex-col h-full border border-outline-variant/20 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-package="platinum">
+          <div class="mb-6"><span class="text-xs font-label uppercase tracking-widest text-outline">Eksklusif</span><h3 class="text-xl font-headline font-bold text-primary mt-2">Paket Platinum</h3></div>
+          <div class="text-3xl font-headline font-extrabold text-primary mb-6">Rp 965k <span class="text-xs font-body font-normal text-on-surface-variant tracking-normal block mt-1">/ naskah</span></div>
+          <ul class="space-y-3 mb-8 flex-grow text-sm">
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>ISBN & DOI</span></li>
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>Buku Penulis (10 A5 / 8 B5)</span></li>
+            <li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>Diskon HaKI Rp 100.000</span></li>
+          </ul>
+          <button class="w-full py-3 border border-outline-variant text-primary font-bold rounded-xl hover:bg-surface-container transition-colors">Lihat Detail</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Package Modal -->
+  <div id="package-modal-overlay" class="fixed inset-0 bg-[#001f25]/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div id="package-modal" class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[85vh] transform scale-95 opacity-0 transition-all duration-300">
+      <div class="p-6 border-b border-outline-variant/20 flex justify-between items-center">
+        <div><h3 id="modal-title" class="font-headline font-bold text-2xl text-primary">Paket</h3><p id="modal-price" class="text-xl font-bold text-tertiary-container mt-1"></p></div>
+        <button id="modal-close-btn" class="text-outline hover:text-error transition-colors p-2 rounded-full hover:bg-surface-container-high" aria-label="Close modal"><span class="material-symbols-outlined relative top-0.5">close</span></button>
+      </div>
+      <div class="p-6 overflow-y-auto flex-grow"><ul id="modal-features-list" class="space-y-4"></ul></div>
+      <div class="p-6 border-t border-outline-variant/20 bg-surface-container-low rounded-b-2xl">
+        <button class="w-full py-4 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors">
+          <span class="material-symbols-outlined text-sm">shopping_cart_checkout</span> Pesan Paket Ini
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-16 md:py-24 px-4 md:px-8 lg:px-24 bg-surface-container-low">
+    <div class="max-w-4xl mx-auto text-center space-y-8 md:space-y-12">
+      <h2 class="font-headline text-3xl md:text-4xl font-extrabold text-primary">Hubungi Kami</h2>
+      <p class="text-base md:text-lg text-on-surface-variant">Memiliki pertanyaan terkait penerbitan? Tim Customer Service kami siap menghubungkan ide Anda menjadi mahakarya.</p>
+      <div class="flex flex-col md:flex-row justify-center gap-6 md:gap-8">
+        <a href="mailto:digitalpapyrus15@gmail.com" class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/20 shadow-md flex-1 text-center group cursor-pointer hover:-translate-y-1 transition-transform block">
+          <span class="material-symbols-outlined text-4xl md:text-5xl text-tertiary mb-4 block group-hover:scale-110 transition-transform">mail</span>
+          <h3 class="font-bold text-lg md:text-xl mb-2 text-on-surface">Email</h3>
+          <span class="text-secondary font-medium group-hover:text-primary transition-colors text-sm md:text-base">digitalpapyrus15@gmail.com</span>
+        </a>
+        <a href="https://wa.me/6285196206398" target="_blank" rel="noopener noreferrer" class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/20 shadow-md flex-1 text-center group cursor-pointer hover:-translate-y-1 transition-transform block">
+          <span class="material-symbols-outlined text-4xl md:text-5xl text-[#25D366] mb-4 block group-hover:scale-110 transition-transform">chat</span>
+          <h3 class="font-bold text-lg md:text-xl mb-2 text-on-surface">WhatsApp</h3>
+          <span class="text-secondary font-medium group-hover:text-primary transition-colors text-sm md:text-base">0851 9620 6398</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketplace Section -->
+  <section class="py-12 md:py-16 px-4 md:px-8 lg:px-24 bg-surface">
+    <div class="max-w-7xl mx-auto text-center space-y-8 md:space-y-10">
+      <h2 class="font-headline text-xs md:text-sm font-bold text-outline uppercase tracking-widest">Temukan Buku Kami di Marketplace Berikut</h2>
+      <div class="flex flex-wrap items-center justify-center gap-8 md:gap-12 lg:gap-20">
+        <div class="text-lg md:text-xl font-bold text-[#EE4D2D] hover:scale-110 transition-transform cursor-pointer flex items-center justify-center">
+          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2">shopping_bag</span>SHOPEE
+        </div>
+        <div class="text-lg md:text-xl font-bold text-[#FF9900] hover:scale-110 transition-transform cursor-pointer flex items-center justify-center">
+          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2">storefront</span>AMAZON
+        </div>
+        <div class="text-lg md:text-xl font-bold text-primary hover:scale-110 transition-transform cursor-pointer flex items-center justify-center">
+          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2">qr_code_2</span><span>QRCBN</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script define:vars={{ packagesData }}>
+  // Modal Logic
+  const modalOverlay = document.getElementById('package-modal-overlay');
+  const modalBox = document.getElementById('package-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalPrice = document.getElementById('modal-price');
+  const modalFeaturesList = document.getElementById('modal-features-list');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+
+  function openModal(packId) {
+    const data = packagesData[packId];
+    if (!data) return;
+    modalTitle.textContent = data.title;
+    modalPrice.textContent = data.price;
+    modalFeaturesList.innerHTML = data.features.map(f =>
+      `<li class="flex items-start gap-4"><div class="min-w-6 text-primary flex items-center justify-center pt-0.5"><span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span></div><span class="text-on-surface-variant leading-relaxed text-[15px]">${f}</span></li>`
+    ).join('');
+    modalOverlay.classList.remove('hidden');
+    modalOverlay.classList.add('flex');
+    setTimeout(() => { modalBox.classList.remove('scale-95','opacity-0'); modalBox.classList.add('scale-100','opacity-100'); }, 10);
+  }
+
+  function closeModal() {
+    modalBox.classList.remove('scale-100','opacity-100');
+    modalBox.classList.add('scale-95','opacity-0');
+    setTimeout(() => { modalOverlay.classList.remove('flex'); modalOverlay.classList.add('hidden'); }, 300);
+  }
+
+  // Bind package cards
+  document.querySelectorAll('[data-package]').forEach(card => {
+    card.addEventListener('click', () => openModal(card.dataset.package));
+  });
+  modalCloseBtn?.addEventListener('click', closeModal);
+  modalOverlay?.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+  // Draggable Slider
+  function initSlider() {
+    const slider = document.getElementById('katalog-slider');
+    if (!slider) return;
+    let isDown = false, isDragging = false, startX, scrollLeft;
+    slider.addEventListener('dragstart', (e) => e.preventDefault());
+    slider.addEventListener('mousedown', (e) => { isDown = true; isDragging = false; slider.style.scrollSnapType = 'none'; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
+    slider.addEventListener('mouseleave', () => { isDown = false; slider.style.scrollSnapType = 'x mandatory'; });
+    slider.addEventListener('mouseup', () => { isDown = false; slider.style.scrollSnapType = 'x mandatory'; });
+    slider.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2.5; if (Math.abs(walk) > 5) isDragging = true; slider.scrollLeft = scrollLeft - walk; });
+    slider.addEventListener('click', (e) => { if (isDragging) { e.preventDefault(); e.stopPropagation(); } }, true);
+  }
+  initSlider();
+</script>
+
+<script>
+  import { getBooks, formatRupiah } from '../lib/api';
+
+  async function loadFeaturedBooks() {
+    const slider = document.getElementById('katalog-slider');
+    if (!slider) return;
+
+    try {
+      const { books } = await getBooks({ per_page: 8, status: 'published' });
+
+      if (books.length === 0) return;
+
+      slider.innerHTML = books.map(book => {
+        const catSlug = (book.category_name || 'uncategorized').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        return `
+        <a href="/${catSlug}/details-book?id=${book.id}" class="min-w-[200px] md:min-w-[240px] lg:min-w-[260px] snap-start group cursor-pointer select-none">
+          <div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 shadow-md transform group-hover:-translate-y-2 transition-transform duration-300">
+            ${book.image_url
+              ? `<img class="w-full h-full object-cover pointer-events-none" draggable="false" alt="Cover ${book.title}" src="${book.image_url}" loading="lazy" />`
+              : `<div class="w-full h-full flex items-center justify-center bg-surface-container"><span class="material-symbols-outlined text-5xl text-stone-300">auto_stories</span></div>`}
+          </div>
+          <h3 class="font-headline font-bold text-primary text-base md:text-lg group-hover:text-tertiary transition-colors leading-snug">${book.title}</h3>
+          <p class="text-sm text-on-surface-variant mt-1">${book.author}</p>
+          <div class="flex items-center justify-between mt-2">
+            <p class="font-headline font-extrabold text-primary text-sm">${formatRupiah(book.price)}</p>
+            <div class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-sm font-semibold text-on-surface-variant">${book.rating.toFixed(1)}</span>
+            </div>
+          </div>
+        </a>
+        `;
+      }).join('');
+
+    } catch (err) {
+      // If API fails, keep skeleton or show message
+      slider.innerHTML = `<div class="flex items-center justify-center w-full py-12 text-on-surface-variant"><span class="material-symbols-outlined mr-2">cloud_off</span> Gagal memuat buku</div>`;
+    }
+  }
+
+  loadFeaturedBooks();
+</script>

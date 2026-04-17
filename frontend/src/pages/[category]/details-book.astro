@@ -1,0 +1,241 @@
+---
+/**
+ * Book Details Page
+ * Route: /[category]/details-book?id=<book-id>
+ * Fetches book details dynamically from the backend API.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCategories } from '../../lib/api';
+
+export async function getStaticPaths() {
+  try {
+    const categories = await getCategories();
+    return categories.map(c => ({ params: { category: c.slug || c.name.toLowerCase().replace(/\s+/g, '-') } }));
+  } catch {
+    return [
+      { params: { category: 'fiksi-kontemporer' } },
+      { params: { category: 'filosofi-modern' } },
+      { params: { category: 'teknologi-sains' } },
+      { params: { category: 'seni-desain' } }
+    ];
+  }
+}
+
+---
+
+<BaseLayout title="Detail Buku — Digital Papyrus" description="Detail buku dari katalog Digital Papyrus." readingProgress={35}>
+  <div class="pb-16 md:pb-20 max-w-7xl mx-auto px-4 md:px-6 lg:px-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-8 md:mb-12 flex flex-wrap gap-2 text-xs uppercase tracking-[0.05em] text-outline" aria-label="Breadcrumb">
+      <a class="hover:text-primary transition-colors" href="/katalog">Katalog</a>
+      <span>/</span>
+      <span id="breadCategory" class="hover:text-primary transition-colors cursor-pointer">...</span>
+      <span>/</span>
+      <span id="breadTitle" class="text-on-surface-variant font-semibold">Loading...</span>
+    </nav>
+
+    <!-- Loading Skeleton -->
+    <div id="bookLoading" class="animate-pulse">
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-start">
+        <div class="lg:col-span-5"><div class="aspect-[3/4] rounded-xl bg-surface-container-low"></div></div>
+        <div class="lg:col-span-7 flex flex-col gap-6">
+          <div class="h-12 bg-surface-container-low rounded w-3/4"></div>
+          <div class="h-6 bg-surface-container-low rounded w-1/2"></div>
+          <div class="h-24 bg-surface-container-low rounded"></div>
+          <div class="h-40 bg-surface-container-low rounded"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Content (hidden until data loads) -->
+    <section id="bookContent" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-start">
+      <!-- Book Cover -->
+      <div class="lg:col-span-5 relative group">
+        <div class="absolute -inset-4 bg-surface-container-low rounded-xl -z-10 transform translate-x-2 translate-y-2 transition-transform group-hover:translate-x-4 group-hover:translate-y-4"></div>
+        <div class="aspect-[3/4] rounded-xl overflow-hidden shadow-[0px_24px_48px_rgba(26,28,28,0.12)] bg-surface-container">
+          <img id="bookCover" class="w-full h-full object-cover" alt="" src="" loading="eager" />
+        </div>
+      </div>
+
+      <!-- Content Details -->
+      <div class="lg:col-span-7 flex flex-col gap-8 md:gap-10">
+        <header>
+          <span id="bookBadge" class="inline-block px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 md:mb-4 hidden"></span>
+          <h1 id="bookTitle" class="text-3xl md:text-5xl lg:text-6xl font-headline font-extrabold tracking-tight text-primary leading-none mb-3 md:mb-4"></h1>
+          <div class="flex flex-wrap items-center gap-3 md:gap-4 text-on-surface-variant">
+            <p id="bookAuthor" class="font-headline font-bold text-lg md:text-xl"></p>
+            <span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+            <div class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span id="bookRating" class="font-semibold"></span>
+              <span id="bookReviews" class="text-sm opacity-60"></span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Pricing -->
+        <div class="p-6 md:p-8 rounded-xl bg-surface-container-low border border-outline-variant/10 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-4 md:gap-6">
+          <div>
+            <span class="text-sm text-on-surface-variant font-medium">Digital & Print Bundle</span>
+            <div class="flex items-baseline gap-2">
+              <p id="bookPrice" class="text-3xl md:text-4xl font-headline font-extrabold text-primary"></p>
+            </div>
+          </div>
+          <div class="flex gap-3 md:gap-4 w-full sm:w-auto">
+            <button class="flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 bg-surface-container-lowest border border-outline-variant/30 text-primary font-bold rounded-lg hover:bg-white transition-all active:scale-95 text-sm md:text-base">Add to Cart</button>
+            <button class="flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-lg shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 text-sm md:text-base">Buy Now</button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex flex-col gap-6 md:gap-8">
+          <div class="flex gap-6 md:gap-8 border-b border-outline-variant/20 overflow-x-auto">
+            <button id="tab-synopsis" class="pb-4 border-b-2 border-tertiary text-primary font-bold whitespace-nowrap text-sm md:text-base">Synopsis</button>
+            <button id="tab-details" class="pb-4 text-on-surface-variant hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap text-sm md:text-base">Details</button>
+          </div>
+          <div id="content-synopsis" class="space-y-6 tab-content block">
+            <p id="bookSynopsis" class="text-base md:text-lg leading-relaxed text-on-surface-variant"></p>
+          </div>
+          <div id="content-details" class="space-y-6 tab-content hidden">
+            <div id="bookDetailsGrid" class="text-base md:text-lg leading-relaxed text-on-surface-variant"></div>
+          </div>
+
+          <!-- Specifications Grid -->
+          <div id="bookSpecs" class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-6 md:py-8 px-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Related Books -->
+    <section id="relatedSection" class="mt-20 md:mt-32 hidden">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-4">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">Expand Your Curated Shelf</h2>
+          <p class="text-on-surface-variant opacity-70 text-sm md:text-base">Rekomendasi buku pilihan berdasarkan katalog kami.</p>
+        </div>
+      </div>
+      <div id="relatedGrid" class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"></div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getBook, getBooks, formatRupiah } from '../../lib/api';
+
+  // Tab switching
+  const tabIds = ['synopsis', 'details'];
+  tabIds.forEach(id => {
+    document.getElementById(`tab-${id}`)?.addEventListener('click', () => {
+      tabIds.forEach(t => {
+        const tab = document.getElementById(`tab-${t}`);
+        const content = document.getElementById(`content-${t}`);
+        if (t === id) {
+          tab!.className = 'pb-4 border-b-2 border-tertiary text-primary font-bold whitespace-nowrap text-sm md:text-base';
+          content!.classList.remove('hidden');
+        } else {
+          tab!.className = 'pb-4 text-on-surface-variant hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap text-sm md:text-base';
+          content!.classList.add('hidden');
+        }
+      });
+    });
+  });
+
+  // Get book ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookId = urlParams.get('id');
+
+  if (!bookId) {
+    window.location.href = '/katalog';
+  } else {
+    loadBookDetails(bookId);
+  }
+
+  async function loadBookDetails(id: string) {
+    try {
+      const book = await getBook(id);
+
+      // Update page title
+      document.title = `${book.title} — Digital Papyrus`;
+
+      // Breadcrumb
+      document.getElementById('breadCategory')!.textContent = book.category || 'Uncategorized';
+      document.getElementById('breadTitle')!.textContent = book.title;
+
+      // Cover
+      const cover = document.getElementById('bookCover') as HTMLImageElement;
+      cover.src = book.image_url || '';
+      cover.alt = `Cover buku ${book.title} oleh ${book.author}`;
+
+      // Header
+      document.getElementById('bookTitle')!.textContent = book.title;
+      document.getElementById('bookAuthor')!.textContent = book.author;
+      document.getElementById('bookRating')!.textContent = book.rating.toFixed(1);
+      document.getElementById('bookReviews')!.textContent = `(${book.review_count} reviews)`;
+
+      // Badge
+      if (book.format?.toLowerCase().includes('hardcover') || book.stock < 20) {
+        const badge = document.getElementById('bookBadge')!;
+        badge.textContent = book.stock < 20 ? 'Limited Stock' : 'Premium Edition';
+        badge.classList.remove('hidden');
+      }
+
+      // Price
+      document.getElementById('bookPrice')!.textContent = formatRupiah(book.price);
+
+      // Synopsis
+      document.getElementById('bookSynopsis')!.textContent = book.synopsis || book.description || 'No synopsis available.';
+
+      // Details tab
+      document.getElementById('bookDetailsGrid')!.innerHTML = `
+        <p><strong>Publisher:</strong> ${book.publisher || '-'}<br/>
+        <strong>Publication Date:</strong> ${book.publication_date || '-'}<br/>
+        <strong>Dimensions:</strong> ${book.dimensions || '-'}<br/>
+        <strong>Weight:</strong> ${book.weight || '-'}<br/>
+        <strong>ISBN:</strong> ${book.isbn || '-'}</p>`;
+
+      // Specs
+      document.getElementById('bookSpecs')!.innerHTML = `
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">ISBN-13</p><p class="font-bold text-primary text-sm md:text-base">${book.isbn || '-'}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Pages</p><p class="font-bold text-primary text-sm md:text-base">${book.pages || '-'}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Format</p><p class="font-bold text-primary text-sm md:text-base">${book.format || '-'}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Language</p><p class="font-bold text-primary text-sm md:text-base">${book.language || '-'}</p></div>`;
+
+      // Show content, hide loading
+      document.getElementById('bookLoading')!.classList.add('hidden');
+      document.getElementById('bookContent')!.classList.remove('hidden');
+
+      // Load related books
+      loadRelatedBooks(book.category, book.id);
+
+    } catch (err) {
+      document.getElementById('bookLoading')!.innerHTML = `
+        <div class="py-20 text-center">
+          <span class="material-symbols-outlined text-5xl text-red-300 mb-4 block">error</span>
+          <p class="text-lg text-on-surface-variant font-semibold">Buku tidak ditemukan</p>
+          <a href="/katalog" class="text-primary font-bold mt-4 inline-block hover:underline">← Kembali ke Katalog</a>
+        </div>`;
+    }
+  }
+
+  async function loadRelatedBooks(category: string, excludeId: string) {
+    try {
+      const { books } = await getBooks({ per_page: 4, category, status: 'published' });
+      const related = books.filter(b => b.id !== excludeId).slice(0, 4);
+
+      if (related.length > 0) {
+        document.getElementById('relatedGrid')!.innerHTML = related.map(book => `
+          <a href="/details-book?id=${book.id}" class="block group cursor-pointer">
+            <div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 transform group-hover:-translate-y-2 transition-transform duration-300">
+              ${book.image_url
+                ? `<img class="w-full h-full object-cover" draggable="false" alt="Cover ${book.title}" src="${book.image_url}" loading="lazy" />`
+                : `<div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-4xl text-stone-300">auto_stories</span></div>`}
+            </div>
+            <h3 class="font-headline font-bold text-primary text-base md:text-lg group-hover:text-tertiary transition-colors">${book.title}</h3>
+            <p class="text-sm text-on-surface-variant">${book.author}</p>
+          </a>`).join('');
+
+        document.getElementById('relatedSection')!.classList.remove('hidden');
+      }
+    } catch { /* silently skip if related books fail */ }
+  }
+</script>

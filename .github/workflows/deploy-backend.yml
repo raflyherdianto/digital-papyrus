@@ -1,0 +1,47 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy backend files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 52.221.148.33
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "backend"
+          target: "/home/ubuntu/digital-papyrus"
+
+      - name: Execute deployment on EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 52.221.148.33
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Ensure shared network exists
+            docker network inspect shared-network >/dev/null 2>&1 || docker network create shared-network
+            
+            # Ensure backend directory exists and navigate to it
+            mkdir -p /home/ubuntu/digital-papyrus/backend
+            cd /home/ubuntu/digital-papyrus/backend
+            
+            # Safely create data directory for SQLite mounting
+            mkdir -p data
+            
+            # Build and deploy BE container detached, forcing a rebuild
+            docker compose up -d --build

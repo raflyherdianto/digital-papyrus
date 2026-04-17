@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fe-papyrus
+    restart: restart-always
+    ports:
+      - "4321:80"
+    networks:
+      - shared-network
+    volumes:
+      # Expose public uploads dir directly into nginx serving folder
+      - ./public/uploads:/usr/share/nginx/html/uploads
+
+networks:
+  shared-network:
+    name: shared-network
+    external: true

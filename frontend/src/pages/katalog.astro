@@ -1,0 +1,202 @@
+---
+/**
+ * Book Catalog Page
+ * Route: /katalog
+ * Fetches books dynamically from the backend API.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BookCard from '../components/BookCard.astro';
+
+const categories = ['Fiksi Kontemporer', 'Filosofi Modern', 'Teknologi & Sains', 'Seni & Desain'];
+---
+
+<BaseLayout title="Katalog Buku | Digital Papyrus" description="Jelajahi koleksi buku Digital Papyrus. Berbagai genre, dari fiksi kontemporer hingga teknologi & sains." readingProgress={35}>
+  <div class="pb-16 md:pb-24 px-4 md:px-8 max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="mb-10 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
+      <div class="max-w-2xl">
+        <span class="font-label text-xs font-semibold tracking-widest text-tertiary uppercase mb-3 md:mb-4 block">Eksplorasi Katalog</span>
+        <h1 class="font-headline text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-primary leading-tight">Kurasi Literasi Digital Abad Ini.</h1>
+      </div>
+      <div class="flex items-center gap-2 md:gap-4 bg-surface-container-low p-2 rounded-xl self-start md:self-auto">
+        <button id="sortAll" class="px-3 md:px-4 py-2 rounded-lg bg-surface-container-lowest shadow-sm font-semibold text-sm text-primary">Semua</button>
+        <button id="sortNew" class="px-3 md:px-4 py-2 rounded-lg text-sm text-secondary hover:bg-surface-container transition-colors">Terbaru</button>
+        <button id="sortPopular" class="px-3 md:px-4 py-2 rounded-lg text-sm text-secondary hover:bg-surface-container transition-colors">Populer</button>
+      </div>
+    </header>
+
+    <div class="flex flex-col lg:flex-row gap-8 md:gap-12">
+      <!-- Sidebar Filters -->
+      <aside class="w-full lg:w-64 space-y-8 md:space-y-10 shrink-0">
+        <div>
+          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">Kategori</h3>
+          <div class="space-y-3" id="categoryFilters">
+            {categories.map((cat, i) => (
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <div class="w-5 h-5 rounded border border-outline-variant group-hover:border-primary transition-colors flex items-center justify-center">
+                  {i === 0 && <div class="w-2.5 h-2.5 bg-primary rounded-sm"></div>}
+                </div>
+                <input class="hidden category-checkbox" type="checkbox" value={cat} checked={i === 0} />
+                <span class="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors">{cat}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">Rentang Harga</h3>
+          <div class="px-2">
+            <div class="h-1 bg-surface-container-high rounded-full relative">
+              <div class="absolute left-0 right-1/4 h-full bg-primary rounded-full"></div>
+              <div class="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-primary border-2 border-surface rounded-full shadow-md"></div>
+              <div class="absolute right-1/4 top-1/2 -translate-y-1/2 w-4 h-4 bg-primary border-2 border-surface rounded-full shadow-md"></div>
+            </div>
+            <div class="flex justify-between mt-4 text-xs font-medium text-outline">
+              <span>Rp 0</span><span>Rp 500rb</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">Minimum Rating</h3>
+          <div class="flex gap-2">
+            {[1, 2, 3].map((star) => (
+              <button class:list={[
+                'w-10 h-10 rounded-md flex items-center justify-center transition-colors',
+                star === 3 ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant' : 'bg-surface-container text-primary hover:bg-tertiary-fixed',
+              ]}>
+                <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      <!-- Book Grid -->
+      <div class="flex-1">
+        <!-- Loading State -->
+        <div id="bookGridLoading" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-10 md:gap-y-16 gap-x-6 md:gap-x-8">
+          {[1,2,3,4,5,6].map(() => (
+            <div class="animate-pulse">
+              <div class="aspect-[3/4] bg-surface-container-low rounded-xl mb-4"></div>
+              <div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div>
+              <div class="h-3 bg-surface-container-low rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+
+        <!-- Dynamic book grid (populated by JS) -->
+        <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-10 md:gap-y-16 gap-x-6 md:gap-x-8 hidden"></div>
+
+        <!-- Pagination -->
+        <div id="catalogPagination" class="mt-16 md:mt-24 flex items-center justify-center gap-4 hidden">
+          <button id="prevPage" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-surface-container-low transition-all" aria-label="Previous page">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <span id="pageInfo" class="text-sm font-bold text-primary px-4">Halaman 1 dari 1</span>
+          <button id="nextPage" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-surface-container-low transition-all" aria-label="Next page">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getBooks, formatRupiah } from '../lib/api';
+  import type { Book } from '../lib/api';
+
+  let currentPage = 1;
+  const perPage = 12;
+  let currentCategory = '';
+  let currentSearch = '';
+
+  const bookGrid = document.getElementById('bookGrid')!;
+  const bookGridLoading = document.getElementById('bookGridLoading')!;
+  const paginationDiv = document.getElementById('catalogPagination')!;
+  const pageInfo = document.getElementById('pageInfo')!;
+  const prevBtn = document.getElementById('prevPage')!;
+  const nextBtn = document.getElementById('nextPage')!;
+
+  function renderBookCard(book: Book): string {
+    const priceStr = book.price > 0 ? formatRupiah(book.price) : '--';
+    const catSlug = (book.category_name || 'uncategorized').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return `
+      <a href="/${catSlug}/details-book?id=${book.id}" class="group block cursor-pointer">
+        <div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 shadow-md transform group-hover:-translate-y-2 transition-transform duration-300">
+          ${book.image_url
+            ? `<img class="w-full h-full object-cover" src="${book.image_url}" alt="Cover ${book.title}" loading="lazy" />`
+            : `<div class="w-full h-full flex items-center justify-center bg-surface-container"><span class="material-symbols-outlined text-5xl text-stone-300">auto_stories</span></div>`}
+        </div>
+        <h3 class="font-headline font-bold text-primary text-base md:text-lg group-hover:text-tertiary transition-colors leading-snug">${book.title}</h3>
+        <p class="text-sm text-on-surface-variant mt-1">${book.author}</p>
+        <div class="flex items-center justify-between mt-3">
+          <p class="font-headline font-extrabold text-primary text-sm">${priceStr}</p>
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+            <span class="text-sm font-semibold text-on-surface-variant">${book.rating.toFixed(1)}</span>
+          </div>
+        </div>
+      </a>`;
+  }
+
+  async function loadBooks() {
+    bookGridLoading.classList.remove('hidden');
+    bookGrid.classList.add('hidden');
+    paginationDiv.classList.add('hidden');
+
+    try {
+      const { books, meta } = await getBooks({
+        page: currentPage,
+        per_page: perPage,
+        category: currentCategory || undefined,
+        search: currentSearch || undefined,
+        status: 'published',
+      });
+
+      bookGrid.innerHTML = books.map(renderBookCard).join('');
+      bookGridLoading.classList.add('hidden');
+      bookGrid.classList.remove('hidden');
+
+      if (meta.total_pages > 1) {
+        paginationDiv.classList.remove('hidden');
+        pageInfo.textContent = `Halaman ${meta.page} dari ${meta.total_pages}`;
+        prevBtn.classList.toggle('opacity-30', meta.page <= 1);
+        prevBtn.classList.toggle('pointer-events-none', meta.page <= 1);
+        nextBtn.classList.toggle('opacity-30', meta.page >= meta.total_pages);
+        nextBtn.classList.toggle('pointer-events-none', meta.page >= meta.total_pages);
+      }
+
+      if (books.length === 0) {
+        bookGrid.innerHTML = `<div class="col-span-full py-16 text-center"><span class="material-symbols-outlined text-5xl text-stone-300 mb-4 block">search_off</span><p class="text-on-surface-variant">Tidak ada buku ditemukan.</p></div>`;
+      }
+    } catch (err) {
+      bookGridLoading.classList.add('hidden');
+      bookGrid.classList.remove('hidden');
+      bookGrid.innerHTML = `<div class="col-span-full py-16 text-center"><span class="material-symbols-outlined text-5xl text-red-300 mb-4 block">error</span><p class="text-on-surface-variant">Gagal memuat katalog. Silakan coba lagi.</p></div>`;
+    }
+  }
+
+  prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; loadBooks(); } });
+  nextBtn.addEventListener('click', () => { currentPage++; loadBooks(); });
+
+  // Category filter checkboxes
+  document.querySelectorAll('.category-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const checked = Array.from(document.querySelectorAll('.category-checkbox:checked')) as HTMLInputElement[];
+      currentCategory = checked.length === 1 ? checked[0].value : '';
+      currentPage = 1;
+      loadBooks();
+
+      // Update visual indicator
+      document.querySelectorAll('.category-checkbox').forEach(box => {
+        const dot = (box as HTMLElement).parentElement?.querySelector('div > div');
+        if (dot) dot.classList.toggle('hidden', !(box as HTMLInputElement).checked);
+      });
+    });
+  });
+
+  // Initial load
+  loadBooks();
+</script>

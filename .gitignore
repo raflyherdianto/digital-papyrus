@@ -1,0 +1,10 @@
+# Abaikan semua file di root direktori (seperti mockups HTML lama, file teks sementara, dll)
+/*
+
+# JANGAN ABAIKAN direktori-direktori penting ini dan isinya:
+!backend/
+!frontend/
+!.github/
+
+# JANGAN ABAIKAN file .gitignore ini sendiri
+!.gitignore

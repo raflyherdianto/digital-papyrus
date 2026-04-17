@@ -1,0 +1,55 @@
+---
+/**
+ * BookCard — Reusable book card for catalog grids and sliders.
+ */
+export interface Props {
+  title: string;
+  author: string;
+  price: string;
+  rating: string;
+  image: string;
+  href?: string;
+  variant?: 'grid' | 'slider';
+}
+
+const { title, author, price, rating, image, href = '/details-book', variant = 'grid' } = Astro.props;
+const isSlider = variant === 'slider';
+---
+
+<a
+  href={href}
+  class:list={[
+    'block group relative flex flex-col',
+    isSlider && 'w-[220px] md:w-[260px] shrink-0 snap-start',
+  ]}
+>
+  <div class:list={[
+    'rounded-xl overflow-hidden bg-surface-container-low relative mb-4 md:mb-6',
+    isSlider ? 'aspect-[3/4]' : 'aspect-[3/4]',
+  ]}>
+    <img
+      class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+      alt={`Cover buku ${title}`}
+      src={image}
+      loading="lazy"
+      draggable="false"
+    />
+    <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center backdrop-blur-[2px]">
+      <button class="bg-surface text-primary px-4 md:px-6 py-3 rounded-md font-bold text-sm shadow-xl flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+        <span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+        Tambah
+      </button>
+    </div>
+  </div>
+  <div class="space-y-1 px-1">
+    <div class="flex justify-between items-start">
+      <h3 class="font-headline font-bold text-sm md:text-base text-primary pr-2 leading-snug">{title}</h3>
+      <div class="flex items-center gap-1 shrink-0">
+        <span class="material-symbols-outlined text-sm text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+        <span class="text-xs font-bold text-on-surface">{rating}</span>
+      </div>
+    </div>
+    <p class="text-sm text-secondary font-medium">{author}</p>
+    <p class="font-headline font-extrabold text-sm md:text-base text-primary pt-0.5">{price}</p>
+  </div>
+</a>

@@ -1,0 +1,32 @@
+---
+/**
+ * AuthLayout — Minimal layout for authentication pages.
+ * No navbar or footer, centered card design.
+ */
+import Head from './Head.astro';
+
+export interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<Head title={title} description="Admin Login - Digital Papyrus">
+  <div class="reading-progress" style="width: 30%;"></div>
+
+  <header class="fixed top-0 w-full flex justify-center items-center py-8 bg-transparent z-10">
+    <a href="/" class="flex items-center gap-3">
+      <img src="/logo.png" alt="Digital Papyrus Logo" class="h-8 w-auto" width="32" height="32" />
+      <span class="text-2xl font-headline font-bold tracking-tight text-primary">Digital Papyrus</span>
+    </a>
+  </header>
+
+  <main class="min-h-screen flex flex-col items-center justify-center px-4">
+    <slot />
+  </main>
+
+  <footer class="fixed bottom-8 w-full flex justify-center items-center px-12 bg-transparent text-center">
+    <p class="font-body text-xs tracking-widest uppercase text-slate-400">&copy; 2026 Digital Papyrus. All rights reserved.</p>
+  </footer>
+</Head>

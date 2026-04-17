@@ -1,0 +1,83 @@
+---
+/**
+ * Navbar — Shared navigation bar for public pages.
+ * Responsive: desktop links hidden on mobile, hamburger menu shown.
+ */
+---
+
+<nav
+  class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0px_12px_32px_rgba(26,28,28,0.06)]"
+  aria-label="Main navigation"
+>
+  <div class="flex justify-between items-center px-4 md:px-8 py-4 max-w-7xl mx-auto">
+    <!-- Logo -->
+    <div class="flex items-center gap-3">
+      <a href="/" class="flex items-center gap-3" aria-label="Digital Papyrus Home">
+        <img src="/logo.png" alt="Digital Papyrus Logo" class="h-8 w-auto" width="32" height="32" loading="eager" />
+        <span class="text-xl md:text-2xl font-headline font-bold tracking-tight text-primary">
+          Digital Papyrus
+        </span>
+      </a>
+    </div>
+
+    <!-- Desktop Links -->
+    <div class="hidden md:flex items-center gap-8 font-headline font-bold tracking-tight">
+      <a class="text-primary/60 hover:text-tertiary transition-colors duration-300" href="/katalog">Katalog</a>
+      <a class="text-primary/60 hover:text-tertiary transition-colors duration-300" href="/#layanan">Layanan</a>
+      <a class="text-primary/60 hover:text-tertiary transition-colors duration-300" href="/#promo">Promo</a>
+      <a class="text-primary/60 hover:text-tertiary transition-colors duration-300" href="/#contact">Kontak</a>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-4 md:gap-6">
+      <!-- Search (Desktop) -->
+      <div class="hidden lg:flex items-center bg-surface-container px-4 py-2 rounded-md transition-all focus-within:bg-surface-container-lowest focus-within:ring-1 focus-within:ring-primary/20">
+        <span class="material-symbols-outlined text-outline text-sm mr-2">search</span>
+        <input
+          class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-outline-variant"
+          placeholder="Cari literatur..."
+          type="text"
+          aria-label="Search books"
+        />
+      </div>
+
+      <!-- Cart -->
+      <div class="relative cursor-pointer group flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors" aria-label="Shopping cart">
+        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[26px]">shopping_cart</span>
+        <span class="absolute top-0 right-0 border-2 border-surface bg-primary text-on-primary text-[9px] font-extrabold w-[18px] h-[18px] flex items-center justify-center rounded-full" aria-label="3 items in cart">3</span>
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button
+        id="mobile-menu-toggle"
+        class="md:hidden text-primary"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+      >
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="hidden md:hidden bg-surface border-t border-outline-variant/20 px-6 py-4 space-y-4 font-headline font-bold">
+    <a class="block text-primary/80 hover:text-tertiary py-2" href="/katalog">Katalog</a>
+    <a class="block text-primary/80 hover:text-tertiary py-2" href="/#layanan">Layanan</a>
+    <a class="block text-primary/80 hover:text-tertiary py-2" href="/#promo">Promo</a>
+    <a class="block text-primary/80 hover:text-tertiary py-2" href="/#contact">Kontak</a>
+  </div>
+</nav>
+
+<script>
+  const toggleBtn = document.getElementById('mobile-menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (toggleBtn && mobileMenu) {
+    toggleBtn.addEventListener('click', () => {
+      const isOpen = !mobileMenu.classList.contains('hidden');
+      mobileMenu.classList.toggle('hidden');
+      toggleBtn.setAttribute('aria-expanded', String(!isOpen));
+      const icon = toggleBtn.querySelector('span');
+      if (icon) icon.textContent = isOpen ? 'menu' : 'close';
+    });
+  }
+</script>
