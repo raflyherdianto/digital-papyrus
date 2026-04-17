@@ -41,8 +41,11 @@ jobs:
             mkdir -p /home/ubuntu/digital-papyrus/backend
             cd /home/ubuntu/digital-papyrus/backend
             
-            # Safely create data directory for SQLite mounting
+            # Safely create data directory for SQLite mounting and fix permissions
             mkdir -p data
+            mkdir -p ../frontend/public/uploads
+            chmod 777 data
+            chmod 777 ../frontend/public/uploads
             
             # Build and deploy BE container detached, forcing a rebuild
             docker compose up -d --build
