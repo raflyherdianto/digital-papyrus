@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: be-papyrus
     restart: always
+    env_file: .env   # Load secret environment variables injected by GitHub Actions
     ports:
       - "8080:8080"
     networks:

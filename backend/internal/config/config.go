@@ -73,7 +73,7 @@ func Load() *Config {
 			Path: getEnv("DB_PATH", "./data/digital_papyrus.db"),
 		},
 		JWT: JWTConfig{
-			Secret:     getEnv("JWT_SECRET", "dev-secret-change-in-production-immediately"),
+			Secret:     getEnv("JWT_SECRET", "local-dev-secret-key"),
 			ExpiryTime: time.Duration(getEnvAsInt("JWT_EXPIRY_HOURS", 24)) * time.Hour,
 		},
 		CORS: CORSConfig{
@@ -87,9 +87,9 @@ func Load() *Config {
 			BcryptCost: getEnvAsInt("BCRYPT_COST", 12),
 		},
 		Seed: SeedConfig{
-			SuperAdminEmail:    getEnv("SEED_SUPERADMIN_EMAIL", "superadmin@digitalpapyrus.web.id"),
-			SuperAdminPassword: getEnv("SEED_SUPERADMIN_PASSWORD", "SuperAdmin@2026!"),
-			SuperAdminName:     getEnv("SEED_SUPERADMIN_NAME", "Super Admin"),
+			SuperAdminEmail:    getEnv("SEED_SUPERADMIN_EMAIL", "admin@local.dev"),
+			SuperAdminPassword: getEnv("SEED_SUPERADMIN_PASSWORD", "local-dev-password"),
+			SuperAdminName:     getEnv("SEED_SUPERADMIN_NAME", "Local Admin"),
 		},
 	}
 }

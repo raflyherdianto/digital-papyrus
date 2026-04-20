@@ -21,25 +21,25 @@ jobs:
       - name: Copy frontend files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: 52.221.148.33
-          username: ubuntu
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "frontend"
-          target: "/home/ubuntu/digital-papyrus"
+          target: "/home/${{ secrets.EC2_USERNAME }}/digital-papyrus"
 
       - name: Execute deployment on EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 52.221.148.33
-          username: ubuntu
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             # Ensure shared network exists
             docker network inspect shared-network >/dev/null 2>&1 || docker network create shared-network
             
             # Ensure frontend directory exists and navigate to it
-            mkdir -p /home/ubuntu/digital-papyrus/frontend
-            cd /home/ubuntu/digital-papyrus/frontend
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/digital-papyrus/frontend
+            cd /home/${{ secrets.EC2_USERNAME }}/digital-papyrus/frontend
             
             # Ensure upload folder exists for volume mapping
             mkdir -p public/uploads
