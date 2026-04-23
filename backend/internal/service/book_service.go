@@ -2,6 +2,9 @@ package service
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -149,6 +152,8 @@ func (s *BookService) UpdateBook(id string, input UpdateBookInput) (*model.Book,
 		return nil, nil
 	}
 
+	oldImageURL := book.ImageURL
+
 	// Apply partial updates (PATCH semantics)
 	if input.Title != nil {
 		book.Title = validator.SanitizeString(*input.Title)
@@ -211,10 +216,37 @@ func (s *BookService) UpdateBook(id string, input UpdateBookInput) (*model.Book,
 	if err := s.bookRepo.Update(book); err != nil {
 		return nil, fmt.Errorf("book_service: update: %w", err)
 	}
+
+	// Clean up old image if it was replaced
+	if input.ImageURL != nil && *input.ImageURL != oldImageURL && oldImageURL != "" {
+		if strings.HasPrefix(oldImageURL, "/uploads/") {
+			oldPath := filepath.Join("frontend", "public", "uploads", filepath.Base(oldImageURL))
+			_ = os.Remove(oldPath)
+		}
+	}
+
 	return book, nil
 }
 
 // DeleteBook removes a book by ID.
 func (s *BookService) DeleteBook(id string) error {
-	return s.bookRepo.Delete(id)
+	book, err := s.bookRepo.FindByID(id)
+	if err != nil {
+		return fmt.Errorf("book_service: find before delete: %w", err)
+	}
+	if book == nil {
+		return nil // already deleted
+	}
+
+	if err := s.bookRepo.Delete(id); err != nil {
+		return err
+	}
+
+	// Clean up image
+	if book.ImageURL != "" && strings.HasPrefix(book.ImageURL, "/uploads/") {
+		oldPath := filepath.Join("frontend", "public", "uploads", filepath.Base(book.ImageURL))
+		_ = os.Remove(oldPath)
+	}
+
+	return nil
 }
