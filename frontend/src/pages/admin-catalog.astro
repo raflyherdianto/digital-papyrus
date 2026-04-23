@@ -130,11 +130,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price (Rp)</label>
-              <input name="price" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="0" />
+              <input name="price" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 50000" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Stock Units</label>
-              <input name="stock" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="0" />
+              <input name="stock" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 100" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Cover Image</label>
@@ -142,7 +142,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Publisher</label>
-              <input name="publisher" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="publisher" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Gramedia Pustaka Utama" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Publication Date</label>
@@ -159,23 +159,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Language</label>
-              <input name="language" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="language" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Bahasa Indonesia" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Pages</label>
-              <input name="pages" type="number" min="1" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="pages" type="number" min="1" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 200" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Dimensions</label>
-              <input name="dimensions" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="dimensions" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 10 x 10 cm" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Weight</label>
-              <input name="weight" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <div class="relative">
+                <input name="weight" type="number" min="0" class="w-full bg-surface py-2.5 pl-4 pr-10 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 1" />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                  <span class="text-sm text-stone-500 font-medium">kg</span>
+                </div>
+              </div>
             </div>
             <div class="md:col-span-2 space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Description</label>
-              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-24 resize-none" placeholder="Enter book description..."></textarea>
+              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-24 resize-none" placeholder="Example: Buku ini membahas strategi menulis konten digital..."></textarea>
             </div>
           </div>
         </form>
@@ -239,7 +244,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Publisher</label>
-              <input name="publisher" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="publisher" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Gramedia Pustaka Utama" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Publication Date</label>
@@ -256,23 +261,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Language</label>
-              <input name="language" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="language" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Bahasa Indonesia" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Pages</label>
-              <input name="pages" type="number" min="1" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="pages" type="number" min="1" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 200" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Dimensions</label>
-              <input name="dimensions" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="dimensions" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 10 x 10 cm" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Weight</label>
-              <input name="weight" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <div class="relative">
+                <input name="weight" type="number" min="0" class="w-full bg-surface py-2.5 pl-4 pr-10 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 1" />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                  <span class="text-sm text-stone-500 font-medium">kg</span>
+                </div>
+              </div>
             </div>
             <div class="md:col-span-2 space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Description</label>
-              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-24 resize-none"></textarea>
+              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-24 resize-none" placeholder="Example: Buku ini membahas strategi menulis konten digital..."></textarea>
             </div>
           </div>
         </form>
