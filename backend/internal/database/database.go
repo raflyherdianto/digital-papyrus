@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	_ "modernc.org/sqlite" // Pure Go SQLite driver (CGo-free)
 )
@@ -58,6 +59,7 @@ func Migrate(db *sql.DB) error {
 		`CREATE TABLE IF NOT EXISTS categories (
 			id          TEXT PRIMARY KEY,
 			name        TEXT NOT NULL UNIQUE,
+			slug        TEXT NOT NULL UNIQUE,
 			created_at  DATETIME NOT NULL DEFAULT (datetime('now')),
 			updated_at  DATETIME NOT NULL DEFAULT (datetime('now'))
 		);`,
@@ -129,6 +131,100 @@ func Migrate(db *sql.DB) error {
 		return fmt.Errorf("database: commit migration tx: %w", err)
 	}
 
+	if err := ensureCategorySlugs(db); err != nil {
+		return fmt.Errorf("database: ensure category slugs: %w", err)
+	}
+
 	log.Println("[DB] Schema migration completed successfully")
 	return nil
+}
+
+func ensureCategorySlugs(db *sql.DB) error {
+	if _, err := db.Exec(`ALTER TABLE categories ADD COLUMN slug TEXT`); err != nil {
+		if !strings.Contains(strings.ToLower(err.Error()), "duplicate column name") {
+			return fmt.Errorf("add slug column: %w", err)
+		}
+	}
+
+	rows, err := db.Query(`SELECT id, name FROM categories ORDER BY created_at ASC, id ASC`)
+	if err != nil {
+		return fmt.Errorf("select categories for slug backfill: %w", err)
+	}
+	defer rows.Close()
+
+	type categoryRow struct {
+		ID   string
+		Name string
+	}
+
+	var categories []categoryRow
+	for rows.Next() {
+		var c categoryRow
+		if err := rows.Scan(&c.ID, &c.Name); err != nil {
+			return fmt.Errorf("scan category for slug backfill: %w", err)
+		}
+		categories = append(categories, c)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate categories for slug backfill: %w", err)
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin slug backfill tx: %w", err)
+	}
+
+	used := make(map[string]struct{}, len(categories))
+	for _, c := range categories {
+		base := slugifyCategoryName(c.Name)
+		slug := base
+		idx := 2
+		for {
+			if _, exists := used[slug]; !exists {
+				break
+			}
+			slug = fmt.Sprintf("%s-%d", base, idx)
+			idx++
+		}
+		used[slug] = struct{}{}
+
+		if _, err := tx.Exec(`UPDATE categories SET slug = ? WHERE id = ?`, slug, c.ID); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("update category slug: %w", err)
+		}
+	}
+
+	if _, err := tx.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_categories_slug ON categories(slug)`); err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("create slug index: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit slug backfill tx: %w", err)
+	}
+
+	return nil
+}
+
+func slugifyCategoryName(name string) string {
+	slug := strings.ToLower(strings.TrimSpace(name))
+	slug = strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			return r
+		case r >= '0' && r <= '9':
+			return r
+		default:
+			return '-'
+		}
+	}, slug)
+
+	for strings.Contains(slug, "--") {
+		slug = strings.ReplaceAll(slug, "--", "-")
+	}
+	slug = strings.Trim(slug, "-")
+	if slug == "" {
+		return "category"
+	}
+	return slug
 }

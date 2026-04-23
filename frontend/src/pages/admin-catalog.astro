@@ -104,11 +104,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div class="md:col-span-2 space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Book Title *</label>
-              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Enter book title" />
+              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: The Art of Digital Writing" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Author *</label>
-              <input name="author" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Enter author name" />
+              <input name="author" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Jane Doe" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">ISBN</label>
@@ -150,7 +150,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Format</label>
-              <input name="format" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <select name="format" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="">Select format</option>
+                <option value="Softcover">Softcover</option>
+                <option value="Hardcover">Hardcover</option>
+                <option value="E-Book">E-Book</option>
+              </select>
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Language</label>
@@ -196,11 +201,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div class="md:col-span-2 space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Book Title *</label>
-              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: The Art of Digital Writing" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Author *</label>
-              <input name="author" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="author" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Jane Doe" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">ISBN</label>
@@ -242,7 +247,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Format</label>
-              <input name="format" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <select name="format" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="">Select format</option>
+                <option value="Softcover">Softcover</option>
+                <option value="Hardcover">Hardcover</option>
+                <option value="E-Book">E-Book</option>
+              </select>
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Language</label>
@@ -579,7 +589,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             (form.querySelector('[name="existing_image_url"]') as HTMLInputElement).value = book.image_url || '';
             (form.querySelector('[name="publisher"]') as HTMLInputElement).value = book.publisher || '';
             (form.querySelector('[name="publication_date"]') as HTMLInputElement).value = book.publication_date || '';
-            (form.querySelector('[name="format"]') as HTMLInputElement).value = book.format || '';
+            (form.querySelector('[name="format"]') as HTMLSelectElement).value = book.format || '';
             (form.querySelector('[name="language"]') as HTMLInputElement).value = book.language || '';
             (form.querySelector('[name="pages"]') as HTMLInputElement).value = String(book.pages || 0);
             (form.querySelector('[name="dimensions"]') as HTMLInputElement).value = book.dimensions || '';
@@ -643,7 +653,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         author: formData.get('author') as string,
         isbn: formData.get('isbn') as string,
         category_id: formData.get('category') as string,
-        status: formData.get('status') as string,
+        status: (formData.get('status') as string) || 'draft',
         price: parseInt(formData.get('price') as string) || 0,
         stock: parseInt(formData.get('stock') as string) || 0,
         image_url: imageUrl,
@@ -706,7 +716,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         author: formData.get('author') as string,
         isbn: formData.get('isbn') as string,
         category_id: formData.get('category') as string,
-        status: formData.get('status') as string,
+        status: (formData.get('status') as string) || 'draft',
         price: parseInt(formData.get('price') as string) || 0,
         stock: parseInt(formData.get('stock') as string) || 0,
         image_url: imageUrl,

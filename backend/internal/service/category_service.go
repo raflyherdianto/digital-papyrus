@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -49,9 +50,15 @@ func (i *CreateCategoryInput) Validate() map[string]string {
 
 // CreateCategory creates a new category.
 func (s *CategoryService) CreateCategory(input CreateCategoryInput) (*model.Category, error) {
+	slug, err := s.generateUniqueSlug(input.Name, "")
+	if err != nil {
+		return nil, err
+	}
+
 	category := &model.Category{
 		ID:   uuid.New().String(),
 		Name: input.Name,
+		Slug: slug,
 	}
 
 	if err := s.repo.Create(category); err != nil {
@@ -76,12 +83,63 @@ func (s *CategoryService) UpdateCategory(id string, input UpdateCategoryInput) (
 
 	if input.Name != nil {
 		category.Name = validator.SanitizeString(*input.Name)
+		if category.Name == "" {
+			return nil, fmt.Errorf("category_service: name is required")
+		}
+
+		slug, err := s.generateUniqueSlug(category.Name, category.ID)
+		if err != nil {
+			return nil, err
+		}
+		category.Slug = slug
 	}
 
 	if err := s.repo.Update(category); err != nil {
 		return nil, fmt.Errorf("category_service: update: %w", err)
 	}
 	return category, nil
+}
+
+func (s *CategoryService) generateUniqueSlug(name, excludeID string) (string, error) {
+	base := slugifyCategoryName(name)
+	slug := base
+	idx := 2
+
+	for {
+		existing, err := s.repo.FindBySlug(slug)
+		if err != nil {
+			return "", fmt.Errorf("category_service: find slug: %w", err)
+		}
+		if existing == nil || existing.ID == excludeID {
+			return slug, nil
+		}
+		slug = fmt.Sprintf("%s-%d", base, idx)
+		idx++
+	}
+}
+
+func slugifyCategoryName(name string) string {
+	slug := strings.ToLower(strings.TrimSpace(name))
+	slug = strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			return r
+		case r >= '0' && r <= '9':
+			return r
+		default:
+			return '-'
+		}
+	}, slug)
+
+	// Collapse repeated separators and trim edges.
+	for strings.Contains(slug, "--") {
+		slug = strings.ReplaceAll(slug, "--", "-")
+	}
+	slug = strings.Trim(slug, "-")
+	if slug == "" {
+		return "category"
+	}
+	return slug
 }
 
 // DeleteCategory removes a category by ID.

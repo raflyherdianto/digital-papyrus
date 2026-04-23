@@ -20,7 +20,7 @@ func NewCategoryRepository(db *sql.DB) *CategoryRepository {
 
 // FindAll retrieves all categories.
 func (r *CategoryRepository) FindAll() ([]model.Category, error) {
-	rows, err := r.db.Query(`SELECT id, name, created_at, updated_at FROM categories ORDER BY name ASC`)
+	rows, err := r.db.Query(`SELECT id, name, slug, created_at, updated_at FROM categories ORDER BY name ASC`)
 	if err != nil {
 		return nil, fmt.Errorf("category_repo: find all: %w", err)
 	}
@@ -29,7 +29,7 @@ func (r *CategoryRepository) FindAll() ([]model.Category, error) {
 	var categories []model.Category
 	for rows.Next() {
 		var c model.Category
-		if err := rows.Scan(&c.ID, &c.Name, &c.CreatedAt, &c.UpdatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.Slug, &c.CreatedAt, &c.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("category_repo: scan: %w", err)
 		}
 		categories = append(categories, c)
@@ -40,13 +40,27 @@ func (r *CategoryRepository) FindAll() ([]model.Category, error) {
 // FindByID retrieves a single category by its ID.
 func (r *CategoryRepository) FindByID(id string) (*model.Category, error) {
 	var c model.Category
-	err := r.db.QueryRow(`SELECT id, name, created_at, updated_at FROM categories WHERE id = ?`, id).
-		Scan(&c.ID, &c.Name, &c.CreatedAt, &c.UpdatedAt)
+	err := r.db.QueryRow(`SELECT id, name, slug, created_at, updated_at FROM categories WHERE id = ?`, id).
+		Scan(&c.ID, &c.Name, &c.Slug, &c.CreatedAt, &c.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("category_repo: find by id: %w", err)
+	}
+	return &c, nil
+}
+
+// FindBySlug retrieves a single category by slug.
+func (r *CategoryRepository) FindBySlug(slug string) (*model.Category, error) {
+	var c model.Category
+	err := r.db.QueryRow(`SELECT id, name, slug, created_at, updated_at FROM categories WHERE slug = ?`, slug).
+		Scan(&c.ID, &c.Name, &c.Slug, &c.CreatedAt, &c.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("category_repo: find by slug: %w", err)
 	}
 	return &c, nil
 }
@@ -57,8 +71,8 @@ func (r *CategoryRepository) Create(c *model.Category) error {
 	c.CreatedAt = now
 	c.UpdatedAt = now
 
-	_, err := r.db.Exec(`INSERT INTO categories (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)`,
-		c.ID, c.Name, c.CreatedAt, c.UpdatedAt)
+	_, err := r.db.Exec(`INSERT INTO categories (id, name, slug, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
+		c.ID, c.Name, c.Slug, c.CreatedAt, c.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("category_repo: create: %w", err)
 	}
@@ -68,8 +82,8 @@ func (r *CategoryRepository) Create(c *model.Category) error {
 // Update modifies an existing category record.
 func (r *CategoryRepository) Update(c *model.Category) error {
 	c.UpdatedAt = time.Now().UTC()
-	_, err := r.db.Exec(`UPDATE categories SET name = ?, updated_at = ? WHERE id = ?`,
-		c.Name, c.UpdatedAt, c.ID)
+	_, err := r.db.Exec(`UPDATE categories SET name = ?, slug = ?, updated_at = ? WHERE id = ?`,
+		c.Name, c.Slug, c.UpdatedAt, c.ID)
 	if err != nil {
 		return fmt.Errorf("category_repo: update: %w", err)
 	}

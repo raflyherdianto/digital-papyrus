@@ -5,12 +5,12 @@
  * Fetches book details dynamically from the backend API.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCategories } from '../../lib/api';
+import { getCategories, slugifyCategory } from '../../lib/api';
 
 export async function getStaticPaths() {
   try {
     const categories = await getCategories();
-    return categories.map(c => ({ params: { category: c.slug || c.name.toLowerCase().replace(/\s+/g, '-') } }));
+    return categories.map(c => ({ params: { category: c.slug || slugifyCategory(c.name) } }));
   } catch {
     return [
       { params: { category: 'fiksi-kontemporer' } },
@@ -120,7 +120,7 @@ export async function getStaticPaths() {
 </BaseLayout>
 
 <script>
-  import { getBook, getBooks, formatRupiah } from '../../lib/api';
+  import { getBook, getBooks, formatRupiah, slugifyCategory } from '../../lib/api';
 
   // Tab switching
   const tabIds = ['synopsis', 'details'];
@@ -150,6 +150,13 @@ export async function getStaticPaths() {
     loadBookDetails(bookId);
   }
 
+  function formatWeight(weight: string | number | null | undefined): string {
+    if (weight === null || weight === undefined) return '-';
+    const value = String(weight).trim();
+    if (!value) return '-';
+    return /kg$/i.test(value) ? value : `${value} kg`;
+  }
+
   async function loadBookDetails(id: string) {
     try {
       const book = await getBook(id);
@@ -158,7 +165,7 @@ export async function getStaticPaths() {
       document.title = `${book.title} — Digital Papyrus`;
 
       // Breadcrumb
-      document.getElementById('breadCategory')!.textContent = book.category || 'Uncategorized';
+      document.getElementById('breadCategory')!.textContent = book.category_name || 'Uncategorized';
       document.getElementById('breadTitle')!.textContent = book.title;
 
       // Cover
@@ -190,7 +197,7 @@ export async function getStaticPaths() {
         <p><strong>Publisher:</strong> ${book.publisher || '-'}<br/>
         <strong>Publication Date:</strong> ${book.publication_date || '-'}<br/>
         <strong>Dimensions:</strong> ${book.dimensions || '-'}<br/>
-        <strong>Weight:</strong> ${book.weight || '-'}<br/>
+        <strong>Weight:</strong> ${formatWeight(book.weight)}<br/>
         <strong>ISBN:</strong> ${book.isbn || '-'}</p>`;
 
       // Specs
@@ -205,7 +212,7 @@ export async function getStaticPaths() {
       document.getElementById('bookContent')!.classList.remove('hidden');
 
       // Load related books
-      loadRelatedBooks(book.category, book.id);
+      loadRelatedBooks(book.category_id, book.id);
 
     } catch (err) {
       document.getElementById('bookLoading')!.innerHTML = `
@@ -217,14 +224,14 @@ export async function getStaticPaths() {
     }
   }
 
-  async function loadRelatedBooks(category: string, excludeId: string) {
+  async function loadRelatedBooks(categoryId: string, excludeId: string) {
     try {
-      const { books } = await getBooks({ per_page: 4, category, status: 'published' });
+      const { books } = await getBooks({ per_page: 4, category_id: categoryId || undefined, status: 'published' });
       const related = books.filter(b => b.id !== excludeId).slice(0, 4);
 
       if (related.length > 0) {
         document.getElementById('relatedGrid')!.innerHTML = related.map(book => `
-          <a href="/details-book?id=${book.id}" class="block group cursor-pointer">
+          <a href="/${book.category_slug || slugifyCategory(book.category_name || 'uncategorized')}/details-book?id=${book.id}" class="block group cursor-pointer">
             <div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 transform group-hover:-translate-y-2 transition-transform duration-300">
               ${book.image_url
                 ? `<img class="w-full h-full object-cover" draggable="false" alt="Cover ${book.title}" src="${book.image_url}" loading="lazy" />`

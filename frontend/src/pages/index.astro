@@ -259,7 +259,7 @@ const packagesData = {
 </script>
 
 <script>
-  import { getBooks, formatRupiah } from '../lib/api';
+  import { getBooks, formatRupiah, slugifyCategory } from '../lib/api';
 
   async function loadFeaturedBooks() {
     const slider = document.getElementById('katalog-slider');
@@ -271,7 +271,7 @@ const packagesData = {
       if (books.length === 0) return;
 
       slider.innerHTML = books.map(book => {
-        const catSlug = (book.category_name || 'uncategorized').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        const catSlug = book.category_slug || slugifyCategory(book.category_name || 'uncategorized');
         return `
         <a href="/${catSlug}/details-book?id=${book.id}" class="min-w-[200px] md:min-w-[240px] lg:min-w-[260px] snap-start group cursor-pointer select-none">
           <div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 shadow-md transform group-hover:-translate-y-2 transition-transform duration-300">

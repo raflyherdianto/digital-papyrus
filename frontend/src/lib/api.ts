@@ -20,6 +20,7 @@ export interface Book {
   image_url: string;
   category_id: string;
   category_name?: string;
+  category_slug?: string;
   status: 'draft' | 'published' | 'archived';
   stock: number;
   publisher: string;
@@ -103,6 +104,17 @@ export function parseFeatures(features: string): string[] {
   } catch {
     return [];
   }
+}
+
+/** Build URL-safe category slugs (e.g. "Seni & Desain" -> "seni-desain"). */
+export function slugifyCategory(value: string): string {
+  const slug = value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return slug || 'category';
 }
 
 // ─── Core Fetch Wrapper ──────────────────────────────────────────────
@@ -243,8 +255,8 @@ export async function getService(id: string): Promise<Service> {
 export interface Category {
   id: string;
   name: string;
-  slug: string;
-  description: string;
+  slug?: string;
+  description?: string;
   created_at: string;
   updated_at: string;
 }
@@ -252,6 +264,31 @@ export interface Category {
 export async function getCategories(): Promise<Category[]> {
   const res = await apiFetch<Category[]>('/api/v1/categories');
   return res.data || [];
+}
+
+export async function getCategory(id: string): Promise<Category> {
+  const res = await apiFetch<Category>(`/api/v1/categories/${id}`);
+  return res.data;
+}
+
+export async function createCategory(payload: Pick<Category, 'name'>): Promise<Category> {
+  const res = await apiFetch<Category>('/api/v1/categories', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function updateCategory(id: string, payload: Partial<Pick<Category, 'name'>>): Promise<Category> {
+  const res = await apiFetch<Category>(`/api/v1/categories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  await apiFetch(`/api/v1/categories/${id}`, { method: 'DELETE' });
 }
 
 // --- Upload API ----------------------------------------------

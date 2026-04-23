@@ -15,7 +15,7 @@ type Book struct {
 	Title           string    `json:"title"`
 	Author          string    `json:"author"`
 	ISBN            string    `json:"isbn,omitempty"`
-	Price           int       `json:"price"`           // price in smallest currency unit (Rupiah)
+	Price           int       `json:"price"` // price in smallest currency unit (Rupiah)
 	Rating          float64   `json:"rating"`
 	ReviewCount     int       `json:"review_count"`
 	Description     string    `json:"description,omitempty"`
@@ -23,6 +23,7 @@ type Book struct {
 	ImageURL        string    `json:"image_url,omitempty"`
 	CategoryID      string    `json:"category_id,omitempty"`
 	CategoryName    string    `json:"category_name,omitempty"`
+	CategorySlug    string    `json:"category_slug,omitempty"`
 	Status          string    `json:"status"`
 	Stock           int       `json:"stock"`
 	Publisher       string    `json:"publisher,omitempty"`
