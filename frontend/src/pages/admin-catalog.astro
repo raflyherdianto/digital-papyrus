@@ -100,6 +100,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="addBookModal"><span class="material-symbols-outlined">close</span></button>
       </div>
       <div class="px-6 md:px-8 py-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+        <div id="addBookAlert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
         <form id="addBookForm" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div class="md:col-span-2 space-y-2">
@@ -200,6 +201,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="editBookModal"><span class="material-symbols-outlined">close</span></button>
       </div>
       <div class="px-6 md:px-8 py-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+        <div id="editBookAlert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
         <form id="editBookForm" class="space-y-6">
           <input type="hidden" name="id" />
           <input type="hidden" name="existing_image_url" />
@@ -399,6 +401,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
+    // ─── Modal Error ─────────────────────────────────────────────
+    function showModalError(alertBox: HTMLElement, err: any, defaultMsg: string) {
+      alertBox.classList.remove('hidden');
+      if (err.error && typeof err.error === 'object') {
+        let issues = '';
+        if (Array.isArray(err.error)) {
+          issues = err.error.map((e: any) => `<li>${e.field ? `<b>${e.field}</b>: ${e.message}` : e}</li>`).join('');
+        } else if (err.error.details) {
+          issues = Object.entries(err.error.details).map(([k, v]) => `<li><b>${k}</b>: ${v}</li>`).join('');
+        } else {
+          issues = Object.entries(err.error).map(([k, v]) => `<li><b>${k}</b>: ${v}</li>`).join('');
+        }
+        alertBox.innerHTML = `<p class="font-bold mb-1">${err.message || defaultMsg}</p><ul class="list-disc pl-5">${issues}</ul>`;
+      } else {
+        alertBox.innerHTML = `<p class="font-bold">${err.message || defaultMsg}</p>`;
+      }
+    }
+
     // ─── Toast ───────────────────────────────────────────────────
     function showToast(msg: string, type: 'success' | 'error' = 'success') {
       const toast = document.getElementById('toast')!;
@@ -586,6 +606,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         btn.addEventListener('click', async () => {
           const id = (btn as HTMLElement).dataset.id!;
           try {
+            document.getElementById('editBookAlert')?.classList.add('hidden');
             const book = await getBook(id);
             const form = document.getElementById('editBookForm') as HTMLFormElement;
             (form.querySelector('[name="id"]') as HTMLInputElement).value = book.id;
@@ -634,6 +655,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     // ─── Create Book ─────────────────────────────────────────────
     document.getElementById('addBookBtn')?.addEventListener('click', () => {
       (document.getElementById('addBookForm') as HTMLFormElement).reset();
+      document.getElementById('addBookAlert')?.classList.add('hidden');
       openModal('addBookModal');
     });
 
@@ -641,6 +663,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const form = document.getElementById('addBookForm') as HTMLFormElement;
       const formData = new FormData(form);
       const btn = document.getElementById('saveBookBtn') as HTMLButtonElement;
+      const alertBox = document.getElementById('addBookAlert')!;
+      alertBox.classList.add('hidden');
 
       let imageUrl = "";
       const fileInput = form.querySelector('input[name="image_upload"]') as HTMLInputElement;
@@ -651,7 +675,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const uploadRes = await uploadImage(fileInput.files[0]);
           imageUrl = uploadRes.url;
         } catch(err: any) {
-          showToast(err.message || 'Failed to upload image', 'error');
+          showModalError(alertBox, err, 'Failed to upload image');
           btn.disabled = false;
           btn.textContent = 'Save Book';
           return;
@@ -678,7 +702,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       };
 
       if (!payload.title || !payload.author) {
-        showToast('Title and Author are required', 'error');
+        showModalError(alertBox, { message: 'Title and Author are required' }, 'Validation Error');
         return;
       }
 
@@ -691,7 +715,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         showToast('Book created successfully!');
         loadCatalog();
       } catch (err: any) {
-        showToast(err.message || 'Failed to create book', 'error');
+        showModalError(alertBox, err, 'Failed to create book');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Save Book';
@@ -704,6 +728,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const formData = new FormData(form);
       const btn = document.getElementById('updateBookBtn') as HTMLButtonElement;
       const id = formData.get('id') as string;
+      const alertBox = document.getElementById('editBookAlert')!;
+      alertBox.classList.add('hidden');
 
       let imageUrl = formData.get("existing_image_url") as string || "";
       const fileInput = form.querySelector('input[name="image_upload"]') as HTMLInputElement;
@@ -714,7 +740,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const uploadRes = await uploadImage(fileInput.files[0]);
           imageUrl = uploadRes.url;
         } catch(err: any) {
-          showToast(err.message || 'Failed to upload image', 'error');
+          showModalError(alertBox, err, 'Failed to upload image');
           btn.disabled = false;
           btn.textContent = 'Save Changes';
           return;
@@ -740,6 +766,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         weight: formData.get('weight') as string,
       };
 
+      if (!payload.title || !payload.author) {
+        showModalError(alertBox, { message: 'Title and Author are required' }, 'Validation Error');
+        return;
+      }
+
       btn.disabled = true;
       btn.textContent = 'Saving...';
 
@@ -749,7 +780,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         showToast('Book updated successfully!');
         loadCatalog();
       } catch (err: any) {
-        showToast(err.message || 'Failed to update book', 'error');
+        showModalError(alertBox, err, 'Failed to update book');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Save Changes';
