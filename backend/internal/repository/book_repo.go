@@ -138,6 +138,11 @@ func (r *BookRepository) Create(b *model.Book) error {
 		categoryID = nil
 	}
 
+	var isbn interface{} = b.ISBN
+	if b.ISBN == "" {
+		isbn = nil
+	}
+
 	_, err := r.db.Exec(
 		`INSERT INTO books (
 id, title, author, isbn, price, rating, review_count,
@@ -145,7 +150,7 @@ description, synopsis, image_url, category_id, status, stock,
 publisher, publication_date, pages, format, language, dimensions, weight,
 created_at, updated_at
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		b.ID, b.Title, b.Author, b.ISBN, b.Price, b.Rating, b.ReviewCount,
+		b.ID, b.Title, b.Author, isbn, b.Price, b.Rating, b.ReviewCount,
 		b.Description, b.Synopsis, b.ImageURL, categoryID, b.Status, b.Stock,
 		b.Publisher, b.PublicationDate, b.Pages, b.Format, b.Language, b.Dimensions, b.Weight,
 		b.CreatedAt, b.UpdatedAt,
@@ -165,6 +170,11 @@ func (r *BookRepository) Update(b *model.Book) error {
 		categoryID = nil
 	}
 
+	var isbn interface{} = b.ISBN
+	if b.ISBN == "" {
+		isbn = nil
+	}
+
 	_, err := r.db.Exec(
 		`UPDATE books SET
 title = ?, author = ?, isbn = ?, price = ?, rating = ?, review_count = ?,
@@ -172,7 +182,7 @@ description = ?, synopsis = ?, image_url = ?, category_id = ?, status = ?, stock
 publisher = ?, publication_date = ?, pages = ?, format = ?, language = ?,
 dimensions = ?, weight = ?, updated_at = ?
  WHERE id = ?`,
-		b.Title, b.Author, b.ISBN, b.Price, b.Rating, b.ReviewCount,
+		b.Title, b.Author, isbn, b.Price, b.Rating, b.ReviewCount,
 		b.Description, b.Synopsis, b.ImageURL, categoryID, b.Status, b.Stock,
 		b.Publisher, b.PublicationDate, b.Pages, b.Format, b.Language,
 		b.Dimensions, b.Weight, b.UpdatedAt, b.ID,

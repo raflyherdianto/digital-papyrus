@@ -3,6 +3,7 @@ package handler
 import (
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -86,6 +87,10 @@ func (h *BookHandler) CreateBook(c *gin.Context) {
 
 	book, err := h.bookService.CreateBook(input)
 	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") {
+			response.BadRequest(c, "ISBN sudah digunakan oleh buku lain", map[string]string{"isbn": "ISBN ini sudah terdaftar, gunakan ISBN yang berbeda"})
+			return
+		}
 		response.InternalError(c, "Failed to create book")
 		return
 	}
@@ -109,6 +114,10 @@ func (h *BookHandler) UpdateBook(c *gin.Context) {
 
 	book, err := h.bookService.UpdateBook(id, input)
 	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") {
+			response.BadRequest(c, "ISBN sudah digunakan oleh buku lain", map[string]string{"isbn": "ISBN ini sudah terdaftar, gunakan ISBN yang berbeda"})
+			return
+		}
 		response.InternalError(c, "Failed to update book")
 		return
 	}

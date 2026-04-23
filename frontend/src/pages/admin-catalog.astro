@@ -402,20 +402,42 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     }
 
     // ─── Modal Error ─────────────────────────────────────────────
+    const ERROR_CODE_LABELS: Record<string, string> = {
+      VALIDATION_FAILED: 'Terdapat kesalahan pada input berikut:',
+      BAD_REQUEST: 'Permintaan tidak valid. Periksa input berikut:',
+      INTERNAL_ERROR: 'Terjadi kesalahan pada server. Silakan coba lagi atau hubungi admin.',
+      UNAUTHORIZED: 'Sesi Anda telah berakhir. Silakan login ulang.',
+      FORBIDDEN: 'Anda tidak memiliki akses untuk tindakan ini.',
+      NOT_FOUND: 'Data yang diminta tidak ditemukan.',
+    };
+
     function showModalError(alertBox: HTMLElement, err: any, defaultMsg: string) {
       alertBox.classList.remove('hidden');
-      if (err.error && typeof err.error === 'object') {
-        let issues = '';
-        if (Array.isArray(err.error)) {
-          issues = err.error.map((e: any) => `<li>${e.field ? `<b>${e.field}</b>: ${e.message}` : e}</li>`).join('');
-        } else if (err.error.details) {
-          issues = Object.entries(err.error.details).map(([k, v]) => `<li><b>${k}</b>: ${v}</li>`).join('');
-        } else {
-          issues = Object.entries(err.error).map(([k, v]) => `<li><b>${k}</b>: ${v}</li>`).join('');
-        }
-        alertBox.innerHTML = `<p class="font-bold mb-1">${err.message || defaultMsg}</p><ul class="list-disc pl-5">${issues}</ul>`;
+
+      const errorCode: string = err?.error?.code || '';
+      const codeLabel = ERROR_CODE_LABELS[errorCode] || '';
+      const headline = err.message || defaultMsg;
+
+      // If there are per-field details, show them as a list
+      if (err.error?.details && Object.keys(err.error.details).length > 0) {
+        const FIELD_LABELS: Record<string, string> = {
+          title: 'Judul Buku',
+          author: 'Penulis',
+          price: 'Harga',
+          stock: 'Stok',
+          status: 'Status',
+          rating: 'Rating',
+          isbn: 'ISBN',
+        };
+        const issues = Object.entries(err.error.details as Record<string, string>)
+          .map(([k, v]) => `<li><b>${FIELD_LABELS[k] || k}</b>: ${v}</li>`)
+          .join('');
+        alertBox.innerHTML = `<p class="font-bold mb-1">${codeLabel || headline}</p><ul class="list-disc pl-5 space-y-0.5">${issues}</ul>`;
+      } else if (errorCode === 'INTERNAL_ERROR') {
+        // Server error — show friendly message, hide raw code
+        alertBox.innerHTML = `<p class="font-bold">${codeLabel}</p><p class="text-xs mt-1 text-red-500 opacity-70">Detail: ${headline}</p>`;
       } else {
-        alertBox.innerHTML = `<p class="font-bold">${err.message || defaultMsg}</p>`;
+        alertBox.innerHTML = `<p class="font-bold">${codeLabel || headline}</p>`;
       }
     }
 
