@@ -47,6 +47,10 @@ jobs:
             # Create .env file dynamically from GitHub Secrets
             echo "$BACKEND_ENV" > .env
             
+            # WIPE DATABASE COMMAND (AS REQUESTED)
+            # CAUTION: Please remove this line after your next push so you don't wipe the DB on every deployment!
+            sudo rm -rf data
+            
             # Safely create data directory for SQLite mounting and fix permissions
             mkdir -p data
             mkdir -p ../frontend/public/uploads
