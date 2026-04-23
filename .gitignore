@@ -8,3 +8,4 @@
 
 # JANGAN ABAIKAN file .gitignore ini sendiri
 !.gitignore
+frontend/public/uploads/
