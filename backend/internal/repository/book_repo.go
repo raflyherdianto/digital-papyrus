@@ -9,6 +9,17 @@ import (
 	"github.com/digitalpapyrus/backend/internal/model"
 )
 
+// normalizeISBN returns nil for placeholder/empty ISBN values so that
+// the UNIQUE constraint allows multiple books without a real ISBN.
+func normalizeISBN(isbn string) interface{} {
+	trimmed := strings.TrimSpace(isbn)
+	switch strings.ToLower(trimmed) {
+	case "", "-", "--", "—", "n/a", "tbd", "belum terbit", "pending":
+		return nil
+	}
+	return trimmed
+}
+
 // BookRepository handles book database operations.
 type BookRepository struct {
 	db *sql.DB
@@ -144,10 +155,7 @@ func (r *BookRepository) Create(b *model.Book) error {
 		categoryID = nil
 	}
 
-	var isbn interface{} = b.ISBN
-	if b.ISBN == "" {
-		isbn = nil
-	}
+	isbn := normalizeISBN(b.ISBN)
 
 	_, err := r.db.Exec(
 		`INSERT INTO books (
@@ -176,10 +184,7 @@ func (r *BookRepository) Update(b *model.Book) error {
 		categoryID = nil
 	}
 
-	var isbn interface{} = b.ISBN
-	if b.ISBN == "" {
-		isbn = nil
-	}
+	isbn := normalizeISBN(b.ISBN)
 
 	_, err := r.db.Exec(
 		`UPDATE books SET
