@@ -63,13 +63,13 @@ func (r *BookRepository) FindAll(f BookFilter) ([]model.Book, int64, error) {
 		return nil, 0, fmt.Errorf("book_repo: count: %w", err)
 	}
 
-	// Fetch page
+	// Fetch page — use COALESCE to guarantee non-NULL values for every column
 	offset := (f.Page - 1) * f.PerPage
 	dataQuery := fmt.Sprintf(
-		`SELECT b.id, b.title, b.author, b.isbn, b.price, b.rating, b.review_count,
-    b.description, b.synopsis, b.image_url, b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), b.status, b.stock,
-        b.publisher, b.publication_date, b.pages, b.format, b.language, b.dimensions, b.weight,
-        b.created_at, b.updated_at
+		`SELECT b.id, b.title, b.author, COALESCE(b.isbn, ''), COALESCE(b.price, 0), COALESCE(b.rating, 0), COALESCE(b.review_count, 0),
+    COALESCE(b.description, ''), COALESCE(b.synopsis, ''), COALESCE(b.image_url, ''), b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), COALESCE(b.status, 'draft'), COALESCE(b.stock, 0),
+        COALESCE(b.publisher, ''), COALESCE(b.publication_date, ''), COALESCE(b.pages, 0), COALESCE(b.format, ''), COALESCE(b.language, ''), COALESCE(b.dimensions, ''), COALESCE(b.weight, ''),
+        COALESCE(b.created_at, datetime('now')), COALESCE(b.updated_at, datetime('now'))
  FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE %s ORDER BY b.created_at DESC LIMIT ? OFFSET ?`, whereClause)
 	dataArgs := append(args, f.PerPage, offset)
 
@@ -83,17 +83,20 @@ func (r *BookRepository) FindAll(f BookFilter) ([]model.Book, int64, error) {
 	for rows.Next() {
 		var b model.Book
 		var categoryID sql.NullString
+		var createdAtStr, updatedAtStr string
 		if err := rows.Scan(
 			&b.ID, &b.Title, &b.Author, &b.ISBN, &b.Price, &b.Rating, &b.ReviewCount,
 			&b.Description, &b.Synopsis, &b.ImageURL, &categoryID, &b.CategoryName, &b.CategorySlug, &b.Status, &b.Stock,
 			&b.Publisher, &b.PublicationDate, &b.Pages, &b.Format, &b.Language, &b.Dimensions, &b.Weight,
-			&b.CreatedAt, &b.UpdatedAt,
+			&createdAtStr, &updatedAtStr,
 		); err != nil {
 			return nil, 0, fmt.Errorf("book_repo: scan: %w", err)
 		}
 		if categoryID.Valid {
 			b.CategoryID = categoryID.String
 		}
+		b.CreatedAt = parseDateTime(createdAtStr)
+		b.UpdatedAt = parseDateTime(updatedAtStr)
 		books = append(books, b)
 	}
 	return books, total, rows.Err()
@@ -103,17 +106,18 @@ func (r *BookRepository) FindAll(f BookFilter) ([]model.Book, int64, error) {
 func (r *BookRepository) FindByID(id string) (*model.Book, error) {
 	b := &model.Book{}
 	var categoryID sql.NullString
+	var createdAtStr, updatedAtStr string
 	err := r.db.QueryRow(
-		`SELECT b.id, b.title, b.author, b.isbn, b.price, b.rating, b.review_count,
-        b.description, b.synopsis, b.image_url, b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), b.status, b.stock,
-        b.publisher, b.publication_date, b.pages, b.format, b.language, b.dimensions, b.weight,
-        b.created_at, b.updated_at
+		`SELECT b.id, b.title, b.author, COALESCE(b.isbn, ''), COALESCE(b.price, 0), COALESCE(b.rating, 0), COALESCE(b.review_count, 0),
+        COALESCE(b.description, ''), COALESCE(b.synopsis, ''), COALESCE(b.image_url, ''), b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), COALESCE(b.status, 'draft'), COALESCE(b.stock, 0),
+        COALESCE(b.publisher, ''), COALESCE(b.publication_date, ''), COALESCE(b.pages, 0), COALESCE(b.format, ''), COALESCE(b.language, ''), COALESCE(b.dimensions, ''), COALESCE(b.weight, ''),
+        COALESCE(b.created_at, datetime('now')), COALESCE(b.updated_at, datetime('now'))
  FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = ?`, id,
 	).Scan(
 		&b.ID, &b.Title, &b.Author, &b.ISBN, &b.Price, &b.Rating, &b.ReviewCount,
 		&b.Description, &b.Synopsis, &b.ImageURL, &categoryID, &b.CategoryName, &b.CategorySlug, &b.Status, &b.Stock,
 		&b.Publisher, &b.PublicationDate, &b.Pages, &b.Format, &b.Language, &b.Dimensions, &b.Weight,
-		&b.CreatedAt, &b.UpdatedAt,
+		&createdAtStr, &updatedAtStr,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -124,6 +128,8 @@ func (r *BookRepository) FindByID(id string) (*model.Book, error) {
 	if categoryID.Valid {
 		b.CategoryID = categoryID.String
 	}
+	b.CreatedAt = parseDateTime(createdAtStr)
+	b.UpdatedAt = parseDateTime(updatedAtStr)
 	return b, nil
 }
 
@@ -204,4 +210,26 @@ func (r *BookRepository) Delete(id string) error {
 		return fmt.Errorf("book_repo: book not found")
 	}
 	return nil
+}
+
+// parseDateTime parses SQLite datetime strings into time.Time.
+// Supports multiple formats that SQLite's datetime() function may produce.
+func parseDateTime(s string) time.Time {
+	if s == "" {
+		return time.Now().UTC()
+	}
+	formats := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05Z",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+		"2006-01-02",
+	}
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t
+		}
+	}
+	return time.Now().UTC()
 }
