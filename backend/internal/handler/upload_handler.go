@@ -2,12 +2,16 @@ package handler
 
 import (
 	"fmt"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/deepteams/webp"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
@@ -40,8 +44,8 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 
 	// Check extension
 	ext := strings.ToLower(filepath.Ext(header.Filename))
-	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-		response.BadRequest(c, "Only .png, .jpg, .jpeg files are allowed", nil)
+	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".webp" {
+		response.BadRequest(c, "Only .png, .jpg, .jpeg, .webp files are allowed", nil)
 		return
 	}
 
@@ -54,7 +58,12 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 	}
 
 	contentType := http.DetectContentType(buffer)
-	if contentType != "image/png" && contentType != "image/jpeg" {
+	allowedTypes := map[string]bool{
+		"image/png":  true,
+		"image/jpeg": true,
+		"image/webp": true,
+	}
+	if !allowedTypes[contentType] {
 		response.BadRequest(c, "File is not a valid image", nil)
 		return
 	}
@@ -65,31 +74,41 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	uploadDir := filepath.Join("frontend", "public", "uploads")
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		response.InternalError(c, "Failed to create upload directory: " + err.Error())
+	// Decode image
+	img, _, err := image.Decode(file)
+	if err != nil {
+		response.InternalError(c, "Failed to decode image: "+err.Error())
 		return
 	}
 
-	newFilename := fmt.Sprintf("%s%s", uuid.New().String(), ext)
+	uploadDir := filepath.Join("frontend", "public", "uploads")
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		response.InternalError(c, "Failed to create upload directory: "+err.Error())
+		return
+	}
+
+	// Always save as .webp
+	newFilename := fmt.Sprintf("%s.webp", uuid.New().String())
 	dst := filepath.Join(uploadDir, newFilename)
 
 	out, err := os.Create(dst)
 	if err != nil {
-		response.InternalError(c, "Failed to save file")
+		response.InternalError(c, "Failed to create destination file")
 		return
 	}
 	defer out.Close()
 
-	if _, err := io.Copy(out, file); err != nil {
-		response.InternalError(c, "Failed to save file")
+	// Encode to WebP with 80% quality (balanced quality vs size)
+	// Using pure Go deepteams/webp for better portability (no CGO required)
+	if err := webp.Encode(out, img, webp.OptionsForPreset(webp.PresetDefault, 80.0)); err != nil {
+		response.InternalError(c, "Failed to encode image to WebP: "+err.Error())
 		return
 	}
 
-	// Return the relative URL starting from /uploads/... (since it's in public/uploads for Vite/Astro)
+	// Return the relative URL starting from /uploads/...
 	imageURL := fmt.Sprintf("/uploads/%s", newFilename)
 
-	response.OK(c, "Image uploaded successfully", map[string]string{
+	response.OK(c, "Image uploaded and optimized successfully", map[string]string{
 		"url": imageURL,
 	})
 }

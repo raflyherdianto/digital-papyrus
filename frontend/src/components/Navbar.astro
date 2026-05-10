@@ -125,7 +125,7 @@
                 .map(
                   (book) => `
                 <a href="/katalog" class="flex items-start gap-3 p-3 hover:bg-surface-container rounded-md transition-colors border-b border-outline-variant/10 last:border-b-0">
-                  <img src="${book.image_url}" alt="${book.title}" class="w-12 h-16 object-cover rounded" />
+                  <img src="${book.image_url}" alt="${book.title}" class="w-12 h-16 object-cover rounded" loading="lazy" />
                   <div class="flex-1 min-w-0">
                     <h4 class="text-sm font-bold text-primary truncate">${book.title}</h4>
                     <p class="text-xs text-on-surface-variant truncate">${book.author}</p>

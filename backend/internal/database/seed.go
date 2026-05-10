@@ -150,11 +150,11 @@ func seedCategoriesAndBooks(db *sql.DB) error {
 	}{
 		{
 			Title: "TRANSFORMASI PENDIDIKAN DIGITAL: PERSPEKTIF PSIKOLOGI", Author: "Asrofi, S.Pd., M.Pd. – Cornelius Riko Bagus Nugroho - dkk", ISBN: "",
-			Badge: "Limited Edition", GGKEY: "", QRCBN: "",
+			Badge: "Regular", GGKEY: "", QRCBN: "",
 			Price: 38000, Rating: 5.0, ReviewCount: 142,
 			Description: "Buku kumpulan artikel berjudul \"Transformasi Pendidikan Digital: Perspektif Psikologi\" merupakan sebuah karya interdisipliner yang mengeksplorasi integrasi prinsip-prinsip psikologis dalam dunia pendidikan dan ekosistem digital yang terus berkembang. Melalui pendekatan teori psikologi yang dihubungkan dengan praktik relevan, buku ini menyajikan strategi inovatif untuk menciptakan lingkungan belajar yang lebih efektif serta memberikan solusi dalam menghadapi berbagai tantangan era modern, seperti dampak teknologi terhadap motivasi, konsentrasi, hingga kesehatan mental individu dan masyarakat.",
-			Synopsis:    "Sofia Rossi masterfully crafts a narrative that is part philosophical inquiry and part poetic meditation, making this one of the most anticipated releases in contemporary editorial literature.",
-			ImageURL:    "/uploads/62f0ae62-d019-4b8c-a069-295b18836083.png",
+			Synopsis:    "",
+			ImageURL:    "/uploads/62f0ae62-d019-4b8c-a069-295b18836083.webp",
 			CategoryID:  categoryMap["Filosofi Modern"], Status: "published", Stock: 60,
 			Publisher: "Digital Papyrus Press", PublicationDate: "2025-10-12",
 			Pages: 268, Format: "E-Book", Language: "Indonesia",
@@ -166,7 +166,7 @@ func seedCategoriesAndBooks(db *sql.DB) error {
 			Price: 43000, Rating: 0.0, ReviewCount: 0,
 			Description: "Buku berjudul \"Intervensi Psikologi Dalam Media Sosial Dan Digital\" merupakan karya kolektif mahasiswa Fakultas Psikologi Universitas Merdeka Malang yang mengulas dinamika kesehatan mental di era digital melalui berbagai perspektif psikologi. Melalui metode tinjauan literatur, buku ini mendalami fenomena modern seperti Fear of Missing Out (FOMO), cyberbullying, kecanduan media sosial, hingga penerapan psikodrama digital sebagai solusi terapi yang inovatif. Selain mengidentifikasi tantangan seperti keterbatasan interaksi fisik dan risiko perbandingan sosial, buku ini juga menawarkan wawasan strategis mengenai peluang teknologi dalam memperluas aksesibilitas intervensi psikologis bagi remaja dan dewasa muda.",
 			Synopsis:    "",
-			ImageURL:    "/uploads/504aefec-1457-479b-9058-a153e99471d8.png",
+			ImageURL:    "/uploads/504aefec-1457-479b-9058-a153e99471d8.webp",
 			CategoryID:  categoryMap["Filosofi Modern"], Status: "published", Stock: 100,
 			Publisher: "Digital Papyrus", PublicationDate: "2026-04-23",
 			Pages: 298, Format: "E-Book", Language: "Indonesia",
@@ -178,7 +178,7 @@ func seedCategoriesAndBooks(db *sql.DB) error {
 			Price: 32000, Rating: 0.0, ReviewCount: 0,
 			Description: "Buku berjudul Interaksi Psikologi: Peran Kebudayaan dan Bisnis di Era Digital merupakan karya ilmiah kolaboratif mahasiswa Fakultas Psikologi Universitas Merdeka Malang yang mengkaji transformasi interaksi manusia dari ruang fisik ke ruang virtual akibat perkembangan teknologi digital. Melalui pendekatan kritis dan empiris, buku ini mengulas beragam isu aktual seperti perilaku konsumen digital, dinamika identitas di media sosial, hingga implikasi psikologis dalam praktik bisnis and pendidikan, dengan tujuan memberikan pemahaman komprehensif mengenai relasi antara individu, budaya, dan bisnis di era modern.",
 			Synopsis:    "",
-			ImageURL:    "/uploads/ccad1a69-2b7b-4604-810a-f79198704551.png",
+			ImageURL:    "/uploads/ccad1a69-2b7b-4604-810a-f79198704551.webp",
 			CategoryID:  categoryMap["Filosofi Modern"], Status: "published", Stock: 80,
 			Publisher: "Digital Papyrus", PublicationDate: "2026-04-28",
 			Pages: 239, Format: "E-Book", Language: "Indonesia",
@@ -190,7 +190,7 @@ func seedCategoriesAndBooks(db *sql.DB) error {
 			Price: 34000, Rating: 0.0, ReviewCount: 0,
 			Description: "Buku ini merupakan karya kolaboratif yang menghimpun pemikiran kritis dan hasil penelitian mendalam mengenai dinamika integrasi teknologi digital dalam pilar pendidikan, sistem informasi, dan perkembangan bahasa di Indonesia. Melalui berbagai perspektif, pembaca diajak mengeksplorasi peran strategis sistem informasi dalam memodernisasi tata kelola lembaga pendidikan, efektivitas media pembelajaran berbasis teknologi seperti Google Classroom, hingga inovasi kecerdasan buatan (machine learning) dalam aplikasi penerjemah bahasa isyarat (BISINDO). Selain aspek teknis, buku ini juga menelaah dampak sosial-budaya di era digital, termasuk pengaruh media sosial terhadap pergeseran gaya bahasa remaja serta pentingnya mempertimbangkan nilai-nilai budaya dalam pengembangan sistem informasi yang inklusif. Dengan menyajikan analisis komprehensif, karya ini bertujuan menjadi referensi penting bagi praktisi akademik dan masyarakat umum dalam menghadapi tantangan serta memanfaatkan peluang transformasi digital demi kemajuan pendidikan yang berkelanjutan.",
 			Synopsis:    "",
-			ImageURL:    "/uploads/56e938b7-0f1c-4b26-a15d-389f7cc831cc.png",
+			ImageURL:    "/uploads/56e938b7-0f1c-4b26-a15d-389f7cc831cc.webp",
 			CategoryID:  categoryMap["Fiksi Kontemporer"], Status: "published", Stock: 35,
 			Publisher: "Digital Papyrus", PublicationDate: "2026-05-06",
 			Pages: 354, Format: "E-Book", Language: "Indonesia",
@@ -375,21 +375,21 @@ func seedOrders(db *sql.DB) error {
 	var book1ID, book2ID string
 	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1").Scan(&book1ID)
 	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1 OFFSET 1").Scan(&book2ID)
-	
+
 	var service1ID string
 	_ = db.QueryRow("SELECT id FROM services ORDER BY title LIMIT 1").Scan(&service1ID)
 	orders := []struct {
-		Invoice        string
-		Notes          string
-		TotalQty       int
-		TotalWeight    int
-		TotalPrice     int
-		PaymentType    string
-		Status         string
-		ShippingName   string
+		Invoice         string
+		Notes           string
+		TotalQty        int
+		TotalWeight     int
+		TotalPrice      int
+		PaymentType     string
+		Status          string
+		ShippingName    string
 		ShippingService string
-		ShippingPrice  int
-		Details        []struct {
+		ShippingPrice   int
+		Details         []struct {
 			ServiceID  string
 			BookID     string
 			Qty        int
@@ -513,7 +513,7 @@ func seedReviews(db *sql.DB) error {
 	var book1ID, book2ID string
 	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1").Scan(&book1ID)
 	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1 OFFSET 1").Scan(&book2ID)
-	
+
 	var service1ID string
 	_ = db.QueryRow("SELECT id FROM services ORDER BY title LIMIT 1").Scan(&service1ID)
 
@@ -524,7 +524,7 @@ func seedReviews(db *sql.DB) error {
 
 	_, err = db.Exec(`INSERT INTO reviews (id, user_id, order_id, service_id, book_id, details, rating) VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		uuid.New().String(), customerID, orderID, serviceIDsJSON, bookIDsJSON, detailsJSON, ratingJSON)
-	
+
 	if err != nil {
 		return fmt.Errorf("seed: insert review: %w", err)
 	}
@@ -532,4 +532,3 @@ func seedReviews(db *sql.DB) error {
 	log.Printf("[DB] Seeded reviews")
 	return nil
 }
-
