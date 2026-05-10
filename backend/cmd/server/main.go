@@ -53,25 +53,36 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	bookRepo := repository.NewBookRepository(db)
 	serviceRepo := repository.NewServiceRepository(db)
-        categoryRepo := repository.NewCategoryRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db)
+	coreServiceRepo := repository.NewCoreServiceRepository(db)
+	orderRepo := repository.NewOrderRepository(db)
+	reviewRepo := repository.NewReviewRepository(db)
 
-        // Initialize services
-        authService := service.NewAuthService(userRepo, cfg)
-        bookService := service.NewBookService(bookRepo)
-        serviceService := service.NewServiceService(serviceRepo)
-        categoryService := service.NewCategoryService(categoryRepo)
+	// Initialize services
+	authService := service.NewAuthService(userRepo, cfg)
+	bookService := service.NewBookService(bookRepo)
+	serviceService := service.NewServiceService(serviceRepo)
+	categoryService := service.NewCategoryService(categoryRepo)
+	coreServiceSvc := service.NewCoreServiceService(coreServiceRepo)
+	userService := service.NewUserService(userRepo)
+	orderService := service.NewOrderService(orderRepo, userRepo)
+	reviewService := service.NewReviewService(reviewRepo)
 
-        // Initialize handlers
-        handlers := router.Handlers{
-                Health:   handler.NewHealthHandler(),
-                Auth:     handler.NewAuthHandler(authService),
-                Book:     handler.NewBookHandler(bookService),
-                Service:  handler.NewServiceHandler(serviceService),
-                Category: handler.NewCategoryHandler(categoryService),
-                Upload:   handler.NewUploadHandler(),
-        }
+	// Initialize handlers
+	handlers := router.Handlers{
+		Health:      handler.NewHealthHandler(),
+		Auth:        handler.NewAuthHandler(authService),
+		Book:        handler.NewBookHandler(bookService),
+		Service:     handler.NewServiceHandler(serviceService),
+		Category:    handler.NewCategoryHandler(categoryService),
+		Upload:      handler.NewUploadHandler(),
+		CoreService: handler.NewCoreServiceHandler(coreServiceSvc),
+		User:        handler.NewUserHandler(userService),
+		Review:      handler.NewReviewHandler(reviewService),
+		Order:       handler.NewOrderHandler(orderService),
+	}
 
-        // Configure router
+	// Configure router
         engine := router.Setup(cfg, authService, handlers)
 
 	// Create HTTP server with production-grade timeouts

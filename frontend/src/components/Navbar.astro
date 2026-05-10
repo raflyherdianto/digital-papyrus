@@ -31,20 +31,27 @@
     <!-- Actions -->
     <div class="flex items-center gap-4 md:gap-6">
       <!-- Search (Desktop) -->
-      <div class="hidden lg:flex items-center bg-surface-container px-4 py-2 rounded-md transition-all focus-within:bg-surface-container-lowest focus-within:ring-1 focus-within:ring-primary/20">
-        <span class="material-symbols-outlined text-outline text-sm mr-2">search</span>
+      <div class="hidden lg:flex relative items-center bg-surface-container px-3 py-2 rounded-lg transition-all focus-within:bg-surface-container-lowest focus-within:ring-1 focus-within:ring-primary/20">
+        <span class="material-symbols-outlined text-outline text-base mr-2">search</span>
         <input
-          class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-outline-variant"
+          id="navbarSearch"
+          class="bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-sm w-56 placeholder:text-outline-variant"
           placeholder="Cari literatur..."
           type="text"
           aria-label="Search books"
         />
+        <!-- Search Results Dropdown -->
+        <div
+          id="searchResults"
+          class="absolute top-full left-0 right-0 mt-1 bg-surface-container-low border border-outline-variant/20 rounded-md shadow-xl max-h-96 overflow-y-auto hidden z-50"
+        >
+          <div id="searchResultsContent" class="p-4"></div>
+        </div>
       </div>
 
       <!-- Cart -->
       <div class="relative cursor-pointer group flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors" aria-label="Shopping cart">
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[26px]">shopping_cart</span>
-        <span class="absolute top-0 right-0 border-2 border-surface bg-primary text-on-primary text-[9px] font-extrabold w-[18px] h-[18px] flex items-center justify-center rounded-full" aria-label="3 items in cart">3</span>
       </div>
 
       <!-- Mobile Menu Toggle -->
@@ -69,8 +76,15 @@
 </nav>
 
 <script>
+  import { getBooks } from '../lib/api';
+
   const toggleBtn = document.getElementById('mobile-menu-toggle');
   const mobileMenu = document.getElementById('mobile-menu');
+  const navbarSearch = document.getElementById('navbarSearch') as HTMLInputElement;
+  const searchResults = document.getElementById('searchResults');
+  const searchResultsContent = document.getElementById('searchResultsContent');
+
+  // Mobile menu toggle
   if (toggleBtn && mobileMenu) {
     toggleBtn.addEventListener('click', () => {
       const isOpen = !mobileMenu.classList.contains('hidden');
@@ -78,6 +92,71 @@
       toggleBtn.setAttribute('aria-expanded', String(!isOpen));
       const icon = toggleBtn.querySelector('span');
       if (icon) icon.textContent = isOpen ? 'menu' : 'close';
+    });
+  }
+
+  // Search functionality with debounce
+  let searchTimeout: ReturnType<typeof setTimeout>;
+  if (navbarSearch) {
+    navbarSearch.addEventListener('input', async (e) => {
+      clearTimeout(searchTimeout);
+      const query = (e.target as HTMLInputElement).value.trim();
+
+      if (query.length < 2) {
+        searchResults?.classList.add('hidden');
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          const { books } = await getBooks({
+            search: query,
+            status: 'published',
+            per_page: 6,
+          });
+
+          if (books.length === 0) {
+            if (searchResultsContent) {
+              searchResultsContent.innerHTML = '<div class="text-center py-4 text-on-surface-variant">Tidak ada hasil ditemukan</div>';
+            }
+          } else {
+            if (searchResultsContent) {
+              searchResultsContent.innerHTML = books
+                .map(
+                  (book) => `
+                <a href="/katalog" class="flex items-start gap-3 p-3 hover:bg-surface-container rounded-md transition-colors border-b border-outline-variant/10 last:border-b-0">
+                  <img src="${book.image_url}" alt="${book.title}" class="w-12 h-16 object-cover rounded" />
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-bold text-primary truncate">${book.title}</h4>
+                    <p class="text-xs text-on-surface-variant truncate">${book.author}</p>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs font-bold text-tertiary">Rp ${book.price.toLocaleString('id-ID')}</span>
+                      <span class="text-xs text-on-surface-variant">★ ${book.rating}</span>
+                    </div>
+                  </div>
+                </a>
+              `
+                )
+                .join('');
+            }
+          }
+
+          searchResults?.classList.remove('hidden');
+        } catch (error) {
+          console.error('Search error:', error);
+          if (searchResultsContent) {
+            searchResultsContent.innerHTML =
+              '<div class="text-center py-4 text-error">Gagal memuat hasil</div>';
+          }
+        }
+      }, 300);
+    });
+
+    // Hide results when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!navbarSearch.contains(e.target as Node) && !searchResults?.contains(e.target as Node)) {
+        searchResults?.classList.add('hidden');
+      }
     });
   }
 </script>

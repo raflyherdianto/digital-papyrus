@@ -157,6 +157,17 @@ export async function getStaticPaths() {
     return /kg$/i.test(value) ? value : `${value} kg`;
   }
 
+  function getBadgeClasses(badge: string): string {
+    switch ((badge || 'Regular').toLowerCase()) {
+      case 'limited edition':
+        return 'bg-rose-100 text-rose-800';
+      case 'premium edition':
+        return 'bg-amber-100 text-amber-800';
+      default:
+        return 'bg-slate-200 text-slate-700';
+    }
+  }
+
   async function loadBookDetails(id: string) {
     try {
       const book = await getBook(id);
@@ -174,17 +185,15 @@ export async function getStaticPaths() {
       cover.alt = `Cover buku ${book.title} oleh ${book.author}`;
 
       // Header
+      const badgeText = book.badge || 'Regular';
+      const badge = document.getElementById('bookBadge')!;
+      badge.textContent = badgeText;
+      badge.className = `inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 md:mb-4 ${getBadgeClasses(badgeText)}`;
+      badge.classList.remove('hidden');
       document.getElementById('bookTitle')!.textContent = book.title;
       document.getElementById('bookAuthor')!.textContent = book.author;
       document.getElementById('bookRating')!.textContent = book.rating.toFixed(1);
       document.getElementById('bookReviews')!.textContent = `(${book.review_count} reviews)`;
-
-      // Badge
-      if (book.format?.toLowerCase().includes('hardcover') || book.stock < 20) {
-        const badge = document.getElementById('bookBadge')!;
-        badge.textContent = book.stock < 20 ? 'Limited Stock' : 'Premium Edition';
-        badge.classList.remove('hidden');
-      }
 
       // Price
       document.getElementById('bookPrice')!.textContent = formatRupiah(book.price);
@@ -196,13 +205,19 @@ export async function getStaticPaths() {
       document.getElementById('bookDetailsGrid')!.innerHTML = `
         <p><strong>Publisher:</strong> ${book.publisher || '-'}<br/>
         <strong>Publication Date:</strong> ${book.publication_date || '-'}<br/>
+        <strong>Badge:</strong> ${book.badge || 'Regular'}<br/>
+        <strong>GGKEY:</strong> ${book.ggkey || '-'}<br/>
+        <strong>QRCBN:</strong> ${book.qrcbn || '-'}<br/>
         <strong>Dimensions:</strong> ${book.dimensions || '-'}<br/>
         <strong>Weight:</strong> ${formatWeight(book.weight)}<br/>
         <strong>ISBN:</strong> ${book.isbn || '-'}</p>`;
 
       // Specs
       document.getElementById('bookSpecs')!.innerHTML = `
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Badge</p><p class="font-bold text-primary text-sm md:text-base">${book.badge || 'Regular'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">ISBN-13</p><p class="font-bold text-primary text-sm md:text-base">${book.isbn || '-'}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">GGKEY</p><p class="font-bold text-primary text-sm md:text-base">${book.ggkey || '-'}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">QRCBN</p><p class="font-bold text-primary text-sm md:text-base">${book.qrcbn || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Pages</p><p class="font-bold text-primary text-sm md:text-base">${book.pages || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Format</p><p class="font-bold text-primary text-sm md:text-base">${book.format || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Language</p><p class="font-bold text-primary text-sm md:text-base">${book.language || '-'}</p></div>`;

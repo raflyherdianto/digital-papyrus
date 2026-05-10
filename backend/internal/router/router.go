@@ -16,8 +16,12 @@ type Handlers struct {
 	Auth     *handler.AuthHandler
 	Book     *handler.BookHandler
 	Service  *handler.ServiceHandler
-	Category *handler.CategoryHandler
-	Upload   *handler.UploadHandler
+	Category    *handler.CategoryHandler
+	Upload      *handler.UploadHandler
+	CoreService *handler.CoreServiceHandler
+	User        *handler.UserHandler
+	Review      *handler.ReviewHandler
+	Order       *handler.OrderHandler
 }
 
 // Setup creates and configures the Gin engine with all routes.
@@ -49,6 +53,9 @@ func Setup(cfg *config.Config, authService *service.AuthService, h Handlers) *gi
 		auth.Use(middleware.AuthRateLimitMiddleware(cfg))
 		{
 			auth.POST("/login", h.Auth.Login)
+			auth.POST("/register", h.Auth.Register)
+			auth.POST("/send-otp", h.Auth.SendOTP)
+			auth.POST("/verify-otp", h.Auth.VerifyOTP)
 		}
 
 		// Auth routes (protected)
@@ -123,6 +130,67 @@ func Setup(cfg *config.Config, authService *service.AuthService, h Handlers) *gi
 			servicesAdmin.POST("", h.Service.CreateService)
 			servicesAdmin.PUT("/:id", h.Service.UpdateService)
 			servicesAdmin.DELETE("/:id", h.Service.DeleteService)
+		}
+
+		// CoreService routes (public)
+		coreServices := v1.Group("/core-services")
+		{
+			coreServices.GET("", h.CoreService.GetAll)
+			coreServices.GET("/:id", h.CoreService.GetByID)
+		}
+
+		// CoreService routes (protected: admin only)
+		coreServicesAdmin := v1.Group("/core-services")
+		coreServicesAdmin.Use(middleware.AuthMiddleware(authService))
+		coreServicesAdmin.Use(middleware.RequireAdmin())
+		{
+			coreServicesAdmin.POST("", h.CoreService.Create)
+			coreServicesAdmin.PUT("/:id", h.CoreService.Update)
+			coreServicesAdmin.DELETE("/:id", h.CoreService.Delete)
+		}
+
+		// User routes (protected: admin only)
+		usersAdmin := v1.Group("/users")
+		usersAdmin.Use(middleware.AuthMiddleware(authService))
+		usersAdmin.Use(middleware.RequireAdmin())
+		{
+			usersAdmin.GET("", h.User.ListUsers)
+			usersAdmin.POST("", h.User.CreateUser)
+			usersAdmin.PUT("/:id", h.User.UpdateUser)
+			usersAdmin.DELETE("/:id", h.User.DeleteUser)
+		}
+
+		// Orders routes (protected: admin only)
+		ordersAdmin := v1.Group("/orders")
+		ordersAdmin.Use(middleware.AuthMiddleware(authService))
+		ordersAdmin.Use(middleware.RequireAdmin())
+		{
+			ordersAdmin.GET("", h.Order.ListOrders)
+			ordersAdmin.GET("/:id", h.Order.GetOrder)
+			ordersAdmin.POST("", h.Order.CreateOrder)
+			ordersAdmin.DELETE("/:id", h.Order.DeleteOrder)
+		}
+
+		// Review routes (public get, protected modifications)
+		reviews := v1.Group("/reviews")
+		{
+			reviews.GET("", h.Review.GetAllReviews)
+			reviews.GET("/:id", h.Review.GetReview)
+		}
+
+		reviewsProtected := v1.Group("/reviews")
+		reviewsProtected.Use(middleware.AuthMiddleware(authService))
+		// Anyone authenticated can create a review (we could limit to customer role if needed)
+		{
+			reviewsProtected.POST("", h.Review.CreateReview)
+		}
+
+		reviewsAdmin := v1.Group("/reviews")
+		reviewsAdmin.Use(middleware.AuthMiddleware(authService))
+		reviewsAdmin.Use(middleware.RequireAdmin())
+		{
+			reviewsAdmin.PUT("/:id", h.Review.UpdateReview)
+			reviewsAdmin.DELETE("/:id", h.Review.DeleteReview)
 		}
 	}
 

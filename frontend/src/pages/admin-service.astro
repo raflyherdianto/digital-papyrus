@@ -1,0 +1,952 @@
+---
+/**
+ * Admin Service Management Page
+ * Route: /admin-service
+ * Displays publishing service packages via the backend API.
+ */
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Services & Packages | Digital Papyrus" activePage="service">
+
+  <!-- ==================== CORE SERVICE MANAGEMENT ==================== -->
+  <div class="flex flex-col md:flex-row items-start md:items-baseline justify-between mb-6 md:mb-8 gap-4 mt-8">
+    <div>
+      <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-primary font-headline mb-2">Service Management</h2>
+      <p class="text-stone-500 font-body text-sm max-w-xl">Manage the 'Layanan Kami' offerings displayed on the homepage.</p>
+    </div>
+    <div class="flex gap-3 md:gap-4 w-full md:w-auto">
+      <button id="addCoreBtn" class="flex-1 md:flex-none px-4 md:px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-xs md:text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10">
+        <span class="material-symbols-outlined text-sm">add</span> <span class="hidden sm:inline">Add New Service</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm mb-12">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left min-w-[700px]">
+        <thead>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Service</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Description</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Status</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="coreTableBody" class="text-sm font-body">
+          <tr id="loadingCoreRow">
+            <td colspan="4" class="py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span>
+                <p class="text-stone-400 text-sm">Loading services...</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add Core Service Modal -->
+  <div id="addCoreModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-2xl mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="addCoreModalContent">
+      <div class="px-6 md:px-8 py-6 border-b border-stone-200/50 flex items-center justify-between">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Add New Service</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="addCoreModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="px-6 md:px-8 py-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+        <div id="addCoreAlert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+        <form id="addCoreForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Service Title *</label>
+              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Jasa Editing Naskah" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Icon (Material Symbol)</label>
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <span class="icon-preview absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-lg">design_services</span>
+                  <input name="icon" type="text" class="icon-input w-full bg-surface py-2.5 pl-10 pr-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="e.g. edit_document" />
+                </div>
+                <button type="button" class="icon-picker-toggle px-3 py-2.5 bg-surface-container rounded-xl border border-stone-200 hover:bg-stone-200/50 transition-all text-stone-500 hover:text-primary" title="Browse icons">
+                  <span class="material-symbols-outlined text-lg">apps</span>
+                </button>
+              </div>
+              <div class="icon-picker-grid hidden mt-2 p-3 bg-surface-container rounded-xl border border-stone-200/50 max-h-48 overflow-y-auto no-scrollbar">
+                <div class="grid grid-cols-8 gap-1"></div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Sort Order</label>
+              <input name="sort_order" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 1" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Status</label>
+              <select name="is_active" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Description</label>
+              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-20 resize-none" placeholder="Example: Layanan editing naskah profesional dan cepat..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="px-6 md:px-8 py-5 bg-surface-container flex items-center justify-end gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn px-5 py-2.5 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="addCoreModal">Cancel</button>
+        <button id="saveCoreBtn" class="px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/10" type="button">Save Service</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Core Service Modal -->
+  <div id="editCoreModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-2xl mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="editCoreModalContent">
+      <div class="px-6 md:px-8 py-6 border-b border-stone-200/50 flex items-center justify-between">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Edit Service</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="editCoreModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="px-6 md:px-8 py-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+        <div id="editCoreAlert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+        <form id="editCoreForm" class="space-y-6">
+          <input type="hidden" name="id" />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Service Title *</label>
+              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Icon (Material Symbol)</label>
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <span class="icon-preview absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-lg">design_services</span>
+                  <input name="icon" type="text" class="icon-input w-full bg-surface py-2.5 pl-10 pr-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="e.g. edit_document" />
+                </div>
+                <button type="button" class="icon-picker-toggle px-3 py-2.5 bg-surface-container rounded-xl border border-stone-200 hover:bg-stone-200/50 transition-all text-stone-500 hover:text-primary" title="Browse icons">
+                  <span class="material-symbols-outlined text-lg">apps</span>
+                </button>
+              </div>
+              <div class="icon-picker-grid hidden mt-2 p-3 bg-surface-container rounded-xl border border-stone-200/50 max-h-48 overflow-y-auto no-scrollbar">
+                <div class="grid grid-cols-8 gap-1"></div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Sort Order</label>
+              <input name="sort_order" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Status</label>
+              <select name="is_active" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Description</label>
+              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-20 resize-none"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="px-6 md:px-8 py-5 bg-surface-container flex items-center justify-end gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn px-5 py-2.5 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="editCoreModal">Cancel</button>
+        <button id="updateCoreBtn" class="px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/10" type="button">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Core Modal -->
+  <div id="deleteCoreModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-sm mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="deleteCoreModalContent">
+      <div class="p-6 md:p-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-3xl text-red-500">delete_forever</span>
+        </div>
+        <h3 class="text-lg font-bold text-primary font-headline mb-2">Delete Service?</h3>
+        <p class="text-sm text-stone-500">This action cannot be undone. The service "<span id="deleteCoreTitle" class="font-semibold text-stone-700"></span>" will be permanently removed.</p>
+      </div>
+      <div class="px-6 md:px-8 py-4 bg-surface-container flex items-center justify-center gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn flex-1 px-5 py-2.5 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="deleteCoreModal">Cancel</button>
+        <button id="confirmDeleteCoreBtn" class="flex-1 px-5 py-2.5 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-all">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== END CORE SERVICE ==================== -->
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row items-start md:items-baseline justify-between mb-6 md:mb-8 gap-4">
+    <div>
+      <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-primary font-headline mb-2">Package Management</h2>
+      <p class="text-stone-500 font-body text-sm max-w-xl">Manage publishing service packages, pricing tiers, and feature configurations.</p>
+    </div>
+    <div class="flex gap-3 md:gap-4 w-full md:w-auto">
+      <button id="addServiceBtn" class="flex-1 md:flex-none px-4 md:px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-xs md:text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10">
+        <span class="material-symbols-outlined text-sm">add</span> <span class="hidden sm:inline">Add New Package</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-6 border border-stone-200/20 shadow-sm mb-6 md:mb-8 flex flex-col md:flex-row flex-wrap items-start md:items-center gap-3 md:gap-4 justify-between">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 flex-1 w-full md:w-auto">
+      <div class="relative w-full sm:max-w-sm">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
+        <input id="searchInput" class="w-full bg-surface-container py-2.5 pl-10 pr-4 rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-stone-400" placeholder="Search by package title..." type="text" />
+      </div>
+      <div class="flex gap-3">
+        <select id="tierFilter" class="bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 text-stone-600 outline-none">
+          <option value="">All Tiers</option>
+          <option value="basic">Basic</option>
+          <option value="silver">Silver</option>
+          <option value="gold">Gold</option>
+          <option value="platinum">Platinum</option>
+        </select>
+        <select id="statusFilter" class="bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 text-stone-600 outline-none">
+          <option value="">Any Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left min-w-[700px]">
+        <thead>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Package</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Tier</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Price</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Featured</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Status</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="serviceTableBody" class="text-sm font-body">
+          <tr id="loadingRow">
+            <td colspan="6" class="py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span>
+                <p class="text-stone-400 text-sm">Loading packages...</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between border-t border-stone-200/20 pt-6 gap-4">
+      <p id="paginationInfo" class="text-xs text-stone-400 font-medium">Loading...</p>
+      <div id="paginationControls" class="flex gap-1.5"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-[10000] hidden transform translate-y-4 opacity-0 transition-all duration-300">
+    <div class="flex items-center gap-3 bg-stone-800 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium">
+      <span id="toastIcon" class="material-symbols-outlined text-lg text-teal-400">check_circle</span>
+      <span id="toastMsg">Operation successful</span>
+    </div>
+  </div>
+
+  <!-- View Service Modal -->
+  <div id="viewServiceModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-2xl mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="viewServiceModalContent">
+      <div class="px-6 md:px-8 py-6 border-b border-stone-200/50 flex items-center justify-between">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Package Details</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="viewServiceModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="px-6 md:px-8 py-6 max-h-[70vh] overflow-y-auto no-scrollbar space-y-5">
+        <div class="flex items-center gap-4">
+          <div id="viewServiceIcon" class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-2xl text-primary">design_services</span>
+          </div>
+          <div>
+            <h4 id="viewServiceTitle" class="text-xl font-bold text-primary font-headline"></h4>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="viewServiceTier" class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full"></span>
+              <span id="viewServiceBadge" class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full hidden"></span>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-y-4">
+          <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Price</p><p id="viewServicePrice" class="text-sm font-bold text-primary"></p></div>
+          <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Status</p><p id="viewServiceStatus" class="text-sm font-medium"></p></div>
+          <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Sort Order</p><p id="viewServiceOrder" class="text-sm font-medium text-stone-700"></p></div>
+          <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Featured</p><p id="viewServiceFeatured" class="text-sm font-medium"></p></div>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Description</p>
+          <p id="viewServiceDesc" class="text-sm text-stone-600 leading-relaxed"></p>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">Features</p>
+          <ul id="viewServiceFeatures" class="space-y-1.5"></ul>
+        </div>
+      </div>
+      <div class="px-6 md:px-8 py-5 bg-surface-container flex items-center justify-end gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn px-5 py-2.5 border border-stone-300 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="viewServiceModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Service Modal -->
+  <div id="addServiceModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-2xl mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="addServiceModalContent">
+      <div class="px-6 md:px-8 py-6 border-b border-stone-200/50 flex items-center justify-between">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Add New Package</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="addServiceModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="px-6 md:px-8 py-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+        <div id="addServiceAlert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+        <form id="addServiceForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Package Title *</label>
+              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Paket Penerbitan Gold" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Tier *</label>
+              <select name="tier" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="basic">Basic</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="platinum">Platinum</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Icon (Material Symbol)</label>
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <span class="icon-preview absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-lg">design_services</span>
+                  <input name="icon" type="text" class="icon-input w-full bg-surface py-2.5 pl-10 pr-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="e.g. edit_document" />
+                </div>
+                <button type="button" class="icon-picker-toggle px-3 py-2.5 bg-surface-container rounded-xl border border-stone-200 hover:bg-stone-200/50 transition-all text-stone-500 hover:text-primary" title="Browse icons">
+                  <span class="material-symbols-outlined text-lg">apps</span>
+                </button>
+              </div>
+              <div class="icon-picker-grid hidden mt-2 p-3 bg-surface-container rounded-xl border border-stone-200/50 max-h-48 overflow-y-auto no-scrollbar">
+                <div class="grid grid-cols-8 gap-1"></div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price (Rp)</label>
+              <input name="price" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 275000" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price Label</label>
+              <input name="price_label" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Rp 275k" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Badge</label>
+              <input name="badge" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: Terpopuler" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Sort Order</label>
+              <input name="sort_order" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 1" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Status</label>
+              <select name="is_active" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Featured</label>
+              <select name="is_featured" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Description</label>
+              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-20 resize-none" placeholder="Example: Layanan penerbitan buku lengkap..."></textarea>
+            </div>
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Features (one per line)</label>
+              <textarea name="features" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-24 resize-none" placeholder="Editing profesional&#10;Desain cover&#10;Legalitas Terbitan"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="px-6 md:px-8 py-5 bg-surface-container flex items-center justify-end gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn px-5 py-2.5 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="addServiceModal">Cancel</button>
+        <button id="saveServiceBtn" class="px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/10 disabled:opacity-50" type="button">Save Package</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Service Modal -->
+  <div id="editServiceModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-2xl mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="editServiceModalContent">
+      <div class="px-6 md:px-8 py-6 border-b border-stone-200/50 flex items-center justify-between">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Edit Package</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="editServiceModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="px-6 md:px-8 py-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+        <div id="editServiceAlert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+        <form id="editServiceForm" class="space-y-6">
+          <input type="hidden" name="id" />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Package Title *</label>
+              <input name="title" type="text" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Tier *</label>
+              <select name="tier" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="basic">Basic</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="platinum">Platinum</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Icon (Material Symbol)</label>
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <span class="icon-preview absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-lg">design_services</span>
+                  <input name="icon" type="text" class="icon-input w-full bg-surface py-2.5 pl-10 pr-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                </div>
+                <button type="button" class="icon-picker-toggle px-3 py-2.5 bg-surface-container rounded-xl border border-stone-200 hover:bg-stone-200/50 transition-all text-stone-500 hover:text-primary" title="Browse icons">
+                  <span class="material-symbols-outlined text-lg">apps</span>
+                </button>
+              </div>
+              <div class="icon-picker-grid hidden mt-2 p-3 bg-surface-container rounded-xl border border-stone-200/50 max-h-48 overflow-y-auto no-scrollbar">
+                <div class="grid grid-cols-8 gap-1"></div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price (Rp)</label>
+              <input name="price" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price Label</label>
+              <input name="price_label" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Badge</label>
+              <input name="badge" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Sort Order</label>
+              <input name="sort_order" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Status</label>
+              <select name="is_active" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Featured</label>
+              <select name="is_featured" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Description</label>
+              <textarea name="description" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-20 resize-none"></textarea>
+            </div>
+            <div class="md:col-span-2 space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Features (one per line)</label>
+              <textarea name="features" class="w-full bg-surface py-3 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-24 resize-none"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="px-6 md:px-8 py-5 bg-surface-container flex items-center justify-end gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn px-5 py-2.5 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="editServiceModal">Cancel</button>
+        <button id="updateServiceBtn" class="px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/10 disabled:opacity-50" type="button">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-sm mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="deleteModalContent">
+      <div class="p-6 md:p-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-3xl text-red-500">delete_forever</span>
+        </div>
+        <h3 class="text-lg font-bold text-primary font-headline mb-2">Delete Package?</h3>
+        <p class="text-sm text-stone-500">This action cannot be undone. The package "<span id="deleteServiceTitle" class="font-semibold text-stone-700"></span>" will be permanently removed.</p>
+      </div>
+      <div class="px-6 md:px-8 py-4 bg-surface-container flex items-center justify-center gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn flex-1 px-5 py-2.5 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="deleteModal">Cancel</button>
+        <button id="confirmDeleteBtn" class="flex-1 px-5 py-2.5 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-all disabled:opacity-50">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getServices, getService, createService, updateService, deleteService, formatRupiah, parseFeatures, isAuthenticated, getCoreServices, createCoreService, updateCoreService, deleteCoreService } from '../lib/api';
+    import type { Service, CoreService } from '../lib/api';
+
+    if (!isAuthenticated()) { window.location.href = '/admin-login'; }
+
+    let allServices: Service[] = [];
+    let currentPage = 1;
+    const perPage = 10;
+    let searchKeyword = '';
+    let tierKeyword = '';
+    let statusKeyword = '';
+    let deleteTargetId = '';
+
+    let allCoreServices: CoreService[] = [];
+    let deleteCoreTargetId = '';
+
+
+    const tableBody = document.getElementById('serviceTableBody')!;
+    const pagInfo = document.getElementById('paginationInfo')!;
+    const pagControls = document.getElementById('paginationControls')!;
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const tierFilter = document.getElementById('tierFilter') as HTMLSelectElement;
+    const statusFilter = document.getElementById('statusFilter') as HTMLSelectElement;
+
+    
+    document.querySelectorAll('#viewServiceModal, #addServiceModal, #editServiceModal, #deleteModal, #toast, #addCoreModal, #editCoreModal, #deleteCoreModal').forEach(el => document.body.appendChild(el));
+
+
+    // ─── Icon Picker ──────────────────────────────────
+    const ICON_LIST = [
+      'edit_document','auto_stories','menu_book','library_books','book','bookmark','description',
+      'article','newspaper','feed','draft','note','sticky_note_2','text_snippet','summarize',
+      'design_services','brush','palette','draw','format_paint','color_lens','style',
+      'verified','workspace_premium','star','diamond','military_tech','emoji_events','trophy',
+      'support_agent','headset_mic','contact_support','help','live_help','forum','chat',
+      'local_shipping','inventory','package_2','shopping_bag','shopping_cart','storefront','sell',
+      'print','scanner','photo_camera','image','photo_library','picture_as_pdf','upload_file',
+      'translate','spellcheck','edit_note','rate_review','grading','fact_check','task_alt',
+      'public','language','travel_explore','cloud','cloud_upload','cloud_download','backup',
+      'settings','tune','build','construction','handyman','engineering','precision_manufacturing',
+      'school','science','biotech','psychology','lightbulb','tips_and_updates','auto_awesome',
+      'rocket_launch','speed','bolt','flash_on','trending_up','insights','analytics',
+      'security','shield','lock','key','admin_panel_settings','manage_accounts','group',
+      'attach_money','payments','account_balance','savings','credit_card','monetization_on','paid',
+      'schedule','timer','calendar_month','event','alarm','history','update',
+    ];
+
+    document.querySelectorAll('.icon-picker-grid').forEach(grid => {
+      const inner = grid.querySelector('.grid')!;
+      const parent = grid.closest('.space-y-2')!;
+      const input = parent.querySelector('.icon-input') as HTMLInputElement;
+      const preview = parent.querySelector('.icon-preview') as HTMLElement;
+
+      inner.innerHTML = ICON_LIST.map(ic =>
+        `<button type="button" class="icon-pick-btn w-9 h-9 rounded-lg flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-all text-stone-500 cursor-pointer" data-icon="${ic}" title="${ic}"><span class="material-symbols-outlined text-lg">${ic}</span></button>`
+      ).join('');
+
+      inner.querySelectorAll('.icon-pick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const icon = (btn as HTMLElement).dataset.icon!;
+          input.value = icon;
+          preview.textContent = icon;
+          grid.classList.add('hidden');
+        });
+      });
+
+      input.addEventListener('input', () => {
+        preview.textContent = input.value.trim() || 'design_services';
+      });
+    });
+
+    document.querySelectorAll('.icon-picker-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const grid = btn.closest('.space-y-2')!.querySelector('.icon-picker-grid')!;
+        grid.classList.toggle('hidden');
+      });
+    });
+
+    function formatDate(d: string) { return d ? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '--'; }
+
+    function showToast(msg: string, type: 'success'|'error' = 'success') {
+      const t = document.getElementById('toast')!, m = document.getElementById('toastMsg')!, i = document.getElementById('toastIcon')!;
+      m.textContent = msg;
+      i.textContent = type === 'success' ? 'check_circle' : 'error';
+      i.className = `material-symbols-outlined text-lg ${type === 'success' ? 'text-teal-400' : 'text-red-400'}`;
+      t.classList.remove('hidden','translate-y-4','opacity-0');
+      t.classList.add('translate-y-0','opacity-100');
+      setTimeout(() => { t.classList.add('translate-y-4','opacity-0'); setTimeout(() => t.classList.add('hidden'), 300); }, 3000);
+    }
+
+    function openModal(id: string) {
+      const w = document.getElementById(id), c = document.getElementById(id+'Content');
+      if (!w||!c) return;
+      w.classList.remove('hidden');
+      setTimeout(() => { w.classList.remove('opacity-0'); c.classList.remove('scale-95'); c.classList.add('scale-100'); }, 10);
+    }
+
+    function closeModal(id: string) {
+      const w = document.getElementById(id), c = document.getElementById(id+'Content');
+      if (!w||!c) return;
+      w.classList.add('opacity-0'); c.classList.remove('scale-100'); c.classList.add('scale-95');
+      setTimeout(() => w.classList.add('hidden'), 300);
+    }
+
+    document.querySelectorAll('.closeModalBtn').forEach(b => b.addEventListener('click', () => {
+      const m = (b as HTMLElement).dataset.modal; if (m) closeModal(m);
+    }));
+
+    ['viewServiceModal','addServiceModal','editServiceModal','deleteModal'].forEach(id => {
+      document.getElementById(id)?.addEventListener('click', e => { if ((e.target as HTMLElement).id === id) closeModal(id); });
+    });
+
+    function getTierClasses(tier: string) {
+      switch(tier) {
+        case 'basic': return { badge: 'bg-stone-200 text-stone-700', label: 'Basic' };
+        case 'silver': return { badge: 'bg-slate-200 text-slate-700', label: 'Silver' };
+        case 'gold': return { badge: 'bg-amber-100 text-amber-800', label: 'Gold' };
+        case 'platinum': return { badge: 'bg-violet-100 text-violet-800', label: 'Platinum' };
+        default: return { badge: 'bg-stone-200 text-stone-600', label: tier };
+      }
+    }
+
+    function getFiltered(): Service[] {
+      return allServices.filter(s => {
+        const matchSearch = !searchKeyword || s.title.toLowerCase().includes(searchKeyword);
+        const matchTier = !tierKeyword || s.tier === tierKeyword;
+        const matchStatus = !statusKeyword || (statusKeyword === 'active' ? s.is_active : !s.is_active);
+        return matchSearch && matchTier && matchStatus;
+      }).sort((a,b) => a.sort_order - b.sort_order);
+    }
+
+    function renderTable() {
+      const filtered = getFiltered();
+      const total = filtered.length;
+      const totalPages = Math.max(1, Math.ceil(total / perPage));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const start = (currentPage - 1) * perPage;
+      const paged = filtered.slice(start, start + perPage);
+
+      if (!paged.length) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-stone-300">inbox</span><p class="text-stone-400 text-sm">No services found</p></div></td></tr>`;
+        pagInfo.textContent = 'No items'; pagControls.innerHTML = ''; return;
+      }
+
+      tableBody.innerHTML = paged.map((svc, i) => {
+        const t = getTierClasses(svc.tier);
+        const border = i < paged.length - 1 ? 'border-b border-stone-200/10' : '';
+        const statusBadge = svc.is_active
+          ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800"><span class="w-1.5 h-1.5 rounded-full bg-teal-600"></span>Active</span>'
+          : '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-stone-200 text-stone-600"><span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span>Inactive</span>';
+
+        return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${border}" data-id="${svc.id}">
+          <td class="py-4 md:py-5 px-3 md:px-4">
+            <div class="flex items-center gap-3 md:gap-4">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-lg">${svc.icon || 'design_services'}</span>
+              </div>
+              <div>
+                <p class="font-bold text-primary text-sm md:text-base">${svc.title}</p>
+                <p class="text-stone-400 text-[10px] mt-0.5 tracking-wider">${svc.badge || '--'}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 md:py-5 px-3 md:px-4"><span class="font-bold px-2.5 py-1 rounded-full text-[11px] ${t.badge}">${t.label}</span></td>
+          <td class="py-4 md:py-5 px-3 md:px-4 font-bold text-primary">${svc.price_label || (svc.price > 0 ? formatRupiah(svc.price) : '--')}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4">${svc.is_featured ? '<span class="material-symbols-outlined text-amber-500 text-lg">star</span>' : '<span class="text-stone-300">--</span>'}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4">${statusBadge}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button class="viewBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="View" data-id="${svc.id}">
+                <span class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+              <button class="editBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="Edit" data-id="${svc.id}">
+                <span class="material-symbols-outlined text-lg">edit</span>
+              </button>
+              <button class="deleteBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-error hover:bg-stone-200/50 transition-all" title="Delete" data-id="${svc.id}" data-title="${svc.title}">
+                <span class="material-symbols-outlined text-lg">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      const s = start + 1, e = Math.min(start + perPage, total);
+      pagInfo.textContent = `Showing ${s}–${e} of ${total.toLocaleString()} service items`;
+
+      let pb = `<button class="pagBtn w-9 h-9 rounded-lg flex items-center justify-center border border-stone-200/50 hover:bg-surface-container-low transition-colors ${currentPage<=1?'opacity-30 pointer-events-none':''}" data-page="${currentPage-1}"><span class="material-symbols-outlined text-sm text-stone-400">chevron_left</span></button>`;
+      for (let p=1;p<=totalPages;p++) {
+        if (totalPages>5&&p>3&&p<totalPages-1&&Math.abs(p-currentPage)>1) { if(p===4) pb+=`<span class="w-9 h-9 flex items-center justify-center text-stone-400 text-xs">...</span>`; continue; }
+        pb += p===currentPage ? `<button class="w-9 h-9 rounded-lg flex items-center justify-center bg-primary text-white font-bold text-xs">${p}</button>` : `<button class="pagBtn w-9 h-9 rounded-lg flex items-center justify-center border border-stone-200/50 hover:bg-surface-container-low transition-colors font-medium text-xs" data-page="${p}">${p}</button>`;
+      }
+      pb += `<button class="pagBtn w-9 h-9 rounded-lg flex items-center justify-center border border-stone-200/50 hover:bg-surface-container-low transition-colors ${currentPage>=totalPages?'opacity-30 pointer-events-none':''}" data-page="${currentPage+1}"><span class="material-symbols-outlined text-sm text-stone-400">chevron_right</span></button>`;
+      pagControls.innerHTML = pb;
+
+      bindActions(); bindPagination();
+    }
+
+    function featuresToLines(json: string): string { try { return JSON.parse(json).join('\n'); } catch { return json || ''; } }
+    function linesToFeaturesJson(text: string): string { const arr = text.split('\n').map(l=>l.trim()).filter(Boolean); return JSON.stringify(arr); }
+
+    function bindActions() {
+      tableBody.querySelectorAll('.viewBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = (btn as HTMLElement).dataset.id!;
+          const svc = allServices.find(s => s.id === id);
+          if (!svc) { showToast('Service not found','error'); return; }
+          const t = getTierClasses(svc.tier);
+          document.getElementById('viewServiceIcon')!.innerHTML = `<span class="material-symbols-outlined text-2xl text-primary">${svc.icon||'design_services'}</span>`;
+          document.getElementById('viewServiceTitle')!.textContent = svc.title;
+          const tierEl = document.getElementById('viewServiceTier')!;
+          tierEl.textContent = t.label; tierEl.className = `text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${t.badge}`;
+          const badgeEl = document.getElementById('viewServiceBadge')!;
+          if (svc.badge) { badgeEl.textContent = svc.badge; badgeEl.classList.remove('hidden'); } else { badgeEl.classList.add('hidden'); }
+          document.getElementById('viewServicePrice')!.textContent = svc.price_label || formatRupiah(svc.price);
+          document.getElementById('viewServiceStatus')!.innerHTML = svc.is_active ? '<span class="text-teal-700 font-bold">Active</span>' : '<span class="text-stone-500">Inactive</span>';
+          document.getElementById('viewServiceOrder')!.textContent = String(svc.sort_order);
+          document.getElementById('viewServiceFeatured')!.innerHTML = svc.is_featured ? '<span class="text-amber-600 font-bold">★ Yes</span>' : '<span class="text-stone-400">No</span>';
+          document.getElementById('viewServiceDesc')!.textContent = svc.description || 'No description.';
+          const features = parseFeatures(svc.features);
+          document.getElementById('viewServiceFeatures')!.innerHTML = features.length ? features.map(f => `<li class="flex items-center gap-2 text-sm text-stone-600"><span class="material-symbols-outlined text-teal-500 text-sm">check_circle</span>${f}</li>`).join('') : '<li class="text-sm text-stone-400">No features listed.</li>';
+          openModal('viewServiceModal');
+        });
+      });
+      tableBody.querySelectorAll('.editBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = (btn as HTMLElement).dataset.id!;
+          const svc = allServices.find(s => s.id === id);
+          if (!svc) { showToast('Service not found','error'); return; }
+          document.getElementById('editServiceAlert')?.classList.add('hidden');
+          const f = document.getElementById('editServiceForm') as HTMLFormElement;
+          (f.querySelector('[name="id"]') as HTMLInputElement).value = svc.id;
+          (f.querySelector('[name="title"]') as HTMLInputElement).value = svc.title;
+          (f.querySelector('[name="tier"]') as HTMLSelectElement).value = svc.tier;
+          (f.querySelector('[name="icon"]') as HTMLInputElement).value = svc.icon||'';
+          (f.querySelector('[name="price"]') as HTMLInputElement).value = String(svc.price||0);
+          (f.querySelector('[name="price_label"]') as HTMLInputElement).value = svc.price_label||'';
+          (f.querySelector('[name="badge"]') as HTMLInputElement).value = svc.badge||'';
+          (f.querySelector('[name="sort_order"]') as HTMLInputElement).value = String(svc.sort_order||0);
+          (f.querySelector('[name="is_active"]') as HTMLSelectElement).value = String(svc.is_active);
+          (f.querySelector('[name="is_featured"]') as HTMLSelectElement).value = String(svc.is_featured);
+          (f.querySelector('[name="description"]') as HTMLTextAreaElement).value = svc.description||'';
+          (f.querySelector('[name="features"]') as HTMLTextAreaElement).value = featuresToLines(svc.features);
+          openModal('editServiceModal');
+        });
+      });
+      tableBody.querySelectorAll('.deleteBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          deleteTargetId = (btn as HTMLElement).dataset.id!;
+          document.getElementById('deleteServiceTitle')!.textContent = (btn as HTMLElement).dataset.title||'';
+          openModal('deleteModal');
+        });
+      });
+    }
+
+    function bindPagination() {
+      pagControls.querySelectorAll('.pagBtn').forEach(b => b.addEventListener('click', () => {
+        currentPage = parseInt((b as HTMLElement).dataset.page||'1'); renderTable();
+      }));
+    }
+
+    // ─── Add Service ──────────────────────────────────
+    document.getElementById('addServiceBtn')?.addEventListener('click', () => {
+      (document.getElementById('addServiceForm') as HTMLFormElement).reset();
+      document.getElementById('addServiceAlert')?.classList.add('hidden');
+      openModal('addServiceModal');
+    });
+
+    document.getElementById('saveServiceBtn')?.addEventListener('click', async () => {
+      const form = document.getElementById('addServiceForm') as HTMLFormElement;
+      const fd = new FormData(form);
+      const btn = document.getElementById('saveServiceBtn') as HTMLButtonElement;
+      const alert = document.getElementById('addServiceAlert')!;
+      alert.classList.add('hidden');
+      const title = (fd.get('title') as string||'').trim();
+      if (!title) { alert.classList.remove('hidden'); alert.innerHTML='<p class="font-bold">Title is required</p>'; return; }
+      btn.disabled=true; btn.textContent='Saving...';
+      try {
+        await createService({
+          title, tier: fd.get('tier') as string||'basic',
+          icon: fd.get('icon') as string||'', description: fd.get('description') as string||'',
+          price: parseInt(fd.get('price') as string)||0, price_label: fd.get('price_label') as string||'',
+          features: linesToFeaturesJson(fd.get('features') as string||''),
+          is_featured: fd.get('is_featured')==='true', badge: fd.get('badge') as string||'',
+          sort_order: parseInt(fd.get('sort_order') as string)||0, is_active: fd.get('is_active')!=='false',
+        } as any);
+        closeModal('addServiceModal'); showToast('Service created successfully!'); await loadServices();
+      } catch(e:any) { alert.classList.remove('hidden'); alert.innerHTML=`<p class="font-bold">${e.message||'Failed to create service'}</p>`;
+      } finally { btn.disabled=false; btn.textContent='Save Service'; }
+    });
+
+    // ─── Update Service ───────────────────────────────
+    document.getElementById('updateServiceBtn')?.addEventListener('click', async () => {
+      const form = document.getElementById('editServiceForm') as HTMLFormElement;
+      const fd = new FormData(form);
+      const id = fd.get('id') as string;
+      const btn = document.getElementById('updateServiceBtn') as HTMLButtonElement;
+      const alert = document.getElementById('editServiceAlert')!;
+      alert.classList.add('hidden');
+      const title = (fd.get('title') as string||'').trim();
+      if (!title) { alert.classList.remove('hidden'); alert.innerHTML='<p class="font-bold">Title is required</p>'; return; }
+      btn.disabled=true; btn.textContent='Saving...';
+      try {
+        await updateService(id, {
+          title, tier: fd.get('tier') as string,
+          icon: fd.get('icon') as string, description: fd.get('description') as string,
+          price: parseInt(fd.get('price') as string)||0, price_label: fd.get('price_label') as string,
+          features: linesToFeaturesJson(fd.get('features') as string||''),
+          is_featured: fd.get('is_featured')==='true', badge: fd.get('badge') as string,
+          sort_order: parseInt(fd.get('sort_order') as string)||0, is_active: fd.get('is_active')!=='false',
+        });
+        closeModal('editServiceModal'); showToast('Service updated successfully!'); await loadServices();
+      } catch(e:any) { alert.classList.remove('hidden'); alert.innerHTML=`<p class="font-bold">${e.message||'Failed to update service'}</p>`;
+      } finally { btn.disabled=false; btn.textContent='Save Changes'; }
+    });
+
+    // ─── Delete Service ───────────────────────────────
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+      const btn = document.getElementById('confirmDeleteBtn') as HTMLButtonElement;
+      btn.disabled=true; btn.textContent='Deleting...';
+      try {
+        await deleteService(deleteTargetId);
+        closeModal('deleteModal'); showToast('Service deleted successfully!'); await loadServices();
+      } catch(e:any) { showToast(e.message||'Failed to delete service','error');
+      } finally { btn.disabled=false; btn.textContent='Delete'; }
+    });
+
+    // --- CORE SERVICES LOGIC ---
+    async function loadCoreServices() {
+      const coreTbody = document.getElementById('coreTableBody')!;
+      coreTbody.innerHTML = '<tr><td colspan="4" class="py-16 text-center">Loading...</td></tr>';
+      try {
+        allCoreServices = await getCoreServices();
+        allCoreServices.sort((a,b) => a.sort_order - b.sort_order);
+        renderCoreTable();
+      } catch(e) {
+        coreTbody.innerHTML = '<tr><td colspan="4" class="py-16 text-center text-red-500">Failed to load core services.</td></tr>';
+      }
+    }
+
+    function renderCoreTable() {
+      const coreTbody = document.getElementById('coreTableBody')!;
+      if (!allCoreServices.length) {
+        coreTbody.innerHTML = '<tr><td colspan="4" class="py-16 text-center">No services found</td></tr>';
+        return;
+      }
+
+      coreTbody.innerHTML = allCoreServices.map((svc, i) => {
+        const border = i < allCoreServices.length - 1 ? 'border-b border-stone-200/10' : '';
+        const statusBadge = svc.is_active
+          ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800">Active</span>'
+          : '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-stone-200 text-stone-600">Inactive</span>';
+
+        return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${border}">
+          <td class="py-4 md:py-5 px-3 md:px-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-lg">${svc.icon || 'design_services'}</span>
+              </div>
+              <p class="font-bold text-primary text-sm">${svc.title}</p>
+            </div>
+          </td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-stone-500 max-w-xs truncate" title="${svc.description}">${svc.description}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4">${statusBadge}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button class="editCoreBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" data-id="${svc.id}">
+                <span class="material-symbols-outlined text-lg">edit</span>
+              </button>
+              <button class="deleteCoreBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-error hover:bg-stone-200/50 transition-all" data-id="${svc.id}" data-title="${svc.title}">
+                <span class="material-symbols-outlined text-lg">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      coreTbody.querySelectorAll('.editCoreBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = (btn as HTMLElement).dataset.id!;
+          const svc = allCoreServices.find(s => s.id === id);
+          if (!svc) return;
+          const f = document.getElementById('editCoreForm') as HTMLFormElement;
+          (f.querySelector('[name="id"]') as HTMLInputElement).value = svc.id;
+          (f.querySelector('[name="title"]') as HTMLInputElement).value = svc.title;
+          (f.querySelector('[name="icon"]') as HTMLInputElement).value = svc.icon||'';
+          (f.querySelector('[name="sort_order"]') as HTMLInputElement).value = String(svc.sort_order||0);
+          (f.querySelector('[name="is_active"]') as HTMLSelectElement).value = String(svc.is_active);
+          (f.querySelector('[name="description"]') as HTMLTextAreaElement).value = svc.description||'';
+          openModal('editCoreModal');
+        });
+      });
+
+      coreTbody.querySelectorAll('.deleteCoreBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          deleteCoreTargetId = (btn as HTMLElement).dataset.id!;
+          document.getElementById('deleteCoreTitle')!.textContent = (btn as HTMLElement).dataset.title||'';
+          openModal('deleteCoreModal');
+        });
+      });
+    }
+
+    document.getElementById('addCoreBtn')?.addEventListener('click', () => {
+      (document.getElementById('addCoreForm') as HTMLFormElement).reset();
+      openModal('addCoreModal');
+    });
+
+    document.getElementById('saveCoreBtn')?.addEventListener('click', async () => {
+      const f = document.getElementById('addCoreForm') as HTMLFormElement;
+      const fd = new FormData(f);
+      const title = (fd.get('title') as string||'').trim();
+      if (!title) return;
+      try {
+        await createCoreService({
+          title, icon: fd.get('icon') as string, description: fd.get('description') as string,
+          sort_order: parseInt(fd.get('sort_order') as string)||0, is_active: fd.get('is_active')!=='false'
+        });
+        closeModal('addCoreModal'); showToast('Service created!'); await loadCoreServices();
+      } catch(e) { alert(e); }
+    });
+
+    document.getElementById('updateCoreBtn')?.addEventListener('click', async () => {
+      const f = document.getElementById('editCoreForm') as HTMLFormElement;
+      const fd = new FormData(f);
+      const id = fd.get('id') as string;
+      const title = (fd.get('title') as string||'').trim();
+      if (!title) return;
+      try {
+        await updateCoreService(id, {
+          title, icon: fd.get('icon') as string, description: fd.get('description') as string,
+          sort_order: parseInt(fd.get('sort_order') as string)||0, is_active: fd.get('is_active')!=='false'
+        });
+        closeModal('editCoreModal'); showToast('Service updated!'); await loadCoreServices();
+      } catch(e) { alert(e); }
+    });
+
+    document.getElementById('confirmDeleteCoreBtn')?.addEventListener('click', async () => {
+      try {
+        await deleteCoreService(deleteCoreTargetId);
+        closeModal('deleteCoreModal'); showToast('Service deleted!'); await loadCoreServices();
+      } catch(e) { alert(e); }
+    });
+
+    async function loadServices() {
+      tableBody.innerHTML = `<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span><p class="text-stone-400 text-sm">Loading services...</p></div></td></tr>`;
+      try {
+        allServices = await getServices(false);
+        renderTable();
+      } catch (err: any) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-red-300">error</span><p class="text-stone-500 text-sm">${err.message||'Failed to load services'}</p><button class="retryBtn text-primary font-bold text-sm mt-2 hover:underline">Retry</button></div></td></tr>`;
+        tableBody.querySelector('.retryBtn')?.addEventListener('click', loadServices);
+      }
+    }
+
+    let st: ReturnType<typeof setTimeout>;
+    searchInput?.addEventListener('input', () => { clearTimeout(st); st = setTimeout(() => { searchKeyword = searchInput.value.trim().toLowerCase(); currentPage=1; renderTable(); }, 300); });
+    tierFilter?.addEventListener('change', () => { tierKeyword = tierFilter.value; currentPage=1; renderTable(); });
+    statusFilter?.addEventListener('change', () => { statusKeyword = statusFilter.value; currentPage=1; renderTable(); });
+
+    loadCoreServices();
+    loadServices();
+  </script>
+</AdminLayout>

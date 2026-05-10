@@ -62,6 +62,27 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	response.OK(c, "Login successful", result)
 }
 
+// Register handles POST /api/v1/auth/register
+func (h *AuthHandler) Register(c *gin.Context) {
+	var input service.RegisterInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Invalid request body", nil)
+		return
+	}
+
+	result, err := h.authService.Register(input)
+	if err != nil {
+		if err.Error() == "email already exists" {
+			response.Conflict(c, "Email already registered")
+			return
+		}
+		response.InternalError(c, "An error occurred during registration")
+		return
+	}
+
+	response.Created(c, "Registration successful", result)
+}
+
 // Me handles GET /api/v1/auth/me
 func (h *AuthHandler) Me(c *gin.Context) {
 	userID, exists := c.Get(middleware.ContextKeyUserID)
@@ -88,4 +109,42 @@ func (h *AuthHandler) Me(c *gin.Context) {
 // This endpoint provides a clean API contract.
 func (h *AuthHandler) Logout(c *gin.Context) {
 	response.OK(c, "Logout successful", nil)
+}
+
+// SendOTP handles POST /api/v1/auth/send-otp
+func (h *AuthHandler) SendOTP(c *gin.Context) {
+	var input struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Valid email is required", nil)
+		return
+	}
+
+	if err := h.authService.SendOTP(input.Email); err != nil {
+		response.InternalError(c, "Failed to send OTP")
+		return
+	}
+
+	response.OK(c, "OTP code has been sent to your email", nil)
+}
+
+// VerifyOTP handles POST /api/v1/auth/verify-otp
+func (h *AuthHandler) VerifyOTP(c *gin.Context) {
+	var input struct {
+		Email string `json:"email" binding:"required,email"`
+		Code  string `json:"code" binding:"required,len=6"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Email and 6-digit code are required", nil)
+		return
+	}
+
+	ok, err := h.authService.VerifyOTP(input.Email, input.Code)
+	if err != nil || !ok {
+		response.BadRequest(c, err.Error(), nil)
+		return
+	}
+
+	response.OK(c, "OTP verified successfully", nil)
 }

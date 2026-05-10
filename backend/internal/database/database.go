@@ -49,6 +49,11 @@ func Migrate(db *sql.DB) error {
 			name        TEXT NOT NULL,
 			role        TEXT NOT NULL CHECK(role IN ('superadmin','author','customer')),
 			is_active   INTEGER NOT NULL DEFAULT 1,
+			phone_number TEXT DEFAULT '',
+			address     TEXT DEFAULT '',
+			province    TEXT DEFAULT '',
+			city        TEXT DEFAULT '',
+			zip_code    TEXT DEFAULT '',
 			created_at  DATETIME NOT NULL DEFAULT (datetime('now')),
 			updated_at  DATETIME NOT NULL DEFAULT (datetime('now'))
 		);`,
@@ -69,6 +74,9 @@ func Migrate(db *sql.DB) error {
 			title            TEXT NOT NULL,
 			author           TEXT NOT NULL,
 			isbn             TEXT UNIQUE,
+			badge            TEXT DEFAULT 'Regular',
+			ggkey            TEXT DEFAULT '',
+			qrcbn            TEXT DEFAULT '',
 			price            INTEGER NOT NULL DEFAULT 0,
 			rating           REAL NOT NULL DEFAULT 0,
 			review_count     INTEGER NOT NULL DEFAULT 0,
@@ -113,6 +121,69 @@ func Migrate(db *sql.DB) error {
 
 		`CREATE INDEX IF NOT EXISTS idx_services_tier ON services(tier);`,
 		`CREATE INDEX IF NOT EXISTS idx_services_sort_order ON services(sort_order);`,
+
+		`CREATE TABLE IF NOT EXISTS core_services (
+			id          TEXT PRIMARY KEY,
+			title       TEXT NOT NULL,
+			description TEXT NOT NULL DEFAULT '',
+			icon        TEXT DEFAULT '',
+			sort_order  INTEGER NOT NULL DEFAULT 0,
+			is_active   INTEGER NOT NULL DEFAULT 1,
+			created_at  DATETIME NOT NULL DEFAULT (datetime('now')),
+			updated_at  DATETIME NOT NULL DEFAULT (datetime('now'))
+		);`,
+
+		`CREATE INDEX IF NOT EXISTS idx_core_services_sort_order ON core_services(sort_order);`,
+
+		`CREATE TABLE IF NOT EXISTS orders (
+			id               TEXT PRIMARY KEY,
+			invoice          TEXT NOT NULL UNIQUE,
+			user_id          TEXT NOT NULL,
+			notes            TEXT DEFAULT '',
+			total_qty        INTEGER NOT NULL DEFAULT 0,
+			total_weight     INTEGER NOT NULL DEFAULT 0,
+			total_price      INTEGER NOT NULL DEFAULT 0,
+			payment_type     TEXT DEFAULT '',
+			status           TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','confirmed','shipped','delivered','cancelled','completed')),
+			shipping_name    TEXT DEFAULT '',
+			shipping_service TEXT DEFAULT '',
+			shipping_price   INTEGER NOT NULL DEFAULT 0,
+			created_at       DATETIME NOT NULL DEFAULT (datetime('now')),
+			updated_at       DATETIME NOT NULL DEFAULT (datetime('now')),
+			FOREIGN KEY (user_id) REFERENCES users(id)
+		);`,
+
+		`CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);`,
+
+		`CREATE TABLE IF NOT EXISTS order_details (
+			id          TEXT PRIMARY KEY,
+			order_id    TEXT NOT NULL,
+			service_id  TEXT DEFAULT '',
+			book_id     TEXT DEFAULT '',
+			qty         INTEGER NOT NULL DEFAULT 1,
+			total_price INTEGER NOT NULL DEFAULT 0,
+			FOREIGN KEY (order_id) REFERENCES orders(id)
+		);`,
+
+		`CREATE INDEX IF NOT EXISTS idx_order_details_order_id ON order_details(order_id);`,
+
+		`CREATE TABLE IF NOT EXISTS reviews (
+			id          TEXT PRIMARY KEY,
+			user_id     TEXT NOT NULL,
+			order_id    TEXT NOT NULL,
+			service_id  TEXT DEFAULT '[]',
+			book_id     TEXT DEFAULT '[]',
+			details     TEXT DEFAULT '{}',
+			rating      TEXT DEFAULT '{}',
+			created_at  DATETIME NOT NULL DEFAULT (datetime('now')),
+			updated_at  DATETIME NOT NULL DEFAULT (datetime('now')),
+			FOREIGN KEY (user_id) REFERENCES users(id),
+			FOREIGN KEY (order_id) REFERENCES orders(id)
+		);`,
+
+		`CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_reviews_order_id ON reviews(order_id);`,
 	}
 
 	tx, err := db.Begin()
@@ -135,7 +206,114 @@ func Migrate(db *sql.DB) error {
 		return fmt.Errorf("database: ensure category slugs: %w", err)
 	}
 
+	if err := ensureUserColumns(db); err != nil {
+		return fmt.Errorf("database: ensure user columns: %w", err)
+	}
+
+	if err := ensureBookColumns(db); err != nil {
+		return fmt.Errorf("database: ensure book columns: %w", err)
+	}
+
+	if err := ensureOrderStatuses(db); err != nil {
+		return fmt.Errorf("database: ensure order statuses: %w", err)
+	}
+
 	log.Println("[DB] Schema migration completed successfully")
+	return nil
+}
+
+func ensureUserColumns(db *sql.DB) error {
+	columns := []string{"phone_number", "address", "province", "city", "zip_code"}
+	for _, col := range columns {
+		if _, err := db.Exec(fmt.Sprintf(`ALTER TABLE users ADD COLUMN %s TEXT DEFAULT ''`, col)); err != nil {
+			if !strings.Contains(strings.ToLower(err.Error()), "duplicate column name") {
+				return fmt.Errorf("add %s column to users: %w", col, err)
+			}
+		}
+	}
+	return nil
+}
+
+func ensureBookColumns(db *sql.DB) error {
+	columns := map[string]string{
+		"badge": "TEXT DEFAULT 'Regular'",
+		"ggkey": "TEXT DEFAULT ''",
+		"qrcbn": "TEXT DEFAULT ''",
+	}
+	for col, def := range columns {
+		if _, err := db.Exec(fmt.Sprintf(`ALTER TABLE books ADD COLUMN %s %s`, col, def)); err != nil {
+			if !strings.Contains(strings.ToLower(err.Error()), "duplicate column name") {
+				return fmt.Errorf("add %s column to books: %w", col, err)
+			}
+		}
+	}
+	return nil
+}
+
+func ensureOrderStatuses(db *sql.DB) error {
+	var createSQL string
+	if err := db.QueryRow(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'orders'`).Scan(&createSQL); err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+		return fmt.Errorf("inspect orders table: %w", err)
+	}
+
+	if strings.Contains(createSQL, "confirmed") && strings.Contains(createSQL, "delivered") {
+		return nil
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("rebuild orders table: begin: %w", err)
+	}
+	defer tx.Rollback()
+
+	statements := []string{
+		`PRAGMA foreign_keys = OFF`,
+		`ALTER TABLE orders RENAME TO orders_legacy`,
+		`CREATE TABLE orders (
+			id               TEXT PRIMARY KEY,
+			invoice          TEXT NOT NULL UNIQUE,
+			user_id          TEXT NOT NULL,
+			notes            TEXT DEFAULT '',
+			total_qty        INTEGER NOT NULL DEFAULT 0,
+			total_weight     INTEGER NOT NULL DEFAULT 0,
+			total_price      INTEGER NOT NULL DEFAULT 0,
+			payment_type     TEXT DEFAULT '',
+			status           TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','confirmed','shipped','delivered','cancelled','completed')),
+			shipping_name    TEXT DEFAULT '',
+			shipping_service TEXT DEFAULT '',
+			shipping_price   INTEGER NOT NULL DEFAULT 0,
+			created_at       DATETIME NOT NULL DEFAULT (datetime('now')),
+			updated_at       DATETIME NOT NULL DEFAULT (datetime('now')),
+			FOREIGN KEY (user_id) REFERENCES users(id)
+		)`,
+		`INSERT INTO orders (id, invoice, user_id, notes, total_qty, total_weight, total_price, payment_type, status, shipping_name, shipping_service, shipping_price, created_at, updated_at)
+		 SELECT id, invoice, user_id, notes, total_qty, total_weight, total_price, payment_type,
+			CASE status
+				WHEN 'processing' THEN 'confirmed'
+				WHEN 'completed' THEN 'delivered'
+				ELSE status
+			END,
+			shipping_name, shipping_service, shipping_price, created_at, updated_at
+		 FROM orders_legacy`,
+		`DROP TABLE orders_legacy`,
+		`CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`,
+		`PRAGMA foreign_keys = ON`,
+	}
+
+	for _, stmt := range statements {
+		if _, err := tx.Exec(stmt); err != nil {
+			return fmt.Errorf("rebuild orders table: %w\nSQL: %s", err, stmt)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("rebuild orders table: commit: %w", err)
+	}
+
 	return nil
 }
 

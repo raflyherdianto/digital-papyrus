@@ -26,13 +26,21 @@ func NewBookHandler(bookService *service.BookService) *BookHandler {
 func (h *BookHandler) ListBooks(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	perPage, _ := strconv.Atoi(c.DefaultQuery("per_page", "12"))
+	minPrice, _ := strconv.Atoi(c.Query("min_price"))
+	maxPrice, _ := strconv.Atoi(c.Query("max_price"))
+	maxRating, _ := strconv.ParseFloat(c.Query("max_rating"), 64)
 
 	filter := repository.BookFilter{
 		Status:     c.Query("status"),
 		CategoryID: c.Query("category_id"),
+		Badge:      c.Query("badge"),
 		Search:     c.Query("search"),
 		Page:       page,
 		PerPage:    perPage,
+		MinPrice:   minPrice,
+		MaxPrice:   maxPrice,
+		MaxRating:  maxRating,
+		Sort:       strings.ToLower(c.Query("sort")),
 	}
 
 	books, total, err := h.bookService.ListBooks(filter)

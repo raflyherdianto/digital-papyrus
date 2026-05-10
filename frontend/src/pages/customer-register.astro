@@ -1,0 +1,469 @@
+---
+/**
+ * Customer Registration Page
+ * Route: /customer-register
+ */
+import AuthLayout from '../layouts/AuthLayout.astro';
+---
+
+<AuthLayout title="Customer Registration | Digital Papyrus">
+  <div class="w-full max-w-xl bg-surface-container-lowest rounded-2xl shadow-xl p-8 md:p-10 border border-outline-variant/10">
+    <div class="text-center mb-8 md:mb-10">
+      <h2 class="font-headline text-2xl md:text-3xl font-bold tracking-tight text-primary">Create Account</h2>
+      <p class="text-on-surface-variant text-sm md:text-base mt-2">Join us to start your publishing journey.</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="register-error" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-3">
+      <span class="material-symbols-outlined text-lg">error</span>
+      <span id="register-error-msg">Please check your information</span>
+    </div>
+
+    <form class="space-y-6" id="register-form" novalidate>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Name -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-primary mb-2" for="name-input">Full Name *</label>
+          <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+            <span class="material-symbols-outlined text-outline text-lg mr-3">person</span>
+            <input id="name-input" type="text" placeholder="Your full name" required class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant" />
+          </div>
+        </div>
+
+        <!-- Email with OTP -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-primary mb-2" for="email-input">Email Address *</label>
+          <div class="flex flex-col md:flex-row gap-3">
+            <div class="relative flex-1 flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+              <span class="material-symbols-outlined text-outline text-lg mr-3">mail</span>
+              <input id="email-input" type="email" placeholder="email@example.com" required class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant disabled:opacity-70" />
+              <div id="email-verified-badge" class="hidden flex items-center text-green-600 ml-2">
+                <span class="material-symbols-outlined text-base">verified</span>
+              </div>
+            </div>
+            <button type="button" id="send-otp-btn" class="px-6 py-3 bg-secondary text-on-secondary font-bold rounded-xl shadow-sm hover:bg-secondary/90 disabled:opacity-40 disabled:grayscale transition-all text-sm whitespace-nowrap">
+              Send Code
+            </button>
+          </div>
+          <p id="otp-hint" class="text-[10px] text-outline-variant mt-2 hidden">Code sent! Check your inbox (or console in dev).</p>
+        </div>
+
+        <!-- OTP Input (Hidden until code sent) -->
+        <div id="otp-section" class="hidden md:col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+          <label class="block text-sm font-medium text-primary mb-2" for="otp-input">Verification Code *</label>
+          <div class="flex gap-3">
+            <div class="relative flex-1 flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+              <span class="material-symbols-outlined text-outline text-lg mr-3">key</span>
+              <input id="otp-input" type="text" maxlength="6" placeholder="6-digit code" class="bg-transparent w-full text-sm focus:outline-none text-on-surface tracking-[0.5em] font-mono" />
+            </div>
+            <button type="button" id="verify-otp-btn" class="px-6 py-3 bg-primary/10 text-primary font-bold rounded-xl border border-primary/20 hover:bg-primary/20 transition-all text-sm">
+              Verify
+            </button>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-sm font-medium text-primary mb-2" for="password-input">Password *</label>
+          <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+            <span class="material-symbols-outlined text-outline text-lg mr-3">lock</span>
+            <input id="password-input" type="password" placeholder="Min 6 characters" required class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant" />
+            <button type="button" id="toggle-password" class="text-outline hover:text-primary transition-colors ml-2 focus:outline-none flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg leading-none">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div>
+          <label class="block text-sm font-medium text-primary mb-2" for="phone-input">Phone Number</label>
+          <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+            <span class="material-symbols-outlined text-outline text-lg mr-3">call</span>
+            <input id="phone-input" type="tel" placeholder="e.g. 08123456789" class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div>
+        <label class="block text-sm font-medium text-primary mb-2" for="address-input">Address</label>
+        <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+          <span class="material-symbols-outlined text-outline text-lg mr-3">home</span>
+          <textarea id="address-input" rows="2" placeholder="Full address" class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant resize-none py-1"></textarea>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Province -->
+        <div>
+          <label class="block text-sm font-medium text-primary mb-2" for="province-input">Province</label>
+          <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+            <input id="province-input" type="text" placeholder="Province" class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant" />
+          </div>
+        </div>
+
+        <!-- City -->
+        <div>
+          <label class="block text-sm font-medium text-primary mb-2" for="city-input">City</label>
+          <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+            <input id="city-input" type="text" placeholder="City" class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant" />
+          </div>
+        </div>
+
+        <!-- Zip Code -->
+        <div>
+          <label class="block text-sm font-medium text-primary mb-2" for="zip-input">Zip Code</label>
+          <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+            <input id="zip-input" type="text" placeholder="Zip code" class="bg-transparent w-full text-sm focus:outline-none text-on-surface placeholder:text-outline-variant" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Puzzle CAPTCHA Section -->
+      <div id="captcha-container" class="space-y-4 py-4 border-t border-outline-variant/10 mt-6">
+        <div class="text-center">
+          <p class="text-[10px] uppercase tracking-[0.2em] text-outline-variant font-bold mb-3">Security Verification</p>
+        </div>
+        
+        <div class="relative w-full aspect-[21/9] md:aspect-[16/9] bg-surface-container rounded-xl overflow-hidden shadow-inner border border-outline-variant/20" id="puzzle-box">
+          <canvas id="puzzle-main" class="w-full h-full object-cover"></canvas>
+          <canvas id="puzzle-piece" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+          
+          <!-- Success Overlay -->
+          <div id="puzzle-success" class="absolute inset-0 bg-green-500/20 backdrop-blur-[2px] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="bg-white rounded-full p-2 shadow-lg">
+              <span class="material-symbols-outlined text-green-600 text-3xl">check_circle</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative w-full h-12 bg-surface-container rounded-full border border-outline-variant/30 flex items-center p-1 group">
+          <div id="slider-track" class="absolute left-0 top-0 h-full bg-primary/10 rounded-full w-0"></div>
+          <input 
+            type="range" 
+            id="puzzle-slider" 
+            min="0" 
+            max="100" 
+            value="0" 
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+          />
+          <div id="slider-thumb" class="relative z-10 w-10 h-10 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center transition-transform group-hover:scale-105 active:scale-95">
+            <span class="material-symbols-outlined text-base">chevron_right</span>
+          </div>
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-outline-variant animate-pulse" id="slider-text">Slide to complete puzzle</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        id="register-submit-btn"
+        disabled
+        class="w-full py-4 mt-4 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:bg-primary/90 flex items-center justify-center gap-2 transition-all text-base disabled:opacity-40 disabled:grayscale disabled:cursor-not-allowed"
+      >
+        <span class="material-symbols-outlined text-sm" id="register-icon">person_add</span>
+        <span id="register-btn-text">Create Account</span>
+      </button>
+
+      <div class="text-center mt-6">
+        <p class="text-on-surface-variant text-sm">
+          Already have an account? <a href="/customer-login" class="text-primary font-bold hover:underline">Sign in here</a>
+        </p>
+      </div>
+    </form>
+  </div>
+</AuthLayout>
+
+<style is:global>
+  /* Hide default browser password reveal button (Edge, IE) */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+</style>
+
+<script>
+  import { register, setToken, isAuthenticated, sendOTP, verifyOTP } from '../lib/api';
+
+  // Redirect if already logged in
+  if (isAuthenticated()) {
+    window.location.href = '/';
+  }
+
+  const form = document.getElementById('register-form') as HTMLFormElement;
+  const errorBox = document.getElementById('register-error')!;
+  const errorMsg = document.getElementById('register-error-msg')!;
+  const submitBtn = document.getElementById('register-submit-btn') as HTMLButtonElement;
+  const btnIcon = document.getElementById('register-icon')!;
+  const btnText = document.getElementById('register-btn-text')!;
+  const passwordInput = document.getElementById('password-input') as HTMLInputElement;
+  const togglePasswordBtn = document.getElementById('toggle-password') as HTMLButtonElement;
+
+  if (togglePasswordBtn && passwordInput) {
+    togglePasswordBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      const icon = togglePasswordBtn.querySelector('.material-symbols-outlined');
+      if (icon) icon.textContent = isPassword ? 'visibility_off' : 'visibility';
+    });
+  }
+
+  // OTP Elements
+  const emailInput = document.getElementById('email-input') as HTMLInputElement;
+  const sendOtpBtn = document.getElementById('send-otp-btn') as HTMLButtonElement;
+  const otpSection = document.getElementById('otp-section')!;
+  const otpInput = document.getElementById('otp-input') as HTMLInputElement;
+  const verifyOtpBtn = document.getElementById('verify-otp-btn') as HTMLButtonElement;
+  const otpHint = document.getElementById('otp-hint')!;
+  const emailVerifiedBadge = document.getElementById('email-verified-badge')!;
+
+  let isEmailVerified = false;
+  let isPuzzleSolved = false;
+
+  function updateSubmitState() {
+    submitBtn.disabled = !(isEmailVerified && isPuzzleSolved);
+  }
+
+  function showError(msg: string) {
+    errorMsg.textContent = msg;
+    errorBox.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // OTP Logic
+  sendOtpBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    if (!email || !email.includes('@')) {
+      showError('Please enter a valid email address.');
+      return;
+    }
+
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = 'Sending...';
+
+    try {
+      await sendOTP(email);
+      otpSection.classList.remove('hidden');
+      otpHint.classList.remove('hidden');
+      sendOtpBtn.textContent = 'Resend Code';
+      sendOtpBtn.disabled = false;
+    } catch (err: any) {
+      showError(err.message || 'Failed to send OTP.');
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.textContent = 'Send Code';
+    }
+  });
+
+  verifyOtpBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    const code = otpInput.value.trim();
+
+    if (code.length !== 6) {
+      showError('Please enter the 6-digit code.');
+      return;
+    }
+
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = '...';
+
+    try {
+      await verifyOTP(email, code);
+      isEmailVerified = true;
+      emailInput.disabled = true;
+      sendOtpBtn.classList.add('hidden');
+      otpSection.classList.add('hidden');
+      otpHint.textContent = 'Email verified successfully!';
+      otpHint.classList.remove('text-outline-variant');
+      otpHint.classList.add('text-green-600', 'font-bold');
+      emailVerifiedBadge.classList.remove('hidden');
+      updateSubmitState();
+    } catch (err: any) {
+      showError(err.message || 'Invalid code.');
+      verifyOtpBtn.disabled = false;
+      verifyOtpBtn.textContent = 'Verify';
+    }
+  });
+
+  function setLoading(loading: boolean) {
+    submitBtn.disabled = loading;
+    btnText.textContent = loading ? 'Creating account...' : 'Create Account';
+    btnIcon.textContent = loading ? 'hourglass_empty' : 'person_add';
+    if (loading) btnIcon.classList.add('animate-spin');
+    else btnIcon.classList.remove('animate-spin');
+  }
+
+  // Puzzle CAPTCHA Logic
+  const puzzleBox = document.getElementById('puzzle-box');
+  const mainCanvas = document.getElementById('puzzle-main') as HTMLCanvasElement;
+  const pieceCanvas = document.getElementById('puzzle-piece') as HTMLCanvasElement;
+  const slider = document.getElementById('puzzle-slider') as HTMLInputElement;
+  const thumb = document.getElementById('slider-thumb');
+  const track = document.getElementById('slider-track');
+  const successOverlay = document.getElementById('puzzle-success');
+  const sliderText = document.getElementById('slider-text');
+
+  let puzzleX = 0;
+  let puzzleY = 0;
+  let isSolved = false;
+
+  async function initPuzzle() {
+    if (!mainCanvas || !pieceCanvas) return;
+    
+    // Ensure dimensions are ready
+    if (mainCanvas.clientWidth === 0) {
+      requestAnimationFrame(initPuzzle);
+      return;
+    }
+
+    const ctx = mainCanvas.getContext('2d')!;
+    const pCtx = pieceCanvas.getContext('2d')!;
+    
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    // Using a more reliable tech/abstract image
+    img.src = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&w=600&q=80";
+    
+    img.onerror = () => {
+      // Fallback if the first image fails
+      img.src = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80";
+    };
+
+    img.onload = () => {
+      const w = mainCanvas.clientWidth;
+      const h = mainCanvas.clientHeight;
+      
+      // Force internal resolution to match display size
+      mainCanvas.width = w;
+      mainCanvas.height = h;
+      pieceCanvas.width = w;
+      pieceCanvas.height = h;
+
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // Random position for puzzle piece (at least 50% across)
+      puzzleX = Math.floor(Math.random() * (w / 2 - 80)) + w / 2;
+      puzzleY = Math.floor(Math.random() * (h - 70)) + 20;
+
+      const size = 45;
+      const drawPiece = (c: CanvasRenderingContext2D, x: number, y: number) => {
+        c.beginPath();
+        c.moveTo(x, y);
+        c.lineTo(x + size / 2 - 5, y);
+        c.arc(x + size / 2, y, 8, Math.PI, 0);
+        c.lineTo(x + size, y);
+        c.lineTo(x + size, y + size / 2 - 5);
+        c.arc(x + size, y + size / 2, 8, 1.5 * Math.PI, 0.5 * Math.PI);
+        c.lineTo(x + size, y + size);
+        c.lineTo(x, y + size);
+        c.closePath();
+      };
+
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      drawPiece(ctx, puzzleX, puzzleY);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.stroke();
+
+      pCtx.save();
+      drawPiece(pCtx, 0, puzzleY);
+      pCtx.clip();
+      pCtx.drawImage(img, -puzzleX, 0, w, h);
+      pCtx.restore();
+      
+      pCtx.strokeStyle = 'rgba(255,255,255,0.9)';
+      pCtx.lineWidth = 2;
+      drawPiece(pCtx, 0, puzzleY);
+      pCtx.stroke();
+    };
+  }
+
+  if (slider && thumb && track) {
+    slider.addEventListener('input', (e) => {
+      if (isSolved) return;
+      const val = parseInt((e.target as HTMLInputElement).value);
+      const moveX = (val / 100) * (mainCanvas.clientWidth - 50);
+      
+      pieceCanvas.style.transform = `translateX(${moveX}px)`;
+      thumb.style.transform = `translateX(${moveX}px)`;
+      track.style.width = `${moveX + 20}px`;
+    });
+
+    slider.addEventListener('change', (e) => {
+      if (isSolved) return;
+      const val = parseInt((e.target as HTMLInputElement).value);
+      const moveX = (val / 100) * (mainCanvas.clientWidth - 50);
+      
+      const diff = Math.abs(moveX - puzzleX);
+      if (diff < 6) {
+        isSolved = true;
+        successOverlay?.classList.remove('opacity-0');
+        successOverlay?.classList.add('opacity-100');
+        sliderText!.textContent = "Verification Success";
+        sliderText!.classList.remove('animate-pulse');
+        sliderText!.classList.add('text-green-600');
+        slider.disabled = true;
+        isPuzzleSolved = true;
+        updateSubmitState();
+      } else {
+        slider.value = "0";
+        pieceCanvas.style.transform = 'translateX(0)';
+        thumb.style.transform = 'translateX(0)';
+        track.style.width = '0';
+      }
+    });
+  }
+
+  initPuzzle();
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.add('hidden');
+
+      const name = (document.getElementById('name-input') as HTMLInputElement).value.trim();
+      const email = emailInput.value.trim(); // Use the scoped emailInput
+      const password = (document.getElementById('password-input') as HTMLInputElement).value;
+      const phoneNumber = (document.getElementById('phone-input') as HTMLInputElement).value.trim();
+      const address = (document.getElementById('address-input') as HTMLTextAreaElement).value.trim();
+      const province = (document.getElementById('province-input') as HTMLInputElement).value.trim();
+      const city = (document.getElementById('city-input') as HTMLInputElement).value.trim();
+      const zipCode = (document.getElementById('zip-input') as HTMLInputElement).value.trim();
+
+      if (!name || !email || !password) {
+        showError('Please fill in all required fields (*).');
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters long.');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const payload = {
+          name,
+          email,
+          password,
+          phone_number: phoneNumber,
+          address,
+          province,
+          city,
+          zip_code: zipCode
+        };
+
+        const result = await register(payload);
+        setToken(result.token);
+        localStorage.setItem('dp_user', JSON.stringify(result.user));
+        
+        window.location.href = '/';
+      } catch (err: any) {
+        const message = err?.message || 'Registration failed. Please try again.';
+        showError(message);
+        setLoading(false);
+      }
+    });
+  }
+</script>

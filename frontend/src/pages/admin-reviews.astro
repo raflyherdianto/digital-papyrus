@@ -1,0 +1,439 @@
+---
+/**
+ * Admin Review Management Page
+ * Route: /admin-reviews
+ */
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Review Management | Digital Papyrus" activePage="reviews">
+  <div class="flex flex-col md:flex-row items-start md:items-baseline justify-between mb-6 md:mb-8 gap-4">
+    <div>
+      <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-primary font-headline mb-2">Review Management</h2>
+      <p class="text-stone-500 font-body text-sm max-w-xl">Manage customer reviews for books and services.</p>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-6 border border-stone-200/20 shadow-sm mb-6 md:mb-8 flex flex-col md:flex-row flex-wrap items-start md:items-center gap-3 md:gap-4 justify-between">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 flex-1 w-full md:w-auto">
+      <div class="relative w-full sm:max-w-sm">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
+        <input id="searchInput" class="w-full bg-surface-container py-2.5 pl-10 pr-4 rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-stone-400" placeholder="Search by user name..." type="text" />
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left min-w-[700px]">
+        <thead>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Invoice</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Name</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Date</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reviewsTableBody" class="text-sm font-body">
+          <tr id="loadingRow">
+            <td colspan="3" class="py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span>
+                <p class="text-stone-400 text-sm">Loading reviews...</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between border-t border-stone-200/20 pt-6 gap-4">
+      <p id="paginationInfo" class="text-xs text-stone-400 font-medium">Loading...</p>
+      <div id="paginationControls" class="flex gap-1.5"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 right-6 z-[10000] hidden transform translate-y-4 opacity-0 transition-all duration-300">
+    <div class="flex items-center gap-3 bg-stone-800 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium">
+      <span id="toastIcon" class="material-symbols-outlined text-lg text-teal-400">check_circle</span>
+      <span id="toastMsg">Operation successful</span>
+    </div>
+  </div>
+
+
+  <!-- View Details Modal -->
+  <div id="viewReviewModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-xl mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col" id="viewReviewModalContent">
+      <div class="px-6 md:px-8 py-6 border-b border-stone-200/50 flex items-center justify-between">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Review Details</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="viewReviewModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="px-6 md:px-8 py-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">User Name</p>
+            <p id="viewReviewUserName" class="text-xl font-bold text-primary font-headline"></p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Invoice</p>
+            <p id="viewReviewInvoice" class="text-xl font-bold text-primary font-headline"></p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Created Date</p>
+            <p id="viewReviewCreated" class="text-sm font-medium text-stone-700"></p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Updated Date</p>
+            <p id="viewReviewUpdated" class="text-sm font-medium text-stone-700"></p>
+          </div>
+        </div>
+
+        <div class="bg-stone-50 rounded-xl p-4 border border-stone-200/50">
+          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-3">Feedback & Ratings</p>
+          <div id="viewReviewFeedback" class="space-y-4">
+            <!-- Formatted details and ratings -->
+          </div>
+        </div>
+      </div>
+      <div class="px-6 md:px-8 py-5 bg-surface-container flex items-center justify-end gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn px-5 py-2.5 border border-stone-300 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="viewReviewModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div id="deleteModal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest w-full max-w-sm mx-4 rounded-2xl shadow-xl overflow-hidden transform scale-95 transition-transform duration-300" id="deleteModalContent">
+      <div class="p-6 md:p-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-3xl text-red-500">delete_forever</span>
+        </div>
+        <h3 class="text-lg font-bold text-primary font-headline mb-2">Delete Review?</h3>
+        <p class="text-sm text-stone-500">This action cannot be undone. The review by <span id="deleteReviewUserName" class="font-semibold text-stone-700"></span> will be permanently removed.</p>
+      </div>
+      <div class="px-6 md:px-8 py-4 bg-surface-container flex items-center justify-center gap-3 border-t border-stone-200/50">
+        <button class="closeModalBtn flex-1 px-5 py-2.5 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="deleteModal">Cancel</button>
+        <button id="confirmDeleteBtn" class="flex-1 px-5 py-2.5 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-all disabled:opacity-50">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getReviews, deleteReview, getUsers, getBooks, getServices, isAuthenticated } from '../lib/api';
+    import type { Review, User, Book, Service } from '../lib/api';
+
+    if (!isAuthenticated()) {
+      window.location.href = '/admin-login';
+    }
+
+    const tableBody = document.getElementById('reviewsTableBody')!;
+    const paginationInfo = document.getElementById('paginationInfo')!;
+    const paginationControls = document.getElementById('paginationControls')!;
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+
+    let allReviews: Review[] = [];
+    let allUsers: User[] = [];
+    let allBooks: Book[] = [];
+    let allServices: Service[] = [];
+    let userMap = new Map<string, string>();
+    let bookMap = new Map<string, string>();
+    let serviceMap = new Map<string, string>();
+    
+    let currentPage = 1;
+    const perPage = 10;
+    let searchKeyword = '';
+    let deleteTargetId = '';
+
+    document.querySelectorAll('#viewReviewModal, #deleteModal, #toast').forEach(el => {
+      document.body.appendChild(el);
+    });
+
+    function formatDate(dateStr: string): string {
+      if (!dateStr) return '--';
+      return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function showToast(msg: string, type: 'success' | 'error' = 'success') {
+      const toast = document.getElementById('toast')!;
+      const toastMsg = document.getElementById('toastMsg')!;
+      const toastIcon = document.getElementById('toastIcon')!;
+      toastMsg.textContent = msg;
+      toastIcon.textContent = type === 'success' ? 'check_circle' : 'error';
+      toastIcon.className = `material-symbols-outlined text-lg ${type === 'success' ? 'text-teal-400' : 'text-red-400'}`;
+      toast.classList.remove('hidden', 'translate-y-4', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+      }, 3000);
+    }
+
+    function openModal(id: string) {
+      const wrap = document.getElementById(id);
+      const content = document.getElementById(id + 'Content');
+      if (!wrap || !content) return;
+      wrap.classList.remove('hidden');
+      setTimeout(() => {
+        wrap.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+      }, 10);
+    }
+
+    function closeModalById(id: string) {
+      const wrap = document.getElementById(id);
+      const content = document.getElementById(id + 'Content');
+      if (!wrap || !content) return;
+      wrap.classList.add('opacity-0');
+      content.classList.remove('scale-100');
+      content.classList.add('scale-95');
+      setTimeout(() => wrap.classList.add('hidden'), 300);
+    }
+
+    document.querySelectorAll('.closeModalBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const modalId = (btn as HTMLElement).dataset.modal;
+        if (modalId) closeModalById(modalId);
+      });
+    });
+
+
+
+    function getUserName(userId: string): string {
+      return userMap.get(userId) || 'Unknown User';
+    }
+
+    function getFilteredReviews(): Review[] {
+      const keyword = searchKeyword.toLowerCase();
+      return allReviews
+        .filter((r) => getUserName(r.user_id).toLowerCase().includes(keyword) || (r.invoice || '').toLowerCase().includes(keyword))
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    function renderTable() {
+      const filtered = getFilteredReviews();
+      const total = filtered.length;
+      const totalPages = Math.max(1, Math.ceil(total / perPage));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const startIdx = (currentPage - 1) * perPage;
+      const paged = filtered.slice(startIdx, startIdx + perPage);
+
+      if (paged.length === 0) {
+        tableBody.innerHTML = `
+          <tr><td colspan="3" class="py-16 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <span class="material-symbols-outlined text-4xl text-stone-300">inbox</span>
+              <p class="text-stone-400 text-sm">No reviews found</p>
+            </div>
+          </td></tr>`;
+        paginationInfo.textContent = total === 0 ? 'No items' : `Showing 0 of ${total.toLocaleString()} review items`;
+        paginationControls.innerHTML = '';
+        return;
+      }
+
+      tableBody.innerHTML = paged.map((review, idx) => {
+        const borderCls = idx < paged.length - 1 ? 'border-b border-stone-200/10' : '';
+        return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${borderCls}" data-id="${review.id}">
+          <td class="py-4 md:py-5 px-3 md:px-4">
+            <p class="font-bold text-primary text-sm md:text-base">${review.invoice || 'No Invoice'}</p>
+          </td>
+          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${getUserName(review.user_id)}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${formatDate(review.created_at)}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button class="viewBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="Detail" data-id="${review.id}">
+                <span class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+              <button class="deleteBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-error hover:bg-stone-200/50 transition-all" title="Delete" data-id="${review.id}" data-username="${getUserName(review.user_id)}">
+                <span class="material-symbols-outlined text-lg">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+
+      const start = startIdx + 1;
+      const end = Math.min(startIdx + perPage, total);
+      paginationInfo.textContent = `Showing ${start}-${end} of ${total.toLocaleString()} review items`;
+
+      let pagBtns = '';
+      pagBtns += `<button class="pagBtn w-9 h-9 rounded-lg flex items-center justify-center border border-stone-200/50 hover:bg-surface-container-low transition-colors ${currentPage <= 1 ? 'opacity-30 pointer-events-none' : ''}" data-page="${currentPage - 1}" aria-label="Previous"><span class="material-symbols-outlined text-sm text-stone-400">chevron_left</span></button>`;
+
+      for (let p = 1; p <= totalPages; p++) {
+        if (totalPages > 5 && p > 3 && p < totalPages - 1 && Math.abs(p - currentPage) > 1) {
+          if (p === 4) pagBtns += `<span class="w-9 h-9 flex items-center justify-center text-stone-400 text-xs tracking-wider">...</span>`;
+          continue;
+        }
+        pagBtns += p === currentPage
+          ? `<button class="w-9 h-9 rounded-lg flex items-center justify-center bg-primary text-white font-bold text-xs">${p}</button>`
+          : `<button class="pagBtn w-9 h-9 rounded-lg flex items-center justify-center border border-stone-200/50 hover:bg-surface-container-low transition-colors font-medium text-xs" data-page="${p}">${p}</button>`;
+      }
+
+      pagBtns += `<button class="pagBtn w-9 h-9 rounded-lg flex items-center justify-center border border-stone-200/50 hover:bg-surface-container-low transition-colors ${currentPage >= totalPages ? 'opacity-30 pointer-events-none' : ''}" data-page="${currentPage + 1}" aria-label="Next"><span class="material-symbols-outlined text-sm text-stone-400">chevron_right</span></button>`;
+
+      paginationControls.innerHTML = pagBtns;
+      bindActionButtons();
+      bindPaginationButtons();
+    }
+
+    function renderStarRating(rating: number): string {
+      let html = '<div class="flex items-center text-amber-400 text-sm">';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+          html += '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 1">star</span>';
+        } else {
+          html += '<span class="material-symbols-outlined" style="font-variation-settings: \'FILL\' 0">star</span>';
+        }
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function bindActionButtons() {
+      tableBody.querySelectorAll('.viewBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = (btn as HTMLElement).dataset.id!;
+          const review = allReviews.find(r => r.id === id);
+          if (!review) {
+            showToast('Review not found', 'error');
+            return;
+          }
+
+          document.getElementById('viewReviewUserName')!.textContent = getUserName(review.user_id);
+          document.getElementById('viewReviewInvoice')!.textContent = review.invoice || 'No Invoice';
+          document.getElementById('viewReviewCreated')!.textContent = formatDate(review.created_at);
+          document.getElementById('viewReviewUpdated')!.textContent = formatDate(review.updated_at);
+
+          const feedbackDiv = document.getElementById('viewReviewFeedback')!;
+          let feedbackHtml = '';
+          const allKeys = new Set([...Object.keys(review.details || {}), ...Object.keys(review.rating || {})]);
+          
+          if (allKeys.size === 0) {
+            feedbackHtml = '<p class="text-sm text-stone-500 italic">No feedback details provided.</p>';
+          } else {
+            allKeys.forEach(key => {
+              const r = review.rating?.[key] || 0;
+              const d = review.details?.[key] || 'No comment';
+              let displayName = key.toUpperCase();
+              
+              const isBook = key.toLowerCase().startsWith('book_') || key.toLowerCase().startsWith('book ');
+              const isService = key.toLowerCase().startsWith('service_') || key.toLowerCase().startsWith('service ');
+
+              if (isBook) {
+                const bId = key.replace(/^book[_ ]/i, '').trim();
+                displayName = bookMap.get(bId) || `Book ${bId}`;
+                if (displayName === `Book ${bId}` && !isNaN(Number(bId))) {
+                  const idx = Number(bId) - 1;
+                  if (idx >= 0 && idx < allBooks.length) {
+                    displayName = allBooks[idx].title;
+                  }
+                }
+              } else if (isService) {
+                const sId = key.replace(/^service[_ ]/i, '').trim();
+                displayName = serviceMap.get(sId) || `Service ${sId}`;
+                if (displayName === `Service ${sId}` && !isNaN(Number(sId))) {
+                  const idx = Number(sId) - 1;
+                  if (idx >= 0 && idx < allServices.length) {
+                    displayName = allServices[idx].title;
+                  }
+                }
+              }
+
+              feedbackHtml += `
+                <div class="bg-white p-3 rounded-lg border border-stone-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-stone-600">${displayName}</span>
+                    ${renderStarRating(r)}
+                  </div>
+                  <p class="text-sm text-stone-700 italic">"${d}"</p>
+                </div>
+              `;
+            });
+          }
+          feedbackDiv.innerHTML = feedbackHtml;
+
+          openModal('viewReviewModal');
+        });
+      });
+
+
+      tableBody.querySelectorAll('.deleteBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          deleteTargetId = (btn as HTMLElement).dataset.id!;
+          document.getElementById('deleteReviewUserName')!.textContent = (btn as HTMLElement).dataset.username || '';
+          openModal('deleteModal');
+        });
+      });
+    }
+
+    function bindPaginationButtons() {
+      paginationControls.querySelectorAll('.pagBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentPage = parseInt((btn as HTMLElement).dataset.page || '1');
+          renderTable();
+        });
+      });
+    }
+
+    searchInput?.addEventListener('input', () => {
+      searchKeyword = searchInput.value;
+      currentPage = 1;
+      renderTable();
+    });
+
+    async function loadAllData() {
+      tableBody.innerHTML = `<tr><td colspan="3" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span><p class="text-stone-400 text-sm">Loading reviews...</p></div></td></tr>`;
+      try {
+        const [usersRes, reviewsRes, booksRes, servicesRes] = await Promise.all([
+          getUsers(),
+          getReviews(1, 1000), // Fetch all for simplicity since client-side pagination
+          getBooks({ page: 1, per_page: 1000 }),
+          getServices(false)
+        ]);
+        
+        allUsers = usersRes;
+        userMap.clear();
+        allUsers.forEach(u => userMap.set(u.id, u.name));
+
+        allBooks = booksRes.books;
+        bookMap.clear();
+        allBooks.forEach(b => bookMap.set(b.id, b.title));
+
+        allServices = servicesRes;
+        serviceMap.clear();
+        allServices.forEach(s => serviceMap.set(s.id, s.title));
+        
+        allReviews = reviewsRes.reviews;
+        renderTable();
+      } catch (err: any) {
+        tableBody.innerHTML = `<tr><td colspan="3" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-red-300">error</span><p class="text-stone-500 text-sm">${err.message || 'Failed to load data'}</p><button class="retryBtn text-primary font-bold text-sm mt-2 hover:underline">Retry</button></div></td></tr>`;
+        tableBody.querySelector('.retryBtn')?.addEventListener('click', loadAllData);
+      }
+    }
+
+
+
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+      const btn = document.getElementById('confirmDeleteBtn') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+
+      try {
+        await deleteReview(deleteTargetId);
+        closeModalById('deleteModal');
+        showToast('Review deleted successfully!');
+        await loadAllData();
+      } catch (err: any) {
+        showToast(err.message || 'Failed to delete review', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+      }
+    });
+
+    // Init
+    loadAllData();
+  </script>
+</AdminLayout>

@@ -56,6 +56,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <thead>
           <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
             <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Title & Cover</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold w-36">Badge</th>
             <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Author</th>
             <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Price</th>
             <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Stock</th>
@@ -66,7 +67,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <tbody id="catalogTableBody" class="text-sm font-body">
           <!-- Loading skeleton -->
           <tr id="loadingRow">
-            <td colspan="6" class="py-16 text-center">
+            <td colspan="7" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span>
                 <p class="text-stone-400 text-sm">Loading catalog...</p>
@@ -113,7 +114,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">ISBN</label>
-              <input name="isbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="e.g. 978-0198534" />
+              <input name="isbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Kosongkan jika belum terbit" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Badge</label>
+              <select name="badge" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="Regular">Regular</option>
+                <option value="Limited Edition">Limited Edition</option>
+                <option value="Premium Edition">Premium Edition</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">GGKEY</label>
+              <input name="ggkey" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: GGK-001" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">QRCBN</label>
+              <input name="qrcbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: QRC-001" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Category</label>
@@ -216,7 +233,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">ISBN</label>
-              <input name="isbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="isbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Kosongkan jika belum terbit" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Badge</label>
+              <select name="badge" class="w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="Regular">Regular</option>
+                <option value="Limited Edition">Limited Edition</option>
+                <option value="Premium Edition">Premium Edition</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">GGKEY</label>
+              <input name="ggkey" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">QRCBN</label>
+              <input name="qrcbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Category</label>
@@ -318,6 +351,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <span id="viewBookCategory" class="text-xs font-bold text-stone-500 uppercase tracking-wider bg-surface-container px-2.5 py-1 rounded-md"></span>
             </div>
             <div class="grid grid-cols-2 gap-y-4">
+              <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Badge</p><p id="viewBookBadge" class="text-sm font-bold text-primary"></p></div>
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">ISBN</p><p id="viewBookISBN" class="text-sm font-medium text-stone-700"></p></div>
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Price</p><p id="viewBookPrice" class="text-sm font-bold text-primary"></p></div>
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Stock Units</p><p id="viewBookStock" class="text-sm font-medium text-teal-700"></p></div>
@@ -499,7 +533,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function renderTable(books: Book[], total: number, page: number, totalPages: number) {
       if (books.length === 0) {
         tableBody.innerHTML = `
-          <tr><td colspan="6" class="py-16 text-center">
+          <tr><td colspan="7" class="py-16 text-center">
             <div class="flex flex-col items-center gap-3">
               <span class="material-symbols-outlined text-4xl text-stone-300">inbox</span>
               <p class="text-stone-400 text-sm">No books found</p>
@@ -525,9 +559,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               </div>
               <div>
                 <p class="font-bold text-primary text-sm md:text-base">${book.title}</p>
-                <p class="text-stone-400 text-[10px] mt-0.5 tracking-wider">ISBN: ${book.isbn || 'Pending'}</p>
+                <p class="text-stone-400 text-[10px] mt-0.5 tracking-wider">ISBN: ${book.isbn || 'Belum Terbit'}</p>
               </div>
             </div>
+          </td>
+          <td class="py-4 md:py-5 px-3 md:px-4">
+            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[11px] font-bold leading-none bg-surface-container text-primary whitespace-nowrap">${book.badge || 'Regular'}</span>
           </td>
           <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${book.author}</td>
           <td class="py-4 md:py-5 px-3 md:px-4 font-bold text-primary">${book.price > 0 ? formatRupiah(book.price) : '--'}</td>
@@ -587,13 +624,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     // ─── Fetch & Render ──────────────────────────────────────────
     async function loadCatalog() {
-      tableBody.innerHTML = `<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span><p class="text-stone-400 text-sm">Loading catalog...</p></div></td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="7" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span><p class="text-stone-400 text-sm">Loading catalog...</p></div></td></tr>`;
 
       try {
         const { books, meta } = await getBooks(currentFilter);
         renderTable(books, Number(meta.total), meta.page, meta.total_pages);
       } catch (err: any) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-red-300">error</span><p class="text-stone-500 text-sm">${err.message || 'Failed to load catalog'}</p><button class="retryBtn text-primary font-bold text-sm mt-2 hover:underline">Retry</button></div></td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-red-300">error</span><p class="text-stone-500 text-sm">${err.message || 'Failed to load catalog'}</p><button class="retryBtn text-primary font-bold text-sm mt-2 hover:underline">Retry</button></div></td></tr>`;
         tableBody.querySelector('.retryBtn')?.addEventListener('click', loadCatalog);
       }
     }
@@ -613,7 +650,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             document.getElementById('viewBookStatus')!.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span> ${st.label}`;
             document.getElementById('viewBookStatus')!.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${st.badge}`;
             document.getElementById('viewBookCategory')!.textContent = book.category_name || '-';
-            document.getElementById('viewBookISBN')!.textContent = book.isbn || 'Pending';
+            document.getElementById('viewBookBadge')!.textContent = book.badge || 'Regular';
+            document.getElementById('viewBookISBN')!.textContent = book.isbn || 'Belum Terbit';
             document.getElementById('viewBookPrice')!.textContent = formatRupiah(book.price);
             document.getElementById('viewBookStock')!.textContent = book.stock > 0 ? `${book.stock} Units` : '--';
             document.getElementById('viewBookDate')!.textContent = formatDate(book.created_at);
@@ -635,6 +673,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             (form.querySelector('[name="title"]') as HTMLInputElement).value = book.title;
             (form.querySelector('[name="author"]') as HTMLInputElement).value = book.author;
             (form.querySelector('[name="isbn"]') as HTMLInputElement).value = book.isbn || '';
+            (form.querySelector('[name="badge"]') as HTMLSelectElement).value = book.badge || 'Regular';
+            (form.querySelector('[name="ggkey"]') as HTMLInputElement).value = book.ggkey || '';
+            (form.querySelector('[name="qrcbn"]') as HTMLInputElement).value = book.qrcbn || '';
             (form.querySelector('[name="category"]') as HTMLSelectElement).value = book.category_id || '';
             (form.querySelector('[name="status"]') as HTMLSelectElement).value = book.status;
             (form.querySelector('[name="price"]') as HTMLInputElement).value = String(book.price);
@@ -708,6 +749,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         title: formData.get('title') as string,
         author: formData.get('author') as string,
         isbn: formData.get('isbn') as string,
+        badge: formData.get('badge') as string,
+        ggkey: formData.get('ggkey') as string,
+        qrcbn: formData.get('qrcbn') as string,
         category_id: formData.get('category') as string,
         status: (formData.get('status') as string) || 'draft',
         price: parseInt(formData.get('price') as string) || 0,
@@ -773,6 +817,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         title: formData.get('title') as string,
         author: formData.get('author') as string,
         isbn: formData.get('isbn') as string,
+        badge: formData.get('badge') as string,
+        ggkey: formData.get('ggkey') as string,
+        qrcbn: formData.get('qrcbn') as string,
         category_id: formData.get('category') as string,
         status: (formData.get('status') as string) || 'draft',
         price: parseInt(formData.get('price') as string) || 0,

@@ -15,6 +15,9 @@ type Book struct {
 	Title           string    `json:"title"`
 	Author          string    `json:"author"`
 	ISBN            string    `json:"isbn,omitempty"`
+	Badge           string    `json:"badge,omitempty"`
+	GGKEY           string    `json:"ggkey,omitempty"`
+	QRCBN           string    `json:"qrcbn,omitempty"`
 	Price           int       `json:"price"` // price in smallest currency unit (Rupiah)
 	Rating          float64   `json:"rating"`
 	ReviewCount     int       `json:"review_count"`

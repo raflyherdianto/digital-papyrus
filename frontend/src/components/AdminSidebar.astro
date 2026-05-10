@@ -11,25 +11,24 @@ const navItems = [
   { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', href: '/admin-dashboard' },
   { id: 'catalog', icon: 'library_books', label: 'Catalog', href: '/admin-catalog' },
   { id: 'category', icon: 'category', label: 'Category', href: '/admin-category' },
-  { id: 'orders', icon: 'shopping_cart', label: 'Orders', href: '#' },
-  { id: 'users', icon: 'group', label: 'Users', href: '#' },
+  { id: 'service', icon: 'design_services', label: 'Services & Packages', href: '/admin-service' },
+  { id: 'reviews', icon: 'reviews', label: 'Reviews', href: '/admin-reviews' },
+  { id: 'orders', icon: 'shopping_cart', label: 'Orders', href: '/admin-orders' },
+  { id: 'users', icon: 'group', label: 'Users', href: '/admin-user' },
   { id: 'settings', icon: 'settings', label: 'Settings', href: '#' },
 ];
 ---
 
 <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 bg-stone-100 flex flex-col py-8 px-4 z-50 transition-all duration-300 overflow-x-hidden">
   <!-- Branding -->
-  <div class="mb-12 px-2 flex items-center justify-between">
-    <a href="/admin-dashboard" class="flex items-center gap-3 overflow-hidden">
-      <img src="/logo.png" alt="Digital Papyrus Logo" class="h-8 w-auto shrink-0" width="32" height="32" />
-      <div class="sidebar-text transition-all duration-200">
-        <h1 class="text-xl font-bold text-primary tracking-tight font-headline whitespace-nowrap">Digital Papyrus</h1>
-        <p class="text-[10px] font-medium text-stone-500 uppercase tracking-[0.1em] mt-1 whitespace-nowrap">Admin Console</p>
+  <div class="mb-10 mt-4">
+    <a href="/admin-dashboard" class="flex flex-col items-center justify-center text-center gap-4 overflow-hidden">
+      <img src="/logo.png" alt="Digital Papyrus Logo" class="h-24 w-auto shrink-0" width="96" height="96" />
+      <div class="sidebar-text transition-all duration-200 min-w-0 w-full">
+        <h1 class="text-xl font-bold text-primary tracking-tight font-headline truncate leading-tight">Digital Papyrus</h1>
+        <p class="text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mt-1.5 truncate">Admin Console</p>
       </div>
     </a>
-    <button id="sidebarToggle" class="text-stone-500 hover:text-primary transition-colors shrink-0" aria-label="Toggle sidebar">
-      <span class="material-symbols-outlined">menu_open</span>
-    </button>
   </div>
 
   <!-- Navigation -->
@@ -51,17 +50,27 @@ const navItems = [
 
   <!-- User Avatar -->
   <div class="mt-8 px-4 flex items-center gap-3 pt-6 border-t border-stone-200/50">
-    <img
-      alt="Admin Avatar"
-      class="w-10 h-10 rounded-full object-cover shrink-0"
-      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgmPN80vn1YkTWzFdJPnVlIX7J8pGFE_WwKHn0Wu-YWD1wbbPaZNvixQeSqodlwjn1e6fWWFTIRWBysgXPCrSx9q8uKJw4zjEi8L4LbqlgUUgS0-zx5lWCGJwF4ZY_b0QfVDKNVY6D9RTdTNh7WbhALTlgf5XtRE-f0uuSOMI_D5WJe1zpV1OCml7tWE5fAUQvEyknd66pH_feoGjH3_UECZu8bF3NC-DqSBqOIJNt2xnlAOuDBBM6EgNIb6exCIqKOtUEWdQWDCY"
-      width="40"
-      height="40"
-      loading="lazy"
-    />
+    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-primary">person</span>
+    </div>
     <div class="sidebar-text transition-all duration-200 overflow-hidden w-full opacity-100">
-      <p class="text-sm font-bold text-primary font-headline">Julian Thorne</p>
-      <p class="text-[10px] text-stone-500 font-medium uppercase tracking-wider">Chief Editor</p>
+      <p id="sidebarUserName" class="text-sm font-bold text-primary font-headline truncate">Loading...</p>
+      <p id="sidebarUserRole" class="text-[10px] text-stone-500 font-medium uppercase tracking-wider truncate">Loading...</p>
     </div>
   </div>
 </aside>
+
+<script>
+  const userStr = localStorage.getItem('dp_user');
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      const nameEl = document.getElementById('sidebarUserName');
+      const roleEl = document.getElementById('sidebarUserRole');
+      if (nameEl) nameEl.textContent = user.name || 'Admin User';
+      if (roleEl) roleEl.textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Administrator';
+    } catch (e) {
+      console.error('Failed to parse user data from localStorage', e);
+    }
+  }
+</script>

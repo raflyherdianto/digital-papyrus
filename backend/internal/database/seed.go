@@ -27,6 +27,15 @@ func Seed(db *sql.DB, cfg *config.Config) error {
 	if err := seedServices(db); err != nil {
 		return err
 	}
+	if err := seedCoreServices(db); err != nil {
+		return err
+	}
+	if err := seedOrders(db); err != nil {
+		return err
+	}
+	if err := seedReviews(db); err != nil {
+		return err
+	}
 	log.Println("[DB] Data seeding completed successfully")
 	return nil
 }
@@ -47,7 +56,7 @@ func seedSuperAdmin(db *sql.DB, cfg *config.Config) error {
 	}
 
 	_, err = db.Exec(
-		`INSERT INTO users (id, email, password_hash, name, role, is_active) VALUES (?, ?, ?, ?, 'superadmin', 1)`,
+		`INSERT INTO users (id, email, password_hash, name, role, is_active, phone_number, address, province, city, zip_code) VALUES (?, ?, ?, ?, 'superadmin', 1, '', '', '', '', '')`,
 		uuid.New().String(), cfg.Seed.SuperAdminEmail, string(hash), cfg.Seed.SuperAdminName,
 	)
 	if err != nil {
@@ -58,15 +67,6 @@ func seedSuperAdmin(db *sql.DB, cfg *config.Config) error {
 }
 
 func seedDemoUsers(db *sql.DB, cfg *config.Config) error {
-	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE role = 'author'").Scan(&count)
-	if err != nil {
-		return fmt.Errorf("seed: check author: %w", err)
-	}
-	if count > 0 {
-		return nil
-	}
-
 	demoUsers := []struct {
 		Email string
 		Name  string
@@ -77,12 +77,20 @@ func seedDemoUsers(db *sql.DB, cfg *config.Config) error {
 	}
 
 	for _, u := range demoUsers {
+		var existingCount int
+		if err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", u.Email).Scan(&existingCount); err != nil {
+			return fmt.Errorf("seed: check demo user %s: %w", u.Email, err)
+		}
+		if existingCount > 0 {
+			continue
+		}
+
 		hash, err := bcrypt.GenerateFromPassword([]byte("Demo@2026!"), cfg.Security.BcryptCost)
 		if err != nil {
 			return fmt.Errorf("seed: hash demo user password: %w", err)
 		}
 		_, err = db.Exec(
-			`INSERT INTO users (id, email, password_hash, name, role, is_active) VALUES (?, ?, ?, ?, ?, 1)`,
+			`INSERT INTO users (id, email, password_hash, name, role, is_active, phone_number, address, province, city, zip_code) VALUES (?, ?, ?, ?, ?, 1, '', '', '', '', '')`,
 			uuid.New().String(), u.Email, string(hash), u.Name, u.Role,
 		)
 		if err != nil {
@@ -103,7 +111,7 @@ func seedCategoriesAndBooks(db *sql.DB) error {
 		return nil
 	}
 
-	categoryNames := []string{"Fiksi Kontemporer", "Filosofi Modern", "Teknologi & Sains", "Seni & Desain"}
+	categoryNames := []string{"Fiksi Kontemporer", "Filosofi Modern", "Teknologi & Sains", "Seni & Desain", "Psikologi"}
 	categoryMap := make(map[string]string)
 
 	for _, name := range categoryNames {
@@ -120,6 +128,9 @@ func seedCategoriesAndBooks(db *sql.DB) error {
 		Title           string
 		Author          string
 		ISBN            string
+		Badge           string
+		GGKEY           string
+		QRCBN           string
 		Price           int
 		Rating          float64
 		ReviewCount     int
@@ -138,86 +149,73 @@ func seedCategoriesAndBooks(db *sql.DB) error {
 		Weight          string
 	}{
 		{
-			Title: "The Silent Echo", Author: "Evelyn Vance", ISBN: "978-3-16-148410-1",
-			Price: 185000, Rating: 4.8, ReviewCount: 96,
-			Description: "A haunting exploration of memory and silence in modern society.",
-			Synopsis:    "An evocative novel that traces the journey of a sound archivist as she discovers that the world's most powerful echoes are not heard, but felt.",
-			ImageURL:    "https://lh3.googleusercontent.com/aida-public/AB6AXuBAjri-Yg7PVc-Tbks3rSUsyHyEOPo3nimS4QfdQXgMI6FqFGtTwn-uzHAyfeEV-zDRvY51LbxLgweIfQwX2RSmkry5pxlQJ04eIWZx43lh1POj2o16r98WAXY6j1b4IYKEes1p4a7nqstGvPk1WQCmfek5O05GAitwDxNixobb4QbnqAqWSAf30hLxS33GCClbu8NMk8FaezqLrf_98OkXhfn2i7qNabf1rQBC_zhe_fMgNgCBK3DMLmy4o4rOqdbbB5QMeS6z_F4",
-			CategoryID:  categoryMap["Fiksi Kontemporer"], Status: "published", Stock: 120,
-			Publisher: "Digital Papyrus Press", PublicationDate: "2026-01-15",
-			Pages: 284, Format: "Softcover", Language: "Indonesian",
-			Dimensions: "14 x 21 cm", Weight: "0.5",
-		},
-		{
-			Title: "Digital Ontologies", Author: "Dr. Marcus Thorne", ISBN: "978-3-16-148410-2",
-			Price: 245000, Rating: 4.9, ReviewCount: 128,
-			Description: "A groundbreaking analysis of being and consciousness in the digital age.",
-			Synopsis:    "Dr. Thorne explores how technology reshapes our understanding of existence, identity, and the nature of reality itself in an increasingly digitized world.",
-			ImageURL:    "https://lh3.googleusercontent.com/aida-public/AB6AXuAg44EpYgx4EqdLV2VJriLVBNaFeuCRnkh-So0dQtU96rWLEndO66bZA31N-brnXwK6lMiV6s_bJs28eDKQNR3Zo2I4Npx661MUOM43jhvlEbF33BULvsWPHDbfPj0g00bdL_FiL7301yG2WsG3N1cPkF9whQwfNcfBJpz1hkVg6IewAoPbnnpYvoonA3nqAbjBqYNzz_Z_No8ITRPbhUAwgGisluW6LcLoGrtyTl7MlJen5dTcWyc9SxxZje708Scp076hQiYFu7c",
-			CategoryID:  categoryMap["Filosofi Modern"], Status: "published", Stock: 85,
-			Publisher: "Digital Papyrus Press", PublicationDate: "2025-11-20",
-			Pages: 412, Format: "Hardcover XL", Language: "English (UK)",
-			Dimensions: "6.14 x 9.21 inches", Weight: "1.2",
-		},
-		{
-			Title: "The Last Algorithm", Author: "Sarah Jenkins", ISBN: "978-3-16-148410-3",
-			Price: 120000, Rating: 4.5, ReviewCount: 64,
-			Description: "A thriller set in the world of artificial intelligence and ethical computing.",
-			Synopsis:    "When the world's most advanced AI begins making decisions no one predicted, one programmer must race against time to find the last algorithm.",
-			ImageURL:    "https://lh3.googleusercontent.com/aida-public/AB6AXuBQb7XBj1l03NM7mRXEgQXMgFhDCy7l-vHVol32dx0qE3s7G390fLHU55FKbf3CoTDc4oUmXt3UsJv1ivxQ_9tQk6TF2GcjSVC-JvzMn3XN0tb42_UbBFFFhOclCiXjmU67x3MmMu_1XT2uqECW5rpSK9BpQIZjwLts1_uSRsTnHyNXKtOkg4tSXV9GLSWuI_mNJ48kzdabqjZw4UC_HKhSzzL_fdugiEKydLjA1HbpUdHTI710SlAD983OOijhEk-NK7qEDvD_MR8",
-			CategoryID:  categoryMap["Teknologi & Sains"], Status: "published", Stock: 200,
-			Publisher: "Digital Papyrus Press", PublicationDate: "2026-03-01",
-			Pages: 198, Format: "Softcover", Language: "Indonesian",
-			Dimensions: "14 x 21 cm", Weight: "0.28",
-		},
-		{
-			Title: "Urban Melodies", Author: "Julian Grey", ISBN: "978-3-16-148410-4",
-			Price: 155000, Rating: 4.7, ReviewCount: 82,
-			Description: "Poetry and prose intertwine in this love letter to city life.",
-			Synopsis:    "Julian Grey captures the rhythm of urban existence through lyrical prose, blending music, architecture, and human connection into a symphony of words.",
-			ImageURL:    "https://lh3.googleusercontent.com/aida-public/AB6AXuB7xUT7LtjWws2X6Nhypxp3Qg-XQAvzj-_nuDVWkHp_WCh18uYKBq7RpOL-LPSk-GBBEO2Rf2LMnNkjqZi0xIWP0M6zKHa6eaRhX1QShqeVy7xTI-VjwP-1UaqXczUNXOir2GBtGUgk4zf1J_UAWtD-A-SnD7BgQ_6f-8ZJUuQekdTXDAsBCW8uoS5HTojalV6IpWS_KQR4vqVoChFAYXDEKCtV2b6mQ8_JNwMrcTuLnKPfja2f-X5wERMQ8pgpFvd-g9IGXIarTNg",
-			CategoryID:  categoryMap["Seni & Desain"], Status: "published", Stock: 150,
-			Publisher: "Digital Papyrus Press", PublicationDate: "2025-08-10",
-			Pages: 256, Format: "Softcover", Language: "Indonesian",
-			Dimensions: "14 x 21 cm", Weight: "0.32",
-		},
-		{
-			Title: "Infinite Canvas", Author: "Liam O'Connell", ISBN: "978-3-16-148410-5",
-			Price: 210000, Rating: 4.9, ReviewCount: 115,
-			Description: "Where art meets technology - a stunning visual essay on digital creativity.",
-			Synopsis:    "A coffee-table book that investigates the limitless possibilities of digital art, featuring interviews with leading digital artists and immersive visuals.",
-			ImageURL:    "https://lh3.googleusercontent.com/aida-public/AB6AXuBK92hK5POEH69Wyp0HUJDgQovmXFfKx4VYFoeuaU4_EexKcWfI0_-9JsTQ3H4A1YD6TvF2KZfokdS3LJG5ldAr451CP2X9BSTEDtgyT_tpUAKsrw3MakCpHdokRoS-sm_LTaMiBolnaOodvMIEqUXmIRX0o6wqiqGmZosw78Jx7wCOUKcS2PEL__O5HfZqaLZxsOkf-8WaYAs_bTKzbISoeeSnh3xIswsx124xjX1vpqgCM-_8UJ_goNZaywcyTVEPRi7u8qn3zHU",
-			CategoryID:  categoryMap["Seni & Desain"], Status: "published", Stock: 75,
-			Publisher: "Digital Papyrus Press", PublicationDate: "2026-02-14",
-			Pages: 320, Format: "Hardcover XL", Language: "English (UK)",
-			Dimensions: "8.5 x 11 inches", Weight: "2.1",
-		},
-		{
-			Title: "Architecture of Thought", Author: "Sofia Rossi", ISBN: "978-3-16-148410-6",
-			Price: 275000, Rating: 5.0, ReviewCount: 142,
-			Description: "A magnum opus exploring the intersection of architecture and philosophy.",
+			Title: "TRANSFORMASI PENDIDIKAN DIGITAL: PERSPEKTIF PSIKOLOGI", Author: "Asrofi, S.Pd., M.Pd. – Cornelius Riko Bagus Nugroho - dkk", ISBN: "",
+			Badge: "Limited Edition", GGKEY: "", QRCBN: "",
+			Price: 38000, Rating: 5.0, ReviewCount: 142,
+			Description: "Buku kumpulan artikel berjudul \"Transformasi Pendidikan Digital: Perspektif Psikologi\" merupakan sebuah karya interdisipliner yang mengeksplorasi integrasi prinsip-prinsip psikologis dalam dunia pendidikan dan ekosistem digital yang terus berkembang. Melalui pendekatan teori psikologi yang dihubungkan dengan praktik relevan, buku ini menyajikan strategi inovatif untuk menciptakan lingkungan belajar yang lebih efektif serta memberikan solusi dalam menghadapi berbagai tantangan era modern, seperti dampak teknologi terhadap motivasi, konsentrasi, hingga kesehatan mental individu dan masyarakat.",
 			Synopsis:    "Sofia Rossi masterfully crafts a narrative that is part philosophical inquiry and part poetic meditation, making this one of the most anticipated releases in contemporary editorial literature.",
-			ImageURL:    "https://lh3.googleusercontent.com/aida-public/AB6AXuAp8zd6LtCFVVJ7J-SlNW7yNxLnqkImIiM8ltkm75XuS4zOHd-L1_yt3nhr4eYd6Ql0wFbd9j3sviyZdqRxKFkQ66QXVO31mQ6HdBg4UkDgxo427QauEjnbxODPcr54sK8b2NnRgdulR6idvtp35AjfJiDLvt7mPI8EAE6FXhgLqu3xOnpYlh65eQjeXGUXqgcSWqMQu_wSQF31Smf5vbx1CdtyKfSA4iciUaT6WAHam1MO8JSish77mefIl-6yd5ETk6wwwRGtaz8",
+			ImageURL:    "/uploads/62f0ae62-d019-4b8c-a069-295b18836083.png",
 			CategoryID:  categoryMap["Filosofi Modern"], Status: "published", Stock: 60,
 			Publisher: "Digital Papyrus Press", PublicationDate: "2025-10-12",
-			Pages: 342, Format: "Hardcover XL", Language: "English (UK)",
+			Pages: 268, Format: "E-Book", Language: "Indonesia",
 			Dimensions: "6.14 x 9.21 inches", Weight: "1.2",
+		},
+		{
+			Title: "INTERVENSI PSIKOLOGI DALAM MEDIA SOSIAL DAN DIGITAL", Author: "Asrofi, S.Pd., M.Pd. – Cintania Amanda Putri – dkk", ISBN: "",
+			Badge: "Regular", GGKEY: "", QRCBN: "",
+			Price: 43000, Rating: 0.0, ReviewCount: 0,
+			Description: "Buku berjudul \"Intervensi Psikologi Dalam Media Sosial Dan Digital\" merupakan karya kolektif mahasiswa Fakultas Psikologi Universitas Merdeka Malang yang mengulas dinamika kesehatan mental di era digital melalui berbagai perspektif psikologi. Melalui metode tinjauan literatur, buku ini mendalami fenomena modern seperti Fear of Missing Out (FOMO), cyberbullying, kecanduan media sosial, hingga penerapan psikodrama digital sebagai solusi terapi yang inovatif. Selain mengidentifikasi tantangan seperti keterbatasan interaksi fisik dan risiko perbandingan sosial, buku ini juga menawarkan wawasan strategis mengenai peluang teknologi dalam memperluas aksesibilitas intervensi psikologis bagi remaja dan dewasa muda.",
+			Synopsis:    "",
+			ImageURL:    "/uploads/504aefec-1457-479b-9058-a153e99471d8.png",
+			CategoryID:  categoryMap["Filosofi Modern"], Status: "published", Stock: 100,
+			Publisher: "Digital Papyrus", PublicationDate: "2026-04-23",
+			Pages: 298, Format: "E-Book", Language: "Indonesia",
+			Dimensions: "3 cm", Weight: "0.5",
+		},
+		{
+			Title: "INTERAKSI PSIKOLOGI PERAN BUDAYA DAN BISNIS DI ERA DIGITAL", Author: "Asrofi, S.Pd., M.Pd – Paolo Constantine Julian Arnott Hungan – dkk", ISBN: "",
+			Badge: "Regular", GGKEY: "", QRCBN: "",
+			Price: 32000, Rating: 0.0, ReviewCount: 0,
+			Description: "Buku berjudul Interaksi Psikologi: Peran Kebudayaan dan Bisnis di Era Digital merupakan karya ilmiah kolaboratif mahasiswa Fakultas Psikologi Universitas Merdeka Malang yang mengkaji transformasi interaksi manusia dari ruang fisik ke ruang virtual akibat perkembangan teknologi digital. Melalui pendekatan kritis dan empiris, buku ini mengulas beragam isu aktual seperti perilaku konsumen digital, dinamika identitas di media sosial, hingga implikasi psikologis dalam praktik bisnis and pendidikan, dengan tujuan memberikan pemahaman komprehensif mengenai relasi antara individu, budaya, dan bisnis di era modern.",
+			Synopsis:    "",
+			ImageURL:    "/uploads/ccad1a69-2b7b-4604-810a-f79198704551.png",
+			CategoryID:  categoryMap["Filosofi Modern"], Status: "published", Stock: 80,
+			Publisher: "Digital Papyrus", PublicationDate: "2026-04-28",
+			Pages: 239, Format: "E-Book", Language: "Indonesia",
+			Dimensions: "2", Weight: "0.2",
+		},
+		{
+			Title: "INTERVENSI PSIKOLOGI DALAM MEDIA SOSIAL DAN DIGITAL V2", Author: "Asrofi, S.Pd., M.Pd. – Cintania Amanda Putri – dkk", ISBN: "",
+			Badge: "Regular", GGKEY: "", QRCBN: "",
+			Price: 34000, Rating: 0.0, ReviewCount: 0,
+			Description: "Buku ini merupakan karya kolaboratif yang menghimpun pemikiran kritis dan hasil penelitian mendalam mengenai dinamika integrasi teknologi digital dalam pilar pendidikan, sistem informasi, dan perkembangan bahasa di Indonesia. Melalui berbagai perspektif, pembaca diajak mengeksplorasi peran strategis sistem informasi dalam memodernisasi tata kelola lembaga pendidikan, efektivitas media pembelajaran berbasis teknologi seperti Google Classroom, hingga inovasi kecerdasan buatan (machine learning) dalam aplikasi penerjemah bahasa isyarat (BISINDO). Selain aspek teknis, buku ini juga menelaah dampak sosial-budaya di era digital, termasuk pengaruh media sosial terhadap pergeseran gaya bahasa remaja serta pentingnya mempertimbangkan nilai-nilai budaya dalam pengembangan sistem informasi yang inklusif. Dengan menyajikan analisis komprehensif, karya ini bertujuan menjadi referensi penting bagi praktisi akademik dan masyarakat umum dalam menghadapi tantangan serta memanfaatkan peluang transformasi digital demi kemajuan pendidikan yang berkelanjutan.",
+			Synopsis:    "",
+			ImageURL:    "/uploads/56e938b7-0f1c-4b26-a15d-389f7cc831cc.png",
+			CategoryID:  categoryMap["Fiksi Kontemporer"], Status: "published", Stock: 35,
+			Publisher: "Digital Papyrus", PublicationDate: "2026-05-06",
+			Pages: 354, Format: "E-Book", Language: "Indonesia",
+			Dimensions: "14 x 21 cm", Weight: "0.2",
 		},
 	}
 
 	stmt, err := db.Prepare(`INSERT INTO books (
-id, title, author, isbn, price, rating, review_count,
+id, title, author, isbn, badge, ggkey, qrcbn, price, rating, review_count,
 description, synopsis, image_url, category_id, status, stock,
 publisher, publication_date, pages, format, language, dimensions, weight
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return fmt.Errorf("seed: prepare books insert: %w", err)
 	}
 	defer stmt.Close()
 
 	for _, b := range books {
+		var isbn interface{} = b.ISBN
+		if b.ISBN == "" || b.ISBN == "-" {
+			isbn = nil
+		}
+
 		_, err := stmt.Exec(
-			uuid.New().String(), b.Title, b.Author, b.ISBN,
+			uuid.New().String(), b.Title, b.Author, isbn, b.Badge, b.GGKEY, b.QRCBN,
 			b.Price, b.Rating, b.ReviewCount,
 			b.Description, b.Synopsis, b.ImageURL, b.CategoryID, b.Status, b.Stock,
 			b.Publisher, b.PublicationDate, b.Pages, b.Format, b.Language, b.Dimensions, b.Weight,
@@ -255,27 +253,27 @@ func seedServices(db *sql.DB) error {
 
 	services := []svc{
 		{
-			Title: "Paket Basic", Description: "Paket starter untuk penerbitan buku dengan E-ISBN dan desain cover dasar.",
-			Icon: "auto_stories", Tier: "basic", Price: 275000, PriceLabel: "Rp 275k",
-			Features:   []string{"E-ISBN Perpusnas RI", "Cover Design", "Surat bukti proses/LOA*", "Surat Bukti Terbit*", "Full e-Book (PDF)", "Sertifikat Penulis*", "Royalti Penjualan", "Upload ke Repository", "Template Buku", "Diskon HAKI Rp. 25.000", "Maksimal 150 Hal", "Ukuran A5, B5 (Unesco/Reguler)"},
+			Title: "Paket Basic", Description: "Paket starter untuk penerbitan buku digital dengan desain cover dasar dan legalitas terbitan.",
+			Icon: "auto_stories", Tier: "basic", Price: 500000, PriceLabel: "Rp 500k",
+			Features:   []string{"Penerbitan Digital (PDF)", "Desain Kover Standar", "Maksimal 150 Hal", "Surat Bukti Proses (LOA)*", "Surat Bukti Terbit*", "Sertifikat Penulis*", "Royalti Penjualan", "Upload ke Repository", "Template Buku", "Diskon HAKI Rp. 25.000", "Ukuran A5, B5 (Unesco/Reguler)"},
 			IsFeatured: false, Badge: "Starter", SortOrder: 1,
 		},
 		{
-			Title: "Paket Silver", Description: "Paket menengah dengan ISBN cetak, layout naskah, dan buku fisik untuk penulis.",
-			Icon: "workspace_premium", Tier: "silver", Price: 455000, PriceLabel: "Rp 455k",
-			Features:   []string{"ISBN Perpusnas RI", "Layout Naskah Buku", "Cover Design", "Surat bukti proses/LOA*", "Surat Bukti Terbit*", "Buku untuk Penulis (2 buku A5 atau 1 buku B5)", "2 Buku Arsip Perpusnas", "1 Buku Arsip Perpusda", "1 Buku Arsip Penerbit", "Full e-Book (PDF)", "Sertifikat Penulis*", "Royalti Penjualan", "Upload ke Repository", "GRATIS Packing Buku", "Template Buku", "Laminasi Doff atau Glossy", "Book Paper/HVS", "Wrapping Buku", "Diskon HaKI Rp. 50.000", "GRATIS Ongkos Kirim*", "Maksimal 150 Hal", "Ukuran A5, B5 (Unesco/Reguler)"},
+			Title: "Paket Silver", Description: "Paket menengah untuk penerbitan buku fisik dengan desain kover dan layout naskah profesional.",
+			Icon: "workspace_premium", Tier: "silver", Price: 750000, PriceLabel: "Rp 750k",
+			Features:   []string{"Penerbitan Buku Cetak", "Layout & Desain Kover", "Buku untuk Penulis 2(A5)/1(B5)", "Surat Bukti Proses (LOA)*", "Surat Bukti Terbit*", "2 Buku Arsip Perpusnas", "1 Buku Arsip Perpusda", "1 Buku Arsip Penerbit", "Full e-Book (PDF)", "Sertifikat Penulis*", "Royalti Penjualan", "Upload ke Repository", "GRATIS Packing Buku", "Template Buku", "Laminasi Doff atau Glossy", "Book Paper/HVS", "Wrapping Buku", "Diskon HaKI Rp. 50.000", "GRATIS Ongkos Kirim*", "Maksimal 150 Hal", "Ukuran A5, B5 (Unesco/Reguler)"},
 			IsFeatured: false, Badge: "Menengah", SortOrder: 2,
 		},
 		{
-			Title: "Paket Gold", Description: "Paket profesional dengan ISBN, DOI, mockup 3D, dan buku fisik berlimpah.",
-			Icon: "military_tech", Tier: "gold", Price: 765000, PriceLabel: "Rp 765k",
-			Features:   []string{"ISBN Perpusnas RI", "Digital Object Identifier (DOI)", "Layout Naskah Buku", "Cover Design", "Surat bukti proses/LOA*", "Surat Bukti Terbit*", "Buku untuk Penulis (5 buku A5 atau 4 buku B5)", "2 Buku Arsip Perpusnas", "1 Buku Arsip Perpusda", "1 Buku Arsip Penerbit", "Full e-Book (PDF)", "Preview e-Book (PDF)", "Sertifikat Penulis", "Royalti Penjualan", "Upload ke Repository", "GRATIS Packing Buku", "Template Buku", "Mockup 3D*", "Laminasi Doff atau Glossy", "Book Paper/HVS", "Wrapping Buku", "Diskon HaKI Rp. 75.000", "GRATIS Ongkos Kirim*", "Maksimal 200 Hal", "Ukuran A5, B5 (Unesco/Reguler)"},
-			IsFeatured: true, Badge: "Terpopuler", SortOrder: 3,
+			Title: "Paket Gold", Description: "Paket lengkap untuk penerbitan profesional dengan legalitas penuh, mockup 3D, dan buku fisik berlimpah.",
+			Icon: "military_tech", Tier: "gold", Price: 1000000, PriceLabel: "Rp 1 Jt",
+			Features:   []string{"Penerbitan Profesional", "Buku Penulis (5 A5 / 4 B5)", "Desain Mockup 3D", "Layout Naskah Buku", "Desain Kover Eksklusif", "Surat Bukti Proses (LOA)*", "Surat Bukti Terbit*", "2 Buku Arsip Perpusnas", "1 Buku Arsip Perpusda", "1 Buku Arsip Penerbit", "Full e-Book (PDF)", "Preview e-Book (PDF)", "Sertifikat Penulis", "Royalti Penjualan", "Upload ke Repository", "GRATIS Packing Buku", "Template Buku", "Laminasi Doff atau Glossy", "Book Paper/HVS", "Wrapping Buku", "Diskon HaKI Rp. 75.000", "GRATIS Ongkos Kirim*", "Maksimal 200 Hal", "Ukuran A5, B5 (Unesco/Reguler)"},
+			IsFeatured: true, Badge: "Profesional", SortOrder: 3,
 		},
 		{
-			Title: "Paket Platinum", Description: "Paket eksklusif premium dengan semua fitur dan buku fisik terbanyak.",
-			Icon: "diamond", Tier: "platinum", Price: 965000, PriceLabel: "Rp 965k",
-			Features:   []string{"ISBN Perpusnas RI", "Digital Object Identifier (DOI)", "Layout Naskah Buku", "Cover Design", "Surat bukti proses/LOA*", "Surat Bukti Terbit*", "Buku untuk Penulis (10 buku A5 atau 8 buku B5)", "2 Buku Arsip Perpusnas", "1 Buku Arsip Perpusda", "1 Buku Arsip Penerbit", "Full e-Book (PDF)", "Preview e-Book (PDF)", "Sertifikat Penulis", "Royalti Penjualan", "Upload ke Repository", "GRATIS Packing Buku", "Template Buku", "Mockup 3D*", "Laminasi Doff atau Glossy", "Book Paper/HVS", "Wrapping Buku", "Diskon HaKI Rp. 100.000", "GRATIS Ongkos Kirim*", "Maksimal 250 Hal", "Ukuran A5, B5 (Unesco/Reguler)"},
+			Title: "Paket Platinum", Description: "Paket eksklusif untuk penulis premium dengan fasilitas terlengkap dan jumlah buku fisik terbanyak.",
+			Icon: "diamond", Tier: "platinum", Price: 1500000, PriceLabel: "Rp 1.5 Jt",
+			Features:   []string{"Penerbitan Premium", "Buku Penulis (10 A5 / 8 B5)", "Diskon HaKI Rp 100.000", "Layout Naskah Buku", "Desain Kover Eksklusif", "Surat Bukti Proses (LOA)*", "Surat Bukti Terbit*", "2 Buku Arsip Perpusnas", "1 Buku Arsip Perpusda", "1 Buku Arsip Penerbit", "Full e-Book (PDF)", "Preview e-Book (PDF)", "Sertifikat Penulis", "Royalti Penjualan", "Upload ke Repository", "GRATIS Packing Buku", "Template Buku", "Mockup 3D*", "Laminasi Doff atau Glossy", "Book Paper/HVS", "Wrapping Buku", "GRATIS Ongkos Kirim*", "Maksimal 250 Hal", "Ukuran A5, B5 (Unesco/Reguler)"},
 			IsFeatured: false, Badge: "Eksklusif", SortOrder: 4,
 		},
 	}
@@ -310,3 +308,228 @@ is_featured, badge, sort_order, is_active
 	log.Printf("[DB] Seeded %d services", len(services))
 	return nil
 }
+
+func seedCoreServices(db *sql.DB) error {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM core_services").Scan(&count)
+	if err != nil {
+		return fmt.Errorf("seed: check core_services: %w", err)
+	}
+	if count > 0 {
+		return nil
+	}
+
+	type cSvc struct {
+		Title       string
+		Description string
+		Icon        string
+		SortOrder   int
+	}
+
+	coreServices := []cSvc{
+		{
+			Title: "Layout & Desain Kover", Description: "Tata letak interior naskah yang rapi dan rancangan desain sampul paling menarik, disesuaikan dengan permintaan serta tren visual buku eksklusif.",
+			Icon: "design_services", SortOrder: 1,
+		},
+		{
+			Title: "Penerbitan & Legalitas", Description: "Proses penerbitan buku yang terintegrasi dengan standar legalitas nasional untuk memastikan karya Anda terdaftar secara resmi dan terlindungi.",
+			Icon: "gavel", SortOrder: 2,
+		},
+		{
+			Title: "Cetak Satuan & Print on Demand", Description: "Dari satu eksemplar hingga cetak oplah besar menggunakan kertas terbaik (Book Paper/HVS) dengan opsi Softcover atau Hardcover eksekutif (Doff/Glossy).",
+			Icon: "print", SortOrder: 3,
+		},
+	}
+
+	stmt, err := db.Prepare(`INSERT INTO core_services (
+id, title, description, icon, sort_order, is_active
+) VALUES (?, ?, ?, ?, ?, 1)`)
+	if err != nil {
+		return fmt.Errorf("seed: prepare core_services insert: %w", err)
+	}
+	defer stmt.Close()
+
+	for _, s := range coreServices {
+		_, err = stmt.Exec(
+			uuid.New().String(), s.Title, s.Description, s.Icon, s.SortOrder,
+		)
+		if err != nil {
+			return fmt.Errorf("seed: insert core_service %s: %w", s.Title, err)
+		}
+	}
+	log.Printf("[DB] Seeded %d core services", len(coreServices))
+	return nil
+}
+
+func seedOrders(db *sql.DB) error {
+	var customerID string
+	err := db.QueryRow("SELECT id FROM users WHERE email = 'customer@digitalpapyrus.web.id' LIMIT 1").Scan(&customerID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("[DB] Warning: customer user not found, skipping order seeding")
+			return nil
+		}
+		return fmt.Errorf("seed: get customer user for orders: %w", err)
+	}
+
+	var book1ID, book2ID string
+	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1").Scan(&book1ID)
+	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1 OFFSET 1").Scan(&book2ID)
+	
+	var service1ID string
+	_ = db.QueryRow("SELECT id FROM services ORDER BY title LIMIT 1").Scan(&service1ID)
+	orders := []struct {
+		Invoice        string
+		Notes          string
+		TotalQty       int
+		TotalWeight    int
+		TotalPrice     int
+		PaymentType    string
+		Status         string
+		ShippingName   string
+		ShippingService string
+		ShippingPrice  int
+		Details        []struct {
+			ServiceID  string
+			BookID     string
+			Qty        int
+			TotalPrice int
+		}
+	}{
+		{
+			Invoice: "INV-20260507001", Notes: "Demo order pending", TotalQty: 1, TotalWeight: 500, TotalPrice: 185000,
+			PaymentType: "Bank Transfer", Status: "pending", ShippingName: "JNE", ShippingService: "REG", ShippingPrice: 20000,
+			Details: []struct {
+				ServiceID  string
+				BookID     string
+				Qty        int
+				TotalPrice int
+			}{{ServiceID: "", BookID: book1ID, Qty: 1, TotalPrice: 185000}},
+		},
+		{
+			Invoice: "INV-20260507002", Notes: "Demo order confirmed", TotalQty: 2, TotalWeight: 1000, TotalPrice: 430000,
+			PaymentType: "Bank Transfer", Status: "confirmed", ShippingName: "JNE", ShippingService: "REG", ShippingPrice: 20000,
+			Details: []struct {
+				ServiceID  string
+				BookID     string
+				Qty        int
+				TotalPrice int
+			}{{ServiceID: "", BookID: book1ID, Qty: 1, TotalPrice: 185000}, {ServiceID: "", BookID: book2ID, Qty: 1, TotalPrice: 245000}},
+		},
+		{
+			Invoice: "INV-20260507003", Notes: "Demo order shipped", TotalQty: 1, TotalWeight: 0, TotalPrice: 500000,
+			PaymentType: "Credit Card", Status: "shipped", ShippingName: "Internal", ShippingService: "Express", ShippingPrice: 0,
+			Details: []struct {
+				ServiceID  string
+				BookID     string
+				Qty        int
+				TotalPrice int
+			}{{ServiceID: service1ID, BookID: "", Qty: 1, TotalPrice: 500000}},
+		},
+		{
+			Invoice: "INV-20260507004", Notes: "Demo order delivered", TotalQty: 2, TotalWeight: 500, TotalPrice: 685000,
+			PaymentType: "Virtual Account", Status: "delivered", ShippingName: "J&T", ShippingService: "YES", ShippingPrice: 25000,
+			Details: []struct {
+				ServiceID  string
+				BookID     string
+				Qty        int
+				TotalPrice int
+			}{{ServiceID: service1ID, BookID: "", Qty: 1, TotalPrice: 500000}, {ServiceID: "", BookID: book1ID, Qty: 1, TotalPrice: 185000}},
+		},
+		{
+			Invoice: "INV-20260507005", Notes: "Demo order cancelled", TotalQty: 1, TotalWeight: 500, TotalPrice: 245000,
+			PaymentType: "Bank Transfer", Status: "cancelled", ShippingName: "JNE", ShippingService: "REG", ShippingPrice: 20000,
+			Details: []struct {
+				ServiceID  string
+				BookID     string
+				Qty        int
+				TotalPrice int
+			}{{ServiceID: "", BookID: book2ID, Qty: 1, TotalPrice: 245000}},
+		},
+	}
+
+	for _, order := range orders {
+		var existing string
+		err := db.QueryRow("SELECT id FROM orders WHERE invoice = ? LIMIT 1", order.Invoice).Scan(&existing)
+		if err != nil && err != sql.ErrNoRows {
+			return fmt.Errorf("seed: check order %s: %w", order.Invoice, err)
+		}
+		if existing != "" {
+			continue
+		}
+
+		orderID := uuid.New().String()
+		_, err = db.Exec(`INSERT INTO orders (id, invoice, user_id, notes, total_qty, total_weight, total_price, payment_type, status, shipping_name, shipping_service, shipping_price)
+					  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			orderID, order.Invoice, customerID, order.Notes, order.TotalQty, order.TotalWeight, order.TotalPrice, order.PaymentType, order.Status, order.ShippingName, order.ShippingService, order.ShippingPrice)
+		if err != nil {
+			return fmt.Errorf("seed: insert order %s: %w", order.Invoice, err)
+		}
+
+		for _, detail := range order.Details {
+			_, err = db.Exec(`INSERT INTO order_details (id, order_id, service_id, book_id, qty, total_price)
+						  VALUES (?, ?, ?, ?, ?, ?)`,
+				uuid.New().String(), orderID, detail.ServiceID, detail.BookID, detail.Qty, detail.TotalPrice)
+			if err != nil {
+				return fmt.Errorf("seed: insert order_details %s: %w", order.Invoice, err)
+			}
+		}
+	}
+
+	log.Printf("[DB] Seeded orders")
+	return nil
+}
+
+func seedReviews(db *sql.DB) error {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM reviews").Scan(&count)
+	if err != nil {
+		return fmt.Errorf("seed: check reviews: %w", err)
+	}
+	if count > 0 {
+		return nil
+	}
+
+	var customerID string
+	err = db.QueryRow("SELECT id FROM users WHERE email = 'customer@digitalpapyrus.web.id' LIMIT 1").Scan(&customerID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("[DB] Warning: customer user not found, skipping review seeding")
+			return nil
+		}
+		return fmt.Errorf("seed: get customer user: %w", err)
+	}
+
+	var orderID string
+	err = db.QueryRow("SELECT id FROM orders WHERE user_id = ? AND status IN ('delivered', 'completed') LIMIT 1", customerID).Scan(&orderID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("[DB] Warning: delivered/completed order not found, skipping review seeding")
+			return nil
+		}
+		return fmt.Errorf("seed: get delivered/completed order: %w", err)
+	}
+
+	var book1ID, book2ID string
+	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1").Scan(&book1ID)
+	_ = db.QueryRow("SELECT id FROM books ORDER BY title LIMIT 1 OFFSET 1").Scan(&book2ID)
+	
+	var service1ID string
+	_ = db.QueryRow("SELECT id FROM services ORDER BY title LIMIT 1").Scan(&service1ID)
+
+	serviceIDsJSON := fmt.Sprintf(`["%s"]`, service1ID)
+	bookIDsJSON := fmt.Sprintf(`["%s", "%s"]`, book1ID, book2ID)
+	detailsJSON := fmt.Sprintf(`{"service_%s": "layanan cepat", "book_%s": "buku bagus", "book_%s": "kualitas cetak baik"}`, service1ID, book1ID, book2ID)
+	ratingJSON := fmt.Sprintf(`{"service_%s": 5, "book_%s": 5, "book_%s": 4}`, service1ID, book1ID, book2ID)
+
+	_, err = db.Exec(`INSERT INTO reviews (id, user_id, order_id, service_id, book_id, details, rating) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		uuid.New().String(), customerID, orderID, serviceIDsJSON, bookIDsJSON, detailsJSON, ratingJSON)
+	
+	if err != nil {
+		return fmt.Errorf("seed: insert review: %w", err)
+	}
+
+	log.Printf("[DB] Seeded reviews")
+	return nil
+}
+

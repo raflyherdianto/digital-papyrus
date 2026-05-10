@@ -1,16 +1,16 @@
 ---
 /**
- * Admin Login Page
- * Route: /admin-login
+ * Customer Login Page
+ * Route: /customer-login
  */
 import AuthLayout from '../layouts/AuthLayout.astro';
 ---
 
-<AuthLayout title="Admin Login | Digital Papyrus">
+<AuthLayout title="Customer Login | Digital Papyrus">
   <div class="w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-xl p-8 md:p-10 border border-outline-variant/10">
     <div class="text-center mb-8 md:mb-10">
-      <h2 class="font-headline text-2xl md:text-3xl font-bold tracking-tight text-primary">Admin Login</h2>
-      <p class="text-on-surface-variant text-sm md:text-base mt-2">Access the publishing management console.</p>
+      <h2 class="font-headline text-2xl md:text-3xl font-bold tracking-tight text-primary">Customer Login</h2>
+      <p class="text-on-surface-variant text-sm md:text-base mt-2">Sign in to track your publishing orders.</p>
     </div>
 
     <!-- Error Alert -->
@@ -58,9 +58,9 @@ import AuthLayout from '../layouts/AuthLayout.astro';
         </label>
         <a href="#" class="text-primary font-semibold hover:underline">Forgot Password?</a>
       </div>
-      
+
       <!-- Puzzle CAPTCHA Section -->
-      <div id="captcha-container" class="space-y-4 py-2 mt-2">
+      <div id="captcha-container" class="space-y-4 py-2">
         <div class="text-center">
           <p class="text-[10px] uppercase tracking-[0.2em] text-outline-variant font-bold mb-3">Security Verification</p>
         </div>
@@ -104,6 +104,12 @@ import AuthLayout from '../layouts/AuthLayout.astro';
         <span class="material-symbols-outlined text-sm" id="login-icon">login</span>
         <span id="login-btn-text">Sign in</span>
       </button>
+
+      <div class="text-center mt-6">
+        <p class="text-on-surface-variant text-sm">
+          Don't have an account? <a href="/customer-register" class="text-primary font-bold hover:underline">Register here</a>
+        </p>
+      </div>
     </form>
   </div>
 </AuthLayout>
@@ -113,9 +119,24 @@ import AuthLayout from '../layouts/AuthLayout.astro';
 
   // Redirect if already logged in
   if (isAuthenticated()) {
-    window.location.href = '/admin-dashboard';
+    const userJson = localStorage.getItem('dp_user');
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        if (user.role === 'superadmin') {
+          window.location.href = '/admin-dashboard';
+        } else {
+          window.location.href = '/';
+        }
+      } catch {
+        window.location.href = '/';
+      }
+    } else {
+      window.location.href = '/';
+    }
   }
 
+  // Toggle password visibility
   // Toggle password visibility
   const toggleBtn = document.getElementById('togglePassword');
   const pwInput = document.getElementById('password-input') as HTMLInputElement;
@@ -156,8 +177,7 @@ import AuthLayout from '../layouts/AuthLayout.astro';
     
     const img = new Image();
     img.crossOrigin = "anonymous";
-    // Tech/Management themed image for Admin
-    img.src = "https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=600&q=80";
+    img.src = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&w=600&q=80";
     
     img.onerror = () => {
       img.src = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80";
@@ -225,6 +245,7 @@ import AuthLayout from '../layouts/AuthLayout.astro';
       const val = parseInt((e.target as HTMLInputElement).value);
       const moveX = (val / 100) * (mainCanvas.clientWidth - 50);
       
+      // Check tolerance (approx 5px)
       const diff = Math.abs(moveX - puzzleX);
       if (diff < 6) {
         isSolved = true;
@@ -236,6 +257,7 @@ import AuthLayout from '../layouts/AuthLayout.astro';
         slider.disabled = true;
         submitBtn.disabled = false;
       } else {
+        // Reset
         slider.value = "0";
         pieceCanvas.style.transform = 'translateX(0)';
         thumb.style.transform = 'translateX(0)';
@@ -286,9 +308,14 @@ import AuthLayout from '../layouts/AuthLayout.astro';
       try {
         const result = await login(email, password);
         setToken(result.token);
-        // Store user info for dashboard
+        // Store user info
         localStorage.setItem('dp_user', JSON.stringify(result.user));
-        window.location.href = '/admin-dashboard';
+        
+        if (result.user.role === 'superadmin') {
+          window.location.href = '/admin-dashboard';
+        } else {
+          window.location.href = '/';
+        }
       } catch (err: any) {
         const message = err?.message || 'Login failed. Please try again.';
         showError(message);
