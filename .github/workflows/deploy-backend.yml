@@ -53,5 +53,9 @@ jobs:
             chmod 777 data
             chmod 777 ../frontend/public/uploads
             
-            # Build and deploy BE container detached, forcing a rebuild
-            docker compose up -d --build
+            # Clean up old docker images/cache to save space on EC2
+            docker system prune -f
+
+            # Build and deploy BE container detached, forcing a clean rebuild without cache
+            docker compose build --no-cache
+            docker compose up -d
