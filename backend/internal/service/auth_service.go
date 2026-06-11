@@ -4,6 +4,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"net/smtp"
+	"strings"
 	"sync"
 	"time"
 
@@ -202,7 +204,7 @@ func (s *AuthService) GetCurrentUser(userID string) (*model.User, error) {
 	return user, nil
 }
 
-// SendOTP generates and "sends" a 6-digit OTP to the email.
+// SendOTP generates and sends a 6-digit OTP to the email.
 func (s *AuthService) SendOTP(email string) error {
 	// Generate random 6-digit code
 	code := fmt.Sprintf("%06d", uuid.New().ID()%1000000)
@@ -213,8 +215,31 @@ func (s *AuthService) SendOTP(email string) error {
 		expiresAt: time.Now().Add(5 * time.Minute),
 	})
 
-	// Simulate sending email by logging to console
-	fmt.Printf("\n[EMAIL SIMULATOR] To: %s | OTP Code: %s | Expires in 5 minutes\n\n", email, code)
+	// Render the template by replacing the placeholder code
+	body := strings.Replace(OTPEmailTemplate, "184920", code, 1)
+
+	// SMTP credentials and server info
+	smtpHost := s.cfg.SMTP.Host
+	smtpPort := s.cfg.SMTP.Port
+	smtpUsername := s.cfg.SMTP.Username
+	smtpPassword := s.cfg.SMTP.Password
+
+	// Build headers and body
+	subject := "Subject: Verifikasi Akun Baru Anda - Digital Papyrus\n"
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	msg := []byte(subject + mime + body)
+
+	// Send email in a goroutine so it doesn't block the API client
+	go func() {
+		auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
+		addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
+		err := smtp.SendMail(addr, auth, smtpUsername, []string{email}, msg)
+		if err != nil {
+			fmt.Printf("\n[SMTP ERROR] Failed to send OTP to %s: %v\n\n", email, err)
+		} else {
+			fmt.Printf("\n[SMTP SUCCESS] Sent OTP to %s (Code: %s)\n\n", email, code)
+		}
+	}()
 	
 	return nil
 }

@@ -231,6 +231,50 @@ import AuthLayout from '../layouts/AuthLayout.astro';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Cooldown Logic
+  let cooldownInterval: ReturnType<typeof setInterval> | null = null;
+
+  function startCooldown(expiry: number) {
+    if (cooldownInterval) clearInterval(cooldownInterval);
+
+    sendOtpBtn.disabled = true;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = Math.ceil((expiry - now) / 1000);
+
+      if (remaining > 0) {
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        const sStr = s < 10 ? '0' + s : s;
+        sendOtpBtn.textContent = `Resend in ${m}:${sStr}`;
+      } else {
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = 'Resend Code';
+        localStorage.removeItem('otp_cooldown_expiry');
+        if (cooldownInterval) {
+          clearInterval(cooldownInterval);
+          cooldownInterval = null;
+        }
+      }
+    };
+
+    updateTimer();
+    cooldownInterval = setInterval(updateTimer, 1000);
+  }
+
+  // Check on page load
+  const storedExpiry = localStorage.getItem('otp_cooldown_expiry');
+  if (storedExpiry) {
+    const expiry = parseInt(storedExpiry, 10);
+    if (expiry > Date.now()) {
+      startCooldown(expiry);
+      otpSection.classList.remove('hidden');
+    } else {
+      localStorage.removeItem('otp_cooldown_expiry');
+    }
+  }
+
   // OTP Logic
   sendOtpBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim();
@@ -246,8 +290,11 @@ import AuthLayout from '../layouts/AuthLayout.astro';
       await sendOTP(email);
       otpSection.classList.remove('hidden');
       otpHint.classList.remove('hidden');
-      sendOtpBtn.textContent = 'Resend Code';
-      sendOtpBtn.disabled = false;
+      
+      // Start 5-minute cooldown (5 * 60 * 1000 ms)
+      const expiry = Date.now() + 5 * 60 * 1000;
+      localStorage.setItem('otp_cooldown_expiry', String(expiry));
+      startCooldown(expiry);
     } catch (err: any) {
       showError(err.message || 'Failed to send OTP.');
       sendOtpBtn.disabled = false;
@@ -277,6 +324,14 @@ import AuthLayout from '../layouts/AuthLayout.astro';
       otpHint.classList.remove('text-outline-variant');
       otpHint.classList.add('text-green-600', 'font-bold');
       emailVerifiedBadge.classList.remove('hidden');
+
+      // Clean up cooldown
+      localStorage.removeItem('otp_cooldown_expiry');
+      if (cooldownInterval) {
+        clearInterval(cooldownInterval);
+        cooldownInterval = null;
+      }
+
       updateSubmitState();
     } catch (err: any) {
       showError(err.message || 'Invalid code.');

@@ -18,6 +18,15 @@ type Config struct {
 	Rate     RateConfig
 	Security SecurityConfig
 	Seed     SeedConfig
+	SMTP     SMTPConfig
+}
+
+// SMTPConfig holds SMTP mail server settings.
+type SMTPConfig struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
 }
 
 // AppConfig holds general application settings.
@@ -90,6 +99,12 @@ func Load() *Config {
 			SuperAdminEmail:    getEnv("SEED_SUPERADMIN_EMAIL", "admin@local.dev"),
 			SuperAdminPassword: getEnv("SEED_SUPERADMIN_PASSWORD", "local-dev-password"),
 			SuperAdminName:     getEnv("SEED_SUPERADMIN_NAME", "Local Admin"),
+		},
+		SMTP: SMTPConfig{
+			Host:     getEnv("SMTP_HOST", "smtp.gmail.com"),
+			Port:     getEnv("SMTP_PORT", "587"),
+			Username: getEnv("SMTP_USERNAME", "supportdigitalpapyrus@gmail.com"),
+			Password: getEnv("SMTP_PASSWORD", "mfvt unnp gknn caks"),
 		},
 	}
 }
