@@ -103,8 +103,8 @@ func Load() *Config {
 		SMTP: SMTPConfig{
 			Host:     getEnv("SMTP_HOST", "smtp.gmail.com"),
 			Port:     getEnv("SMTP_PORT", "587"),
-			Username: getEnv("SMTP_USERNAME", "supportdigitalpapyrus@gmail.com"),
-			Password: getEnv("SMTP_PASSWORD", "mfvt unnp gknn caks"),
+			Username: getEnv("SMTP_USERNAME", ""),
+			Password: getEnv("SMTP_PASSWORD", ""),
 		},
 	}
 }
