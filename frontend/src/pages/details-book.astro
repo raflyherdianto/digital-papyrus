@@ -1,25 +1,11 @@
 ---
 /**
  * Book Details Page
- * Route: /[category]/details-book?id=<book-id>
+ * Route: /details-book?id=<book-id>
  * Fetches book details dynamically from the backend API.
  */
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCategories, slugifyCategory } from '../../lib/api';
-
-export async function getStaticPaths() {
-  try {
-    const categories = await getCategories();
-    return categories.map(c => ({ params: { category: c.slug || slugifyCategory(c.name) } }));
-  } catch {
-    return [
-      { params: { category: 'fiksi-kontemporer' } },
-      { params: { category: 'filosofi-modern' } },
-      { params: { category: 'teknologi-sains' } },
-      { params: { category: 'seni-desain' } }
-    ];
-  }
-}
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCategories, slugifyCategory } from '../lib/api';
 
 ---
 
@@ -120,7 +106,7 @@ export async function getStaticPaths() {
 </BaseLayout>
 
 <script>
-  import { getBook, getBooks, formatRupiah, slugifyCategory } from '../../lib/api';
+  import { getBook, getBooks, formatRupiah, slugifyCategory } from '../lib/api';
 
   // Tab switching
   const tabIds = ['synopsis', 'details'];
@@ -246,7 +232,7 @@ export async function getStaticPaths() {
 
       if (related.length > 0) {
         document.getElementById('relatedGrid')!.innerHTML = related.map(book => `
-          <a href="/${book.category_slug || slugifyCategory(book.category_name || 'uncategorized')}/details-book?id=${book.id}" class="block group cursor-pointer">
+          <a href="/details-book?id=${book.id}" class="block group cursor-pointer">
             <div class="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 transform group-hover:-translate-y-2 transition-transform duration-300">
               ${book.image_url
                 ? `<img class="w-full h-full object-cover" draggable="false" alt="Cover ${book.title}" src="${book.image_url}" loading="lazy" />`

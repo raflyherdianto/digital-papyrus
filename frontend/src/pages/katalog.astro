@@ -213,10 +213,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   function formatRp(v: number) { return 'Rp ' + v.toLocaleString('id-ID'); }
 
   function renderBookCard(book: Book): string {
-    const catSlug = book.category_slug || slugifyCategory(book.category_name || 'uncategorized');
     const priceStr = book.price > 0 ? formatRupiah(book.price) : '--';
     return `
-      <a href="/${catSlug}/details-book?id=${book.id}" class="group block cursor-pointer">
+      <a href="/details-book?id=${book.id}" class="group block cursor-pointer">
         <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 shadow-md transform group-hover:-translate-y-2 transition-transform duration-300">
           ${book.image_url
             ? `<img class="absolute inset-0 w-full h-full object-cover" src="${book.image_url}" alt="Cover ${book.title}" loading="lazy" />`
