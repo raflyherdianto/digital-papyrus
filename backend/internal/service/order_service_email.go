@@ -17,12 +17,23 @@ func (s *OrderService) SendInvoiceEmail(order *model.Order, customStatus ...stri
 		return fmt.Errorf("failed to get user: %w", err)
 	}
 
+	if len(order.Items) == 0 && order.ID != "" {
+		if fullOrder, err := s.repo.FindByID(order.ID); err == nil && fullOrder != nil && len(fullOrder.Items) > 0 {
+			order.Items = fullOrder.Items
+		}
+	}
+
 	smtpHost := s.cfg.SMTP.Host
 	smtpPort := s.cfg.SMTP.Port
 	smtpUsername := s.cfg.SMTP.Username
 	smtpPassword := s.cfg.SMTP.Password
 
 	go func() {
+		if len(order.Items) == 0 && order.ID != "" {
+			if fullOrder, err := s.repo.FindByID(order.ID); err == nil && fullOrder != nil && len(fullOrder.Items) > 0 {
+				order.Items = fullOrder.Items
+			}
+		}
 		domain := "gmail.com"
 		parts := strings.Split(smtpUsername, "@")
 		if len(parts) > 1 {
@@ -172,9 +183,12 @@ func (s *OrderService) SendInvoiceEmail(order *model.Order, customStatus ...stri
 		for _, item := range order.Items {
 			itemsSubtotal += item.TotalPrice
 		}
-		uniqueCode := order.TotalPrice - itemsSubtotal - order.ShippingPrice - order.ServiceFee - order.Tax + order.Discount
-		if uniqueCode < 0 {
-			uniqueCode = 0
+		uniqueCode := 0
+		if len(order.Items) > 0 {
+			uniqueCode = order.TotalPrice - itemsSubtotal - order.ShippingPrice - order.ServiceFee - order.Tax + order.Discount
+			if uniqueCode < 0 {
+				uniqueCode = 0
+			}
 		}
 
 		var summaryBuilder strings.Builder

@@ -917,7 +917,7 @@ const InvoiceEmailTemplate = `<!DOCTYPE html>
             </table>
 
             <p style="text-align: center; color: #8c9fa2; font-size: 13px; margin-top: 40px;">
-              Anda dapat melacak status pesanan Anda melalui <a href="http://localhost:4321/customer-dashboard" style="color: #14383f; font-weight: 600; text-decoration: underline;">Dashboard Pelanggan</a>.
+              Anda dapat melacak status pesanan Anda melalui <a href="https://digitalpapyrus.web.id/customer-dashboard" style="color: #14383f; font-weight: 600; text-decoration: underline;">Dashboard Pelanggan</a>.
             </p>
           </div>
           <!-- Footer -->
@@ -1202,7 +1202,7 @@ const DraftSubmissionEmailTemplate = `<!DOCTYPE html>
             </div>
 
             <p style="text-align: center; color: #8c9fa2; font-size: 13px; margin-top: 40px;">
-              Anda dapat memantau proses validasi melalui menu "View Progress" pada <a href="http://localhost:4321/customer-publish" style="color: #14383f; font-weight: 600; text-decoration: underline;">Halaman Publish</a>.
+              Anda dapat memantau proses validasi melalui menu "View Progress" pada <a href="https://digitalpapyrus.web.id/customer-publish" style="color: #14383f; font-weight: 600; text-decoration: underline;">Halaman Publish</a>.
             </p>
           </div>
           <!-- Footer -->
@@ -1440,7 +1440,7 @@ const ValidationApproveEmailTemplate = `<!DOCTYPE html>
             </div>
 
             <p style="text-align: center; color: #8c9fa2; font-size: 13px; margin-top: 40px;">
-              Anda dapat memantau proses validasi melalui menu "View Progress" pada <a href="http://localhost:4321/customer-publish" style="color: #14383f; font-weight: 600; text-decoration: underline;">Halaman Publish</a>.
+              Anda dapat memantau proses validasi melalui menu "View Progress" pada <a href="https://digitalpapyrus.web.id/customer-publish" style="color: #14383f; font-weight: 600; text-decoration: underline;">Halaman Publish</a>.
             </p>
           </div>
           <!-- Footer -->
@@ -1682,7 +1682,7 @@ const ValidationRejectEmailTemplate = `<!DOCTYPE html>
             </div>
 
             <p style="text-align: center; color: #8c9fa2; font-size: 13px; margin-top: 40px;">
-              Anda dapat memantau proses validasi melalui menu "View Progress" pada <a href="http://localhost:4321/customer-publish" style="color: #14383f; font-weight: 600; text-decoration: underline;">Halaman Publish</a>.
+              Anda dapat memantau proses validasi melalui menu "View Progress" pada <a href="https://digitalpapyrus.web.id/customer-publish" style="color: #14383f; font-weight: 600; text-decoration: underline;">Halaman Publish</a>.
             </p>
           </div>
           <!-- Footer -->

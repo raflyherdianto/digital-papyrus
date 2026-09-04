@@ -238,6 +238,10 @@ func (s *OrderService) CreateOrder(input CreateOrderInput) (*model.Order, error)
 		return nil, err
 	}
 
+	if fullOrder, err := s.repo.FindByID(order.ID); err == nil && fullOrder != nil {
+		return fullOrder, nil
+	}
+
 	return order, nil
 }
 

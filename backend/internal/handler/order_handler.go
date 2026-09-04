@@ -148,7 +148,11 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	}
 
 	// Otomatis kirim email invoice ke customer
-	_ = h.svc.SendInvoiceEmail(order, "Perlu Dibayar")
+	if fullOrder, err := h.svc.GetOrderByID(order.ID); err == nil && fullOrder != nil {
+		_ = h.svc.SendInvoiceEmail(fullOrder, "Perlu Dibayar")
+	} else {
+		_ = h.svc.SendInvoiceEmail(order, "Perlu Dibayar")
+	}
 
 	response.Created(c, "Order created successfully", order)
 }
