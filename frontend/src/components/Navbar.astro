@@ -50,9 +50,9 @@
       </div>
 
       <!-- Cart -->
-      <div class="relative cursor-pointer group flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors" aria-label="Shopping cart">
+      <button id="nav-cart-btn" type="button" class="relative cursor-pointer group flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors" aria-label="Shopping cart">
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-[26px]">shopping_cart</span>
-      </div>
+      </button>
 
       <!-- Mobile Menu Toggle -->
       <button
@@ -156,6 +156,19 @@
     document.addEventListener('click', (e) => {
       if (!navbarSearch.contains(e.target as Node) && !searchResults?.contains(e.target as Node)) {
         searchResults?.classList.add('hidden');
+      }
+    });
+  }
+
+  // Cart button redirect handler
+  const navCartBtn = document.getElementById('nav-cart-btn');
+  if (navCartBtn) {
+    navCartBtn.addEventListener('click', () => {
+      const user = localStorage.getItem('dp_user') || localStorage.getItem('dp_token');
+      if (user) {
+        window.location.href = '/customer-cart';
+      } else {
+        window.location.href = '/customer-login';
       }
     });
   }

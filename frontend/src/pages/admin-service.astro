@@ -22,15 +22,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
   </div>
 
-  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm mb-12">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[700px]">
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm mb-12 w-full max-w-full min-w-0 overflow-hidden">
+    <div class="table-responsive-container overflow-x-auto w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[700px] border-collapse">
         <thead>
-          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Service</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Description</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Status</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30 whitespace-nowrap">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Service</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Description</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Status</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody id="coreTableBody" class="text-sm font-body">
@@ -215,17 +215,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   </div>
 
   <!-- Data Table -->
-  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[700px]">
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm w-full max-w-full min-w-0 overflow-hidden">
+    <div class="table-responsive-container overflow-x-auto w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[750px] border-collapse">
         <thead>
-          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Package</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Tier</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Price</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Featured</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Status</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30 whitespace-nowrap">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Package</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Tier</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Price</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Featured</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Status</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody id="serviceTableBody" class="text-sm font-body">
@@ -276,6 +276,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         </div>
         <div class="grid grid-cols-2 gap-y-4">
           <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Price</p><p id="viewServicePrice" class="text-sm font-bold text-primary"></p></div>
+          <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Base Cost</p><p id="viewServiceBaseCost" class="text-sm font-bold text-stone-700"></p></div>
           <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Status</p><p id="viewServiceStatus" class="text-sm font-medium"></p></div>
           <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Sort Order</p><p id="viewServiceOrder" class="text-sm font-medium text-stone-700"></p></div>
           <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Featured</p><p id="viewServiceFeatured" class="text-sm font-medium"></p></div>
@@ -337,6 +338,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price (Rp)</label>
               <input name="price" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 275000" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Base Cost (Rp)</label>
+              <input name="base_cost" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 10000" />
+              <p class="text-[11px] text-stone-400">Biaya pokok / modal dasar pengerjaan paket layanan (HPP/COGS) untuk perhitungan laba.</p>
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price Label</label>
@@ -425,6 +431,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price (Rp)</label>
               <input name="price" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Base Cost (Rp)</label>
+              <input name="base_cost" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 10000" />
+              <p class="text-[11px] text-stone-400">Biaya pokok / modal dasar pengerjaan paket layanan (HPP/COGS) untuk perhitungan laba.</p>
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Price Label</label>
@@ -639,23 +650,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800"><span class="w-1.5 h-1.5 rounded-full bg-teal-600"></span>Active</span>'
           : '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-stone-200 text-stone-600"><span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span>Inactive</span>';
 
-        return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${border}" data-id="${svc.id}">
-          <td class="py-4 md:py-5 px-3 md:px-4">
+        return `<tr class="group hover:bg-surface-container-low/50 transition-colors whitespace-nowrap ${border}" data-id="${svc.id}">
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">
             <div class="flex items-center gap-3 md:gap-4">
               <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                 <span class="material-symbols-outlined text-primary text-lg">${svc.icon || 'design_services'}</span>
               </div>
-              <div>
+              <div class="min-w-[140px]">
                 <p class="font-bold text-primary text-sm md:text-base">${svc.title}</p>
                 <p class="text-stone-400 text-[10px] mt-0.5 tracking-wider">${svc.badge || '--'}</p>
               </div>
             </div>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4"><span class="font-bold px-2.5 py-1 rounded-full text-[11px] ${t.badge}">${t.label}</span></td>
-          <td class="py-4 md:py-5 px-3 md:px-4 font-bold text-primary">${svc.price_label || (svc.price > 0 ? formatRupiah(svc.price) : '--')}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4">${svc.is_featured ? '<span class="material-symbols-outlined text-amber-500 text-lg">star</span>' : '<span class="text-stone-300">--</span>'}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4">${statusBadge}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap"><span class="font-bold px-2.5 py-1 rounded-full text-[11px] ${t.badge}">${t.label}</span></td>
+          <td class="py-4 md:py-5 px-3 md:px-4 font-bold text-primary whitespace-nowrap">${svc.price_label || (svc.price > 0 ? formatRupiah(svc.price) : '--')}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">${svc.is_featured ? '<span class="material-symbols-outlined text-amber-500 text-lg">star</span>' : '<span class="text-stone-300">--</span>'}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">${statusBadge}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-right whitespace-nowrap">
             <div class="flex items-center justify-end gap-2">
               <button class="viewBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="View" data-id="${svc.id}">
                 <span class="material-symbols-outlined text-lg">visibility</span>
@@ -702,6 +713,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const badgeEl = document.getElementById('viewServiceBadge')!;
           if (svc.badge) { badgeEl.textContent = svc.badge; badgeEl.classList.remove('hidden'); } else { badgeEl.classList.add('hidden'); }
           document.getElementById('viewServicePrice')!.textContent = svc.price_label || formatRupiah(svc.price);
+          document.getElementById('viewServiceBaseCost')!.textContent = formatRupiah((svc as any).base_cost || 0);
           document.getElementById('viewServiceStatus')!.innerHTML = svc.is_active ? '<span class="text-teal-700 font-bold">Active</span>' : '<span class="text-stone-500">Inactive</span>';
           document.getElementById('viewServiceOrder')!.textContent = String(svc.sort_order);
           document.getElementById('viewServiceFeatured')!.innerHTML = svc.is_featured ? '<span class="text-amber-600 font-bold">★ Yes</span>' : '<span class="text-stone-400">No</span>';
@@ -723,6 +735,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           (f.querySelector('[name="tier"]') as HTMLSelectElement).value = svc.tier;
           (f.querySelector('[name="icon"]') as HTMLInputElement).value = svc.icon||'';
           (f.querySelector('[name="price"]') as HTMLInputElement).value = String(svc.price||0);
+          (f.querySelector('[name="base_cost"]') as HTMLInputElement).value = String((svc as any).base_cost ?? 0);
           (f.querySelector('[name="price_label"]') as HTMLInputElement).value = svc.price_label||'';
           (f.querySelector('[name="badge"]') as HTMLInputElement).value = svc.badge||'';
           (f.querySelector('[name="sort_order"]') as HTMLInputElement).value = String(svc.sort_order||0);
@@ -768,7 +781,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         await createService({
           title, tier: fd.get('tier') as string||'basic',
           icon: fd.get('icon') as string||'', description: fd.get('description') as string||'',
-          price: parseInt(fd.get('price') as string)||0, price_label: fd.get('price_label') as string||'',
+          price: parseInt(fd.get('price') as string)||0,
+          base_cost: parseInt(fd.get('base_cost') as string)||0,
+          price_label: fd.get('price_label') as string||'',
           features: linesToFeaturesJson(fd.get('features') as string||''),
           is_featured: fd.get('is_featured')==='true', badge: fd.get('badge') as string||'',
           sort_order: parseInt(fd.get('sort_order') as string)||0, is_active: fd.get('is_active')!=='false',
@@ -793,7 +808,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         await updateService(id, {
           title, tier: fd.get('tier') as string,
           icon: fd.get('icon') as string, description: fd.get('description') as string,
-          price: parseInt(fd.get('price') as string)||0, price_label: fd.get('price_label') as string,
+          price: parseInt(fd.get('price') as string)||0,
+          base_cost: parseInt(fd.get('base_cost') as string)||0,
+          price_label: fd.get('price_label') as string,
           features: linesToFeaturesJson(fd.get('features') as string||''),
           is_featured: fd.get('is_featured')==='true', badge: fd.get('badge') as string,
           sort_order: parseInt(fd.get('sort_order') as string)||0, is_active: fd.get('is_active')!=='false',
@@ -840,18 +857,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800">Active</span>'
           : '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-stone-200 text-stone-600">Inactive</span>';
 
-        return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${border}">
-          <td class="py-4 md:py-5 px-3 md:px-4">
+        return `<tr class="group hover:bg-surface-container-low/50 transition-colors whitespace-nowrap ${border}">
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                 <span class="material-symbols-outlined text-primary text-lg">${svc.icon || 'design_services'}</span>
               </div>
-              <p class="font-bold text-primary text-sm">${svc.title}</p>
+              <p class="font-bold text-primary text-sm whitespace-nowrap">${svc.title}</p>
             </div>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4 text-stone-500 max-w-xs truncate" title="${svc.description}">${svc.description}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4">${statusBadge}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+          <td class="py-4 md:py-5 px-3 md:px-4 text-stone-500 max-w-xs truncate whitespace-nowrap" title="${svc.description}">${svc.description}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">${statusBadge}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-right whitespace-nowrap">
             <div class="flex items-center justify-end gap-2">
               <button class="editCoreBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" data-id="${svc.id}">
                 <span class="material-symbols-outlined text-lg">edit</span>

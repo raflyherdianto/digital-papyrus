@@ -1,4 +1,4 @@
-name: Deploy Frontend to EC2
+name: Build & Push Frontend Image to GHCR
 
 on:
   push:
@@ -9,47 +9,38 @@ on:
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
-  deploy:
-    name: Deploy Frontend
+  build-and-push:
+    name: Build & Push Frontend Image (ARM64)
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Remove uploads folder to prevent SCP permission issues
-        run: rm -rf frontend/public/uploads
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      - name: Copy frontend files to EC2
-        uses: appleboy/scp-action@v0.1.7
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend"
-          target: "/home/${{ secrets.EC2_USERNAME }}/digital-papyrus"
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Execute deployment on EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v6
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # Ensure shared network exists
-            docker network inspect shared-network >/dev/null 2>&1 || docker network create shared-network
-            
-            # Ensure frontend directory exists and navigate to it
-            mkdir -p /home/${{ secrets.EC2_USERNAME }}/digital-papyrus/frontend
-            cd /home/${{ secrets.EC2_USERNAME }}/digital-papyrus/frontend
-            
-            # Ensure upload folder exists for volume mapping
-            mkdir -p public/uploads
-            
-            # Clean up old docker images/cache to save space on EC2
-            docker system prune -f
-
-            # Build and deploy FE container detached, forcing a clean rebuild without cache
-            docker compose build --no-cache
-            docker compose up -d
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/raflyherdianto/digital-papyrus-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

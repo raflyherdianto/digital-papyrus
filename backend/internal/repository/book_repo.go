@@ -63,54 +63,60 @@ func (r *BookRepository) FindAll(f BookFilter) ([]model.Book, int64, error) {
 
 	where := []string{"1=1"}
 	args := []interface{}{}
+	argIdx := 1
 
 	if f.Status != "" {
-		where = append(where, "b.status = ?")
+		where = append(where, fmt.Sprintf("b.status = $%d", argIdx))
 		args = append(args, f.Status)
+		argIdx++
 	}
 	if f.CategoryID != "" {
-		where = append(where, "b.category_id = ?")
+		where = append(where, fmt.Sprintf("b.category_id = $%d", argIdx))
 		args = append(args, f.CategoryID)
+		argIdx++
 	}
 	if f.Badge != "" {
-		// Normalize badge to ensure case-insensitive matching
 		normalizedBadge := strings.TrimSpace(f.Badge)
 		if normalizedBadge == "" {
 			normalizedBadge = "Regular"
 		}
-		where = append(where, "COALESCE(b.badge, 'Regular') = ?")
+		where = append(where, fmt.Sprintf("COALESCE(b.badge, 'Regular') = $%d", argIdx))
 		args = append(args, normalizedBadge)
+		argIdx++
 	}
 	if f.Search != "" {
-		where = append(where, "(b.title LIKE ? OR b.author LIKE ? OR b.isbn LIKE ?)")
+		where = append(where, fmt.Sprintf("(b.title ILIKE $%d OR b.author ILIKE $%d OR b.isbn ILIKE $%d)", argIdx, argIdx+1, argIdx+2))
 		searchTerm := "%" + f.Search + "%"
 		args = append(args, searchTerm, searchTerm, searchTerm)
+		argIdx += 3
 	}
 
 	if f.MinPrice > 0 {
-		where = append(where, "b.price >= ?")
+		where = append(where, fmt.Sprintf("b.price >= $%d", argIdx))
 		args = append(args, f.MinPrice)
+		argIdx++
 	}
 	if f.MaxPrice > 0 {
-		where = append(where, "b.price <= ?")
+		where = append(where, fmt.Sprintf("b.price <= $%d", argIdx))
 		args = append(args, f.MaxPrice)
+		argIdx++
 	}
 	if f.MaxRating > 0 {
-		where = append(where, `
-			COALESCE((SELECT AVG(CAST(j.value AS REAL)) FROM reviews rv,
-				json_each(CASE WHEN json_valid(rv.rating) THEN rv.rating ELSE '{}' END) j
-				WHERE j.key = 'book_' || b.id), 0) <= ?`)
+		where = append(where, fmt.Sprintf(`
+			COALESCE((SELECT AVG((j.value)::numeric) FROM reviews rv,
+				jsonb_each_text(CASE WHEN rv.rating LIKE '{%%}' THEN rv.rating::jsonb ELSE '{}'::jsonb END) j
+				WHERE j.key = 'book_' || b.id), 0) <= $%d`, argIdx))
 		args = append(args, f.MaxRating)
+		argIdx++
 	}
 
-	ratingExpr := `COALESCE((SELECT AVG(CAST(j.value AS REAL)) FROM reviews rv,
-		json_each(CASE WHEN json_valid(rv.rating) THEN rv.rating ELSE '{}' END) j
+	ratingExpr := `COALESCE((SELECT AVG((j.value)::numeric) FROM reviews rv,
+		jsonb_each_text(CASE WHEN rv.rating LIKE '{%}' THEN rv.rating::jsonb ELSE '{}'::jsonb END) j
 		WHERE j.key = 'book_' || b.id), 0)`
-	reviewCountExpr := `(SELECT COUNT(*) FROM reviews rv, json_each(CASE WHEN json_valid(rv.book_id) THEN rv.book_id ELSE '[]' END) j WHERE j.value = b.id)`
+	reviewCountExpr := `(SELECT COUNT(*) FROM reviews rv, jsonb_array_elements_text(CASE WHEN rv.book_id LIKE '[%]' THEN rv.book_id::jsonb ELSE '[]'::jsonb END) j WHERE j.value = b.id)`
 
 	whereClause := strings.Join(where, " AND ")
 
-	// Determine ORDER BY
 	orderClause := "b.updated_at DESC"
 	if f.Sort == "popular" {
 		where = append(where, fmt.Sprintf("%s >= 4.5", ratingExpr))
@@ -118,23 +124,21 @@ func (r *BookRepository) FindAll(f BookFilter) ([]model.Book, int64, error) {
 		orderClause = fmt.Sprintf("%s DESC, %s DESC, b.updated_at DESC", ratingExpr, reviewCountExpr)
 	}
 
-	// Count total
 	var total int64
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE %s", whereClause)
 	if err := r.db.QueryRow(countQuery, args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("book_repo: count: %w", err)
 	}
 
-	// Fetch page — use COALESCE to guarantee non-NULL values for every column
 	offset := (f.Page - 1) * f.PerPage
 	dataQuery := fmt.Sprintf(
 		`SELECT b.id, b.title, b.author, COALESCE(b.isbn, ''), COALESCE(b.badge, 'Regular'), COALESCE(b.ggkey, ''), COALESCE(b.qrcbn, ''), COALESCE(b.price, 0), 
-        COALESCE((SELECT AVG(CAST(j.value AS REAL)) FROM reviews r, json_each(CASE WHEN json_valid(r.rating) THEN r.rating ELSE '{}' END) j WHERE j.key = 'book_' || b.id), 0), 
-        (SELECT COUNT(*) FROM reviews r, json_each(CASE WHEN json_valid(r.book_id) THEN r.book_id ELSE '[]' END) j WHERE j.value = b.id),
-    COALESCE(b.description, ''), COALESCE(b.synopsis, ''), COALESCE(b.image_url, ''), b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), COALESCE(b.status, 'draft'), COALESCE(b.stock, 0),
+        COALESCE((SELECT AVG((j.value)::numeric) FROM reviews r, jsonb_each_text(CASE WHEN r.rating LIKE '{%%}' THEN r.rating::jsonb ELSE '{}'::jsonb END) j WHERE j.key = 'book_' || b.id), 0), 
+        (SELECT COUNT(*) FROM reviews r, jsonb_array_elements_text(CASE WHEN r.book_id LIKE '[%%]' THEN r.book_id::jsonb ELSE '[]'::jsonb END) j WHERE j.value = b.id),
+    COALESCE(b.description, ''), COALESCE(b.image_url, ''), b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), COALESCE(b.status, 'draft'), COALESCE(b.stock, 0),
         COALESCE(b.publisher, ''), COALESCE(b.publication_date, ''), COALESCE(b.pages, 0), COALESCE(b.format, ''), COALESCE(b.language, ''), COALESCE(b.dimensions, ''), COALESCE(b.weight, ''),
-        COALESCE(b.created_at, datetime('now')), COALESCE(b.updated_at, datetime('now'))
- FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE %s ORDER BY %s LIMIT ? OFFSET ?`, whereClause, orderClause)
+        b.created_at, b.updated_at, COALESCE(b.user_id, ''), COALESCE(b.order_id, ''), COALESCE(b.draft_url, ''), COALESCE(b.validation_status, 'pending'), COALESCE(b.notes, ''), COALESCE(b.amazon_url, ''), COALESCE(b.gplay_books_url, ''), COALESCE(b.production_cost, 0), COALESCE(b.royalty_fee, 0)
+ FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE %s ORDER BY %s LIMIT $%d OFFSET $%d`, whereClause, orderClause, argIdx, argIdx+1)
 	dataArgs := append(args, f.PerPage, offset)
 
 	rows, err := r.db.Query(dataQuery, dataArgs...)
@@ -147,20 +151,18 @@ func (r *BookRepository) FindAll(f BookFilter) ([]model.Book, int64, error) {
 	for rows.Next() {
 		var b model.Book
 		var categoryID sql.NullString
-		var createdAtStr, updatedAtStr string
 		if err := rows.Scan(
 			&b.ID, &b.Title, &b.Author, &b.ISBN, &b.Badge, &b.GGKEY, &b.QRCBN, &b.Price, &b.Rating, &b.ReviewCount,
-			&b.Description, &b.Synopsis, &b.ImageURL, &categoryID, &b.CategoryName, &b.CategorySlug, &b.Status, &b.Stock,
+			&b.Description, &b.ImageURL, &categoryID, &b.CategoryName, &b.CategorySlug, &b.Status, &b.Stock,
 			&b.Publisher, &b.PublicationDate, &b.Pages, &b.Format, &b.Language, &b.Dimensions, &b.Weight,
-			&createdAtStr, &updatedAtStr,
+			&b.CreatedAt, &b.UpdatedAt, &b.UserID, &b.OrderID, &b.DraftURL, &b.ValidationStatus, &b.Notes, &b.AmazonURL, &b.GPlayBooksURL,
+			&b.ProductionCost, &b.RoyaltyFee,
 		); err != nil {
 			return nil, 0, fmt.Errorf("book_repo: scan: %w", err)
 		}
 		if categoryID.Valid {
 			b.CategoryID = categoryID.String
 		}
-		b.CreatedAt = parseDateTime(createdAtStr)
-		b.UpdatedAt = parseDateTime(updatedAtStr)
 		books = append(books, b)
 	}
 	return books, total, rows.Err()
@@ -170,20 +172,20 @@ func (r *BookRepository) FindAll(f BookFilter) ([]model.Book, int64, error) {
 func (r *BookRepository) FindByID(id string) (*model.Book, error) {
 	b := &model.Book{}
 	var categoryID sql.NullString
-	var createdAtStr, updatedAtStr string
 	err := r.db.QueryRow(
 		`SELECT b.id, b.title, b.author, COALESCE(b.isbn, ''), COALESCE(b.badge, 'Regular'), COALESCE(b.ggkey, ''), COALESCE(b.qrcbn, ''), COALESCE(b.price, 0), 
-        COALESCE((SELECT AVG(CAST(j.value AS REAL)) FROM reviews r, json_each(CASE WHEN json_valid(r.rating) THEN r.rating ELSE '{}' END) j WHERE j.key = 'book_' || b.id), 0), 
-        (SELECT COUNT(*) FROM reviews r, json_each(CASE WHEN json_valid(r.book_id) THEN r.book_id ELSE '[]' END) j WHERE j.value = b.id),
-        COALESCE(b.description, ''), COALESCE(b.synopsis, ''), COALESCE(b.image_url, ''), b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), COALESCE(b.status, 'draft'), COALESCE(b.stock, 0),
+        COALESCE((SELECT AVG((j.value)::numeric) FROM reviews r, jsonb_each_text(CASE WHEN r.rating LIKE '{%}' THEN r.rating::jsonb ELSE '{}'::jsonb END) j WHERE j.key = 'book_' || b.id), 0), 
+        (SELECT COUNT(*) FROM reviews r, jsonb_array_elements_text(CASE WHEN r.book_id LIKE '[%]' THEN r.book_id::jsonb ELSE '[]'::jsonb END) j WHERE j.value = b.id),
+        COALESCE(b.description, ''), COALESCE(b.image_url, ''), b.category_id, COALESCE(c.name, ''), COALESCE(c.slug, ''), COALESCE(b.status, 'draft'), COALESCE(b.stock, 0),
         COALESCE(b.publisher, ''), COALESCE(b.publication_date, ''), COALESCE(b.pages, 0), COALESCE(b.format, ''), COALESCE(b.language, ''), COALESCE(b.dimensions, ''), COALESCE(b.weight, ''),
-        COALESCE(b.created_at, datetime('now')), COALESCE(b.updated_at, datetime('now'))
- FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = ?`, id,
+        b.created_at, b.updated_at, COALESCE(b.user_id, ''), COALESCE(b.order_id, ''), COALESCE(b.draft_url, ''), COALESCE(b.validation_status, 'pending'), COALESCE(b.notes, ''), COALESCE(b.amazon_url, ''), COALESCE(b.gplay_books_url, ''), COALESCE(b.production_cost, 0), COALESCE(b.royalty_fee, 0)
+ FROM books b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = $1`, id,
 	).Scan(
 		&b.ID, &b.Title, &b.Author, &b.ISBN, &b.Badge, &b.GGKEY, &b.QRCBN, &b.Price, &b.Rating, &b.ReviewCount,
-		&b.Description, &b.Synopsis, &b.ImageURL, &categoryID, &b.CategoryName, &b.CategorySlug, &b.Status, &b.Stock,
+		&b.Description, &b.ImageURL, &categoryID, &b.CategoryName, &b.CategorySlug, &b.Status, &b.Stock,
 		&b.Publisher, &b.PublicationDate, &b.Pages, &b.Format, &b.Language, &b.Dimensions, &b.Weight,
-		&createdAtStr, &updatedAtStr,
+		&b.CreatedAt, &b.UpdatedAt, &b.UserID, &b.OrderID, &b.DraftURL, &b.ValidationStatus, &b.Notes, &b.AmazonURL, &b.GPlayBooksURL,
+		&b.ProductionCost, &b.RoyaltyFee,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -194,8 +196,6 @@ func (r *BookRepository) FindByID(id string) (*model.Book, error) {
 	if categoryID.Valid {
 		b.CategoryID = categoryID.String
 	}
-	b.CreatedAt = parseDateTime(createdAtStr)
-	b.UpdatedAt = parseDateTime(updatedAtStr)
 	return b, nil
 }
 
@@ -216,14 +216,14 @@ func (r *BookRepository) Create(b *model.Book) error {
 	_, err := r.db.Exec(
 		`INSERT INTO books (
 id, title, author, isbn, badge, ggkey, qrcbn, price, rating, review_count,
-description, synopsis, image_url, category_id, status, stock,
+description, image_url, category_id, status, stock,
 publisher, publication_date, pages, format, language, dimensions, weight,
-created_at, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+created_at, updated_at, user_id, order_id, draft_url, validation_status, notes, amazon_url, gplay_books_url, production_cost, royalty_fee
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)`,
 		b.ID, b.Title, b.Author, isbn, badge, b.GGKEY, b.QRCBN, b.Price, b.Rating, b.ReviewCount,
-		b.Description, b.Synopsis, b.ImageURL, categoryID, b.Status, b.Stock,
+		b.Description, b.ImageURL, categoryID, b.Status, b.Stock,
 		b.Publisher, b.PublicationDate, b.Pages, b.Format, b.Language, b.Dimensions, b.Weight,
-		b.CreatedAt, b.UpdatedAt,
+		b.CreatedAt, b.UpdatedAt, b.UserID, b.OrderID, b.DraftURL, b.ValidationStatus, b.Notes, b.AmazonURL, b.GPlayBooksURL, b.ProductionCost, b.RoyaltyFee,
 	)
 	if err != nil {
 		return fmt.Errorf("book_repo: create: %w", err)
@@ -245,15 +245,17 @@ func (r *BookRepository) Update(b *model.Book) error {
 
 	_, err := r.db.Exec(
 		`UPDATE books SET
-title = ?, author = ?, isbn = ?, badge = ?, ggkey = ?, qrcbn = ?, price = ?, rating = ?, review_count = ?,
-description = ?, synopsis = ?, image_url = ?, category_id = ?, status = ?, stock = ?,
-publisher = ?, publication_date = ?, pages = ?, format = ?, language = ?,
-dimensions = ?, weight = ?, updated_at = ?
- WHERE id = ?`,
+title = $1, author = $2, isbn = $3, badge = $4, ggkey = $5, qrcbn = $6, price = $7, rating = $8, review_count = $9,
+description = $10, image_url = $11, category_id = $12, status = $13, stock = $14,
+publisher = $15, publication_date = $16, pages = $17, format = $18, language = $19,
+dimensions = $20, weight = $21, updated_at = $22, user_id = $23, order_id = $24, draft_url = $25, validation_status = $26, notes = $27, amazon_url = $28, gplay_books_url = $29,
+production_cost = $30, royalty_fee = $31
+ WHERE id = $32`,
 		b.Title, b.Author, isbn, badge, b.GGKEY, b.QRCBN, b.Price, b.Rating, b.ReviewCount,
-		b.Description, b.Synopsis, b.ImageURL, categoryID, b.Status, b.Stock,
+		b.Description, b.ImageURL, categoryID, b.Status, b.Stock,
 		b.Publisher, b.PublicationDate, b.Pages, b.Format, b.Language,
-		b.Dimensions, b.Weight, b.UpdatedAt, b.ID,
+		b.Dimensions, b.Weight, b.UpdatedAt, b.UserID, b.OrderID, b.DraftURL, b.ValidationStatus, b.Notes, b.AmazonURL, b.GPlayBooksURL,
+		b.ProductionCost, b.RoyaltyFee, b.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("book_repo: update: %w", err)
@@ -263,7 +265,7 @@ dimensions = ?, weight = ?, updated_at = ?
 
 // Delete removes a book by its ID.
 func (r *BookRepository) Delete(id string) error {
-	result, err := r.db.Exec("DELETE FROM books WHERE id = ?", id)
+	result, err := r.db.Exec("DELETE FROM books WHERE id = $1", id)
 	if err != nil {
 		return fmt.Errorf("book_repo: delete: %w", err)
 	}
@@ -274,8 +276,8 @@ func (r *BookRepository) Delete(id string) error {
 	return nil
 }
 
-// parseDateTime parses SQLite datetime strings into time.Time.
-// Supports multiple formats that SQLite's datetime() function may produce.
+// parseDateTime parses ISO and standard datetime strings into time.Time.
+// Supports multiple standard datetime formats.
 func parseDateTime(s string) time.Time {
 	if s == "" {
 		return time.Now().UTC()

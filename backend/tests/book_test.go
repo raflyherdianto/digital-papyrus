@@ -36,8 +36,8 @@ func TestListBooks_Public(t *testing.T) {
 		t.Fatal("expected meta to be present for paginated response")
 	}
 
-	if res.Meta.Total < 6 {
-		t.Fatalf("expected at least 6 seeded books, got %d", res.Meta.Total)
+	if res.Meta.Total < 4 {
+		t.Fatalf("expected at least 4 seeded books, got %d", res.Meta.Total)
 	}
 }
 
@@ -64,7 +64,7 @@ func TestListBooks_WithPagination(t *testing.T) {
 func TestListBooks_WithSearch(t *testing.T) {
 	env := testutil.SetupTestEnv(t)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/books?search=Silent+Echo", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/books?search=TRANSFORMASI", nil)
 	w := httptest.NewRecorder()
 
 	env.Router.ServeHTTP(w, req)
@@ -77,7 +77,7 @@ func TestListBooks_WithSearch(t *testing.T) {
 	json.Unmarshal(w.Body.Bytes(), &res)
 
 	if res.Meta.Total < 1 {
-		t.Fatal("expected at least 1 result for 'Silent Echo' search")
+		t.Fatal("expected at least 1 result for 'TRANSFORMASI' search")
 	}
 }
 

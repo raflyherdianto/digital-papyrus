@@ -19,7 +19,6 @@ export interface Book {
   rating: number;
   review_count: number;
   description: string;
-  synopsis: string;
   image_url: string;
   category_id: string;
   category_name?: string;
@@ -35,6 +34,15 @@ export interface Book {
   weight: string;
   created_at: string;
   updated_at: string;
+  user_id?: string;
+  order_id?: string;
+  draft_url?: string;
+  validation_status?: 'pending' | 'approved' | 'rejected';
+  notes?: string;
+  amazon_url?: string;
+  gplay_books_url?: string;
+  production_cost?: number;
+  royalty_fee?: number;
 }
 
 export interface Service {
@@ -44,6 +52,7 @@ export interface Service {
   icon: string;
   tier: 'basic' | 'silver' | 'gold' | 'platinum';
   price: number;
+  base_cost?: number;
   price_label: string;
   features: string; // JSON array string
   is_featured: boolean;
@@ -75,6 +84,9 @@ export interface User {
   address?: string;
   province?: string;
   city?: string;
+  regency?: string;
+  district?: string;
+  village?: string;
   zip_code?: string;
   created_at: string;
   updated_at: string;
@@ -85,6 +97,9 @@ export interface Order {
   invoice: string;
   user_id: string;
   user_name: string;
+  user_email?: string;
+  user_phone?: string;
+  user_address?: string;
   items?: OrderItem[];
   notes: string;
   total_qty: number;
@@ -95,6 +110,10 @@ export interface Order {
   shipping_name: string;
   shipping_service: string;
   shipping_price: number;
+  actual_shipping_cost?: number;
+  tax?: number;
+  service_fee?: number;
+  discount?: number;
   created_at: string;
   updated_at: string;
 }
@@ -107,6 +126,9 @@ export interface OrderItem {
   item_name: string;
   qty: number;
   total_price: number;
+  unit_cogs?: number;
+  item_type?: string;
+  format?: string;
 }
 
 export interface PaginationMeta {
@@ -151,17 +173,29 @@ export interface OrderFilter {
 
 export interface CreateOrderPayload {
   invoice?: string;
-  user_id: string;
+  user_id?: string;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
+  customer_address?: string;
+  customer_province?: string;
+  customer_city?: string;
+  customer_district?: string;
+  customer_village?: string;
+  customer_zip_code?: string;
   items?: string;
   notes?: string;
   total_qty: number;
   total_weight?: number;
   total_price: number;
   payment_type?: string;
-  status: string;
+  status?: string;
   shipping_name?: string;
   shipping_service?: string;
   shipping_price?: number;
+  tax?: number;
+  service_fee?: number;
+  discount?: number;
 }
 
 // ─── Helper Functions ────────────────────────────────────────────────
@@ -212,7 +246,19 @@ async function apiFetch<T>(
   }
 
   const response = await fetch(url, { ...options, headers });
-  const data: APIResponse<T> = await response.json();
+  
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text();
+    throw new APIError(text.trim() || `HTTP Error ${response.status}`, response.status);
+  }
+
+  let data: APIResponse<T>;
+  try {
+    data = await response.json();
+  } catch (err) {
+    throw new APIError('Invalid JSON response from server', response.status);
+  }
 
   if (!response.ok || !data.success) {
     throw new APIError(data.message || 'Request failed', response.status, data.error);
@@ -256,6 +302,23 @@ export async function getCurrentUser(): Promise<User> {
   return res.data;
 }
 
+export async function updateProfile(payload: {
+  name: string;
+  phone_number?: string;
+  address?: string;
+  province?: string;
+  city?: string;
+  regency?: string;
+  village?: string;
+  zip_code?: string;
+}): Promise<User> {
+  const res = await apiFetch<User>('/api/v1/auth/me', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
 export async function logout(): Promise<void> {
   await apiFetch('/api/v1/auth/logout', { method: 'POST' });
 }
@@ -271,6 +334,20 @@ export async function verifyOTP(email: string, code: string): Promise<void> {
   await apiFetch('/api/v1/auth/verify-otp', {
     method: 'POST',
     body: JSON.stringify({ email, code }),
+  });
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  await apiFetch('/api/v1/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(payload: any): Promise<void> {
+  await apiFetch('/api/v1/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(payload),
   });
 }
 
@@ -290,6 +367,45 @@ export function removeToken(): void {
 
 export function isAuthenticated(): boolean {
   return !!getToken();
+}
+
+export function getUser(): User | null {
+  if (typeof localStorage === 'undefined') return null;
+  const data = localStorage.getItem('dp_user');
+  if (!data) return null;
+  try {
+    return JSON.parse(data);
+  } catch {
+    return null;
+  }
+}
+
+export function getUserRole(): string | null {
+  const user = getUser();
+  return user?.role || null;
+}
+
+export function requireAdminAuth(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (!isAuthenticated()) {
+    window.location.replace('/admin-login');
+    return false;
+  }
+  const role = getUserRole();
+  if (role !== 'admin' && role !== 'superadmin') {
+    window.location.replace('/customer-dashboard');
+    return false;
+  }
+  return true;
+}
+
+export function requireCustomerAuth(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (!isAuthenticated()) {
+    window.location.replace('/customer-login');
+    return false;
+  }
+  return true;
 }
 
 // ─── Books API ───────────────────────────────────────────────────────
@@ -336,8 +452,26 @@ export async function getOrders(filter: OrderFilter = {}): Promise<{ orders: Ord
 }
 
 export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
+  const token = localStorage.getItem("dp_token");
+  const res = await apiFetch<Order>('/api/v1/customer/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function createAdminOrder(payload: CreateOrderPayload): Promise<Order> {
+  const token = localStorage.getItem("dp_token");
   const res = await apiFetch<Order>('/api/v1/orders', {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(payload),
   });
   return res.data;
@@ -345,6 +479,60 @@ export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
 
 export async function getOrder(id: string): Promise<Order> {
   const res = await apiFetch<Order>(`/api/v1/orders/${id}`);
+  return res.data;
+}
+
+export async function getPublicInvoice(idOrInvoice: string): Promise<Order> {
+  const res = await apiFetch<Order>(`/api/v1/invoices/${encodeURIComponent(idOrInvoice)}`);
+  return res.data;
+}
+
+export async function getCustomerOrders(filter: OrderFilter = {}): Promise<{ orders: Order[]; meta: PaginationMeta }> {
+  const params = new URLSearchParams();
+  if (filter.page) params.set('page', String(filter.page));
+  if (filter.per_page) params.set('per_page', String(filter.per_page));
+  if (filter.status) params.set('status', filter.status);
+  if (filter.search) params.set('search', filter.search);
+
+  const query = params.toString();
+  const res = await apiFetch<Order[]>(`/api/v1/customer/orders${query ? '?' + query : ''}`);
+  return {
+    orders: res.data || [],
+    meta: res.meta || { page: 1, per_page: 10, total: 0, total_pages: 0 },
+  };
+}
+
+export async function getCustomerOrder(id: string): Promise<Order> {
+  const res = await apiFetch<Order>(`/api/v1/customer/orders/${id}`);
+  return res.data;
+}
+
+export async function checkCustomerOrderPayment(id: string): Promise<{ status: string; paid: boolean }> {
+  const res = await apiFetch<{ status: string; paid: boolean }>(`/api/v1/customer/orders/${id}/check-payment`, {
+    method: 'POST'
+  });
+  return res.data;
+}
+
+export async function confirmCustomerOrderPayment(id: string): Promise<Order> {
+  const res = await apiFetch<Order>(`/api/v1/customer/orders/${id}/confirm-payment`, {
+    method: 'POST'
+  });
+  return res.data;
+}
+
+export async function confirmAdminOrderPayment(id: string): Promise<Order> {
+  const res = await apiFetch<Order>(`/api/v1/orders/${id}/confirm-payment`, {
+    method: 'POST'
+  });
+  return res.data;
+}
+
+export async function updateOrderStatus(id: string, status: string): Promise<Order> {
+  const res = await apiFetch<Order>(`/api/v1/orders/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status })
+  });
   return res.data;
 }
 
@@ -370,6 +558,30 @@ export async function updateBook(id: string, book: Partial<Book>): Promise<Book>
 
 export async function deleteBook(id: string): Promise<void> {
   await apiFetch(`/api/v1/books/${id}`, { method: 'DELETE' });
+}
+
+export async function createCustomerBook(payload: Partial<Book>): Promise<Book> {
+  const res = await apiFetch<Book>('/api/v1/customer/books', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function updateCustomerBook(id: string, payload: Partial<Book>): Promise<Book> {
+  const res = await apiFetch<Book>(`/api/v1/customer/books/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return res.data;
+}
+
+export async function validateBook(id: string, status: 'approved' | 'rejected', notes?: string): Promise<Book> {
+  const res = await apiFetch<Book>(`/api/v1/books/${id}/validate`, {
+    method: 'POST',
+    body: JSON.stringify({ status, notes: notes || '' }),
+  });
+  return res.data;
 }
 
 // ─── Services API ────────────────────────────────────────────────────
@@ -504,6 +716,31 @@ export async function uploadImage(file: File): Promise<UploadResult> {
   return data.data;
 }
 
+export async function uploadDraft(file: File, orderId: string): Promise<UploadResult> {
+  const formData = new FormData();
+  formData.append('draft', file);
+  formData.append('order_id', orderId);
+  
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/upload/draft`, {
+    method: 'POST',
+    body: formData,
+    headers,
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || 'Failed to upload draft');
+  }
+
+  return data.data;
+}
+
 // --- Users API ----------------------------------------------
 
 export async function getUsers(): Promise<User[]> {
@@ -577,4 +814,79 @@ export async function updateReview(id: string, payload: Partial<Review>): Promis
 
 export async function deleteReview(id: string): Promise<void> {
   await apiFetch(`/api/v1/reviews/${id}`, { method: 'DELETE' });
+}
+
+export async function cancelCustomerOrder(id: string) {
+  const res = await apiFetch<any>(`/api/v1/customer/orders/${id}/cancel`, {
+    method: "POST",
+  });
+  return res.data;
+}
+
+// --- Settings API ----------------------------------------------
+
+export interface Settings {
+  origin_village_code: string;
+  tax: number;
+  service_fee: number;
+  discount: number;
+  origin_phone?: string;
+  origin_address?: string;
+  origin_province?: string;
+  origin_city?: string;
+  origin_district?: string;
+  origin_zip_code?: string;
+  bank_name?: string;
+  bank_account_number?: string;
+  bank_account_holder?: string;
+}
+
+export const settingsApi = {
+  get: async (): Promise<{ data: Settings }> => {
+    return apiFetch<{ data: Settings }>('/api/v1/settings');
+  },
+  update: async (payload: Partial<Settings>): Promise<{ data: Settings }> => {
+    return apiFetch<{ data: Settings }>('/api/v1/settings', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+};
+
+export const shippingApi = {
+  calculateCost: async (destinationVillageCode: string, weightKg: number): Promise<any> => {
+    return apiFetch<any>('/api/v1/customer/shipping-cost', {
+      method: 'POST',
+      body: JSON.stringify({
+        destination_village_code: destinationVillageCode,
+        weight_kg: weightKg
+      })
+    });
+  }
+};
+
+export interface RegionOption {
+  code: string;
+  name: string;
+  postal_codes?: string[];
+}
+
+export async function getProvinces(): Promise<RegionOption[]> {
+  const res = await apiFetch<RegionOption[]>('/api/v1/regions/provinces');
+  return res.data || [];
+}
+
+export async function getRegencies(provinceCode: string): Promise<RegionOption[]> {
+  const res = await apiFetch<RegionOption[]>(`/api/v1/regions/provinces/${provinceCode}/regencies`);
+  return res.data || [];
+}
+
+export async function getDistricts(regencyCode: string): Promise<RegionOption[]> {
+  const res = await apiFetch<RegionOption[]>(`/api/v1/regions/regencies/${regencyCode}/districts`);
+  return res.data || [];
+}
+
+export async function getVillages(districtCode: string): Promise<RegionOption[]> {
+  const res = await apiFetch<RegionOption[]>(`/api/v1/regions/districts/${districtCode}/villages`);
+  return res.data || [];
 }

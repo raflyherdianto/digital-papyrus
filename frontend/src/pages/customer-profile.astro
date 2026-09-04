@@ -1,0 +1,818 @@
+---
+/**
+ * Customer Profile Settings Page
+ * Route: /customer-profile
+ * Allows customer to update name, phone, and shipping address details.
+ */
+import CustomerLayout from "../layouts/CustomerLayout.astro";
+---
+
+<CustomerLayout title="Profile Settings | Digital Papyrus" activePage="profile">
+  <!-- Header -->
+  <div
+    class="mb-8 md:mb-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+  >
+    <div>
+      <div class="flex items-center gap-3">
+        <h2
+          class="text-2xl md:text-4xl font-extrabold tracking-tight text-primary font-headline"
+        >
+          Profile Settings
+        </h2>
+        <div id="verification-badge" class="hidden"></div>
+      </div>
+      <p class="text-stone-500 font-body text-sm md:text-lg max-w-xl mt-2">
+        Manage your personal profile details and shipping address.
+      </p>
+    </div>
+  </div>
+
+  <div
+    class="max-w-5xl bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-sm p-4 sm:p-6 md:p-8"
+  >
+    <!-- Success/Error Message Modal -->
+    <div
+      id="profile-status"
+      class="hidden mb-6 p-4 rounded-xl border flex items-center gap-3 text-sm font-medium"
+    >
+      <span class="material-symbols-outlined text-lg" id="status-icon"
+        >info</span
+      >
+      <span id="status-message"></span>
+    </div>
+
+    <form id="profile-form" class="space-y-6" novalidate>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Full Name -->
+        <div class="md:col-span-2">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="name-input">Full Name *</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >person</span
+            >
+            <input
+              id="name-input"
+              type="text"
+              required
+              placeholder="Your full name"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+            />
+          </div>
+        </div>
+
+        <!-- Email (Disabled) -->
+        <div class="md:col-span-2">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="email-input">Email Address</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/20 opacity-70 cursor-not-allowed"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >mail</span
+            >
+            <input
+              id="email-input"
+              type="email"
+              disabled
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface cursor-not-allowed"
+            />
+          </div>
+          <p class="text-[10px] text-stone-400 mt-1">
+            Contact support if you need to change your registered email.
+          </p>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="md:col-span-2">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="phone-input">Phone Number</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >phone</span
+            >
+            <span class="text-sm font-bold text-stone-500 mr-2 select-none"
+              >+62</span
+            >
+            <input
+              id="phone-input"
+              type="tel"
+              placeholder="e.g. 81234567890"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+            />
+          </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="md:col-span-2">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="address-input">Shipping Address</label
+          >
+          <div
+            class="relative flex items-start bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span
+              class="material-symbols-outlined text-outline text-lg mr-3 mt-1"
+              >home</span
+            >
+            <textarea
+              id="address-input"
+              rows="3"
+              placeholder="Your complete shipping address (street, building, etc.)"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface resize-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Province -->
+        <div class="relative">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="province-input">Province</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >map</span
+            >
+            <input
+              id="province-input"
+              type="text"
+              placeholder="Search & select Province..."
+              autocomplete="off"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+            />
+            <span class="material-symbols-outlined text-outline text-lg ml-2 select-none"
+              >arrow_drop_down</span
+            >
+          </div>
+          <div
+            id="province-list"
+            class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-lg hidden"
+          >
+          </div>
+        </div>
+
+        <!-- City -->
+        <div class="relative">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="city-input">City</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >location_city</span
+            >
+            <input
+              id="city-input"
+              type="text"
+              placeholder="Search & select City..."
+              autocomplete="off"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+            />
+            <span class="material-symbols-outlined text-outline text-lg ml-2 select-none"
+              >arrow_drop_down</span
+            >
+          </div>
+          <div
+            id="city-list"
+            class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-lg hidden"
+          >
+          </div>
+        </div>
+
+        <!-- Regency -->
+        <div class="relative">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="regency-input">Regency (Kecamatan)</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >distance</span
+            >
+            <input
+              id="regency-input"
+              type="text"
+              placeholder="Search & select Regency..."
+              autocomplete="off"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+            />
+            <span class="material-symbols-outlined text-outline text-lg ml-2 select-none"
+              >arrow_drop_down</span
+            >
+          </div>
+          <div
+            id="regency-list"
+            class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-lg hidden"
+          >
+          </div>
+        </div>
+
+        <!-- Village (Kelurahan) -->
+        <div class="relative">
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="village-input">Village (Kelurahan)</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >home_work</span
+            >
+            <input
+              id="village-input"
+              type="text"
+              placeholder="Search & select Village..."
+              autocomplete="off"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+            />
+            <span class="material-symbols-outlined text-outline text-lg ml-2 select-none"
+              >arrow_drop_down</span
+            >
+          </div>
+          <div
+            id="village-list"
+            class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-lg hidden"
+          >
+          </div>
+        </div>
+
+        <!-- Zip Code -->
+        <div>
+          <label
+            class="block text-sm font-bold text-primary mb-2"
+            for="zip-code-input">Zip Code</label
+          >
+          <div
+            class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+          >
+            <span class="material-symbols-outlined text-outline text-lg mr-3"
+              >local_post_office</span
+            >
+            <input
+              id="zip-code-input"
+              type="text"
+              placeholder="e.g. 60222"
+              class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 border-t border-stone-200/20 pt-6">
+        <button
+          type="submit"
+          id="save-btn"
+          class="px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/10"
+        >
+          <span class="material-symbols-outlined text-sm" id="btn-icon"
+            >save</span
+          >
+          <span id="btn-text">Save Changes</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Verification Success Modal -->
+  <div
+    id="success-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden"
+  >
+    <div
+      class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-2xl p-8 max-w-sm w-full mx-4 text-center transform scale-95 transition-all duration-300"
+    >
+      <div class="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-4xl">verified</span>
+      </div>
+      <h3 class="text-xl font-bold text-primary font-headline mb-2">
+        Verification Successful!
+      </h3>
+      <p class="text-stone-500 font-body text-sm mb-6">
+        Akun Anda berhasil terverifikasi. Semua data profil telah lengkap.
+      </p>
+      <button
+        id="close-modal-btn"
+        class="w-full py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/10"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</CustomerLayout>
+
+<script>
+  import { getCurrentUser, updateProfile, isAuthenticated } from "../lib/api";
+
+  // Auth Guard
+  if (!isAuthenticated()) {
+    window.location.href = "/customer-login";
+  }
+
+  const form = document.getElementById("profile-form") as HTMLFormElement;
+  const nameInput = document.getElementById("name-input") as HTMLInputElement;
+  const emailInput = document.getElementById("email-input") as HTMLInputElement;
+  const phoneInput = document.getElementById("phone-input") as HTMLInputElement;
+  const addressInput = document.getElementById(
+    "address-input",
+  ) as HTMLTextAreaElement;
+  const provinceInput = document.getElementById(
+    "province-input",
+  ) as HTMLInputElement;
+  const cityInput = document.getElementById("city-input") as HTMLInputElement;
+  const regencyInput = document.getElementById(
+    "regency-input",
+  ) as HTMLInputElement;
+  const villageInput = document.getElementById(
+    "village-input",
+  ) as HTMLInputElement;
+  const zipCodeInput = document.getElementById(
+    "zip-code-input",
+  ) as HTMLInputElement;
+
+  const saveBtn = document.getElementById("save-btn") as HTMLButtonElement;
+  const btnIcon = document.getElementById("btn-icon")!;
+  const btnText = document.getElementById("btn-text")!;
+  const statusBox = document.getElementById("profile-status")!;
+  const statusIcon = document.getElementById("status-icon")!;
+  const statusMsg = document.getElementById("status-message")!;
+
+  let isCurrentlyVerified = false;
+
+  function showStatus(message: string, type: "success" | "error") {
+    statusMsg.textContent = message;
+    statusBox.className =
+      "mb-6 p-4 rounded-xl border flex items-center gap-3 text-sm font-medium";
+    statusIcon.className = "material-symbols-outlined text-lg";
+
+    if (type === "success") {
+      statusBox.classList.add("bg-green-50", "border-green-200", "text-green-700");
+      statusIcon.textContent = "check_circle";
+    } else {
+      statusBox.classList.add("bg-red-50", "border-red-200", "text-red-700");
+      statusIcon.textContent = "error";
+    }
+    statusBox.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function setSaving(saving: boolean) {
+    saveBtn.disabled = saving;
+    btnText.textContent = saving ? "Saving..." : "Save Changes";
+    btnIcon.textContent = saving ? "hourglass_empty" : "save";
+    if (saving) btnIcon.classList.add("animate-spin");
+    else btnIcon.classList.remove("animate-spin");
+  }
+
+  // Verification Badge Logic
+  function updateVerificationBadge(user: any) {
+    const badgeEl = document.getElementById("verification-badge")!;
+    if (!badgeEl) return;
+
+    const fields = [
+      user.name,
+      user.email,
+      user.phone_number,
+      user.address,
+      user.province,
+      user.city,
+      user.regency,
+      user.village,
+      user.zip_code,
+    ];
+
+    const isAllFilled = fields.every((field) => {
+      if (!field) return false;
+      const trimmed = field.trim();
+      return trimmed !== "" && trimmed !== "+62";
+    });
+
+    isCurrentlyVerified = isAllFilled;
+
+    if (isAllFilled) {
+      badgeEl.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 text-green-600 rounded-full text-xs font-bold border border-green-500/20"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>Verified</span>`;
+    } else {
+      badgeEl.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-600 rounded-full text-xs font-bold border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Not Verified</span>`;
+    }
+    badgeEl.classList.remove("hidden");
+  }
+
+  // Phone number automatic +62 handling
+  if (phoneInput) {
+    phoneInput.addEventListener("input", () => {
+      let val = phoneInput.value.trim();
+      // Remove any leading 0 if typed
+      if (val.startsWith("0")) {
+        phoneInput.value = val.substring(1);
+      }
+      // Remove any typed/pasted +62 or 62 prefix
+      if (val.startsWith("+62")) {
+        phoneInput.value = val.substring(3);
+      } else if (val.startsWith("62")) {
+        phoneInput.value = val.substring(2);
+      }
+    });
+  }
+
+  interface DropdownOption {
+    code: string;
+    name: string;
+    [key: string]: any;
+  }
+
+  function initSearchableDropdown(
+    inputEl: HTMLInputElement,
+    listEl: HTMLDivElement,
+    fetchFn: () => Promise<DropdownOption[]>,
+    onSelect: (option: DropdownOption) => void,
+    onClear: () => void
+  ) {
+    let allOptions: DropdownOption[] = [];
+    let selectedCode: string | null = null;
+
+    // Toggle list on clicking input
+    inputEl.addEventListener("focus", async () => {
+      if (allOptions.length === 0) {
+        listEl.innerHTML = '<div class="px-4 py-3 text-stone-500 text-sm">Loading...</div>';
+        listEl.classList.remove("hidden");
+        try {
+          allOptions = await fetchFn();
+          renderOptions(allOptions);
+        } catch (err) {
+          listEl.innerHTML = '<div class="px-4 py-3 text-red-500 text-sm">Failed to load</div>';
+        }
+      } else {
+        renderOptions(allOptions);
+        listEl.classList.remove("hidden");
+      }
+    });
+
+    // Close options list when clicking outside
+    document.addEventListener("click", (e) => {
+      const target = e.target as Node;
+      if (!inputEl.parentElement?.contains(target) && !listEl.contains(target)) {
+        listEl.classList.add("hidden");
+      }
+    });
+
+    // Filter list on search input
+    inputEl.addEventListener("input", () => {
+      const term = inputEl.value.toLowerCase().trim();
+      const filtered = allOptions.filter(opt => opt.name.toLowerCase().includes(term));
+      renderOptions(filtered);
+      listEl.classList.remove("hidden");
+      if (term === "") {
+        selectedCode = null;
+        onClear();
+      }
+    });
+
+    function renderOptions(opts: DropdownOption[]) {
+      listEl.innerHTML = "";
+      if (opts.length === 0) {
+        listEl.innerHTML = '<div class="px-4 py-3 text-stone-500 text-sm">No results found</div>';
+        return;
+      }
+      opts.forEach(opt => {
+        const item = document.createElement("div");
+        item.className = "px-4 py-2 hover:bg-stone-100 text-stone-800 text-sm cursor-pointer transition-colors";
+        item.textContent = opt.name;
+        item.addEventListener("click", () => {
+          inputEl.value = opt.name;
+          selectedCode = opt.code;
+          listEl.classList.add("hidden");
+          onSelect(opt);
+        });
+        listEl.appendChild(item);
+      });
+    }
+
+    return {
+      setOptions: (opts: DropdownOption[]) => {
+        allOptions = opts;
+        if (selectedCode) {
+          const found = opts.find(opt => opt.code === selectedCode || opt.name.toLowerCase() === selectedCode?.toLowerCase());
+          if (found) {
+            inputEl.value = found.name;
+          }
+        }
+      },
+      getSelectedCode: () => selectedCode,
+      setSelectedCode: (code: string | null) => {
+        selectedCode = code;
+      },
+      setSelectedValue: (name: string) => {
+        inputEl.value = name;
+        const found = allOptions.find(opt => opt.name.toLowerCase() === name.toLowerCase());
+        if (found) {
+          selectedCode = found.code;
+        }
+      },
+      setSelectedByCode: (code: string) => {
+        selectedCode = code;
+        const found = allOptions.find(opt => opt.code === code || opt.name.toLowerCase() === code.toLowerCase());
+        if (found) {
+          inputEl.value = found.name;
+        }
+      },
+      clear: () => {
+        inputEl.value = "";
+        selectedCode = null;
+        allOptions = [];
+        listEl.innerHTML = "";
+      }
+    };
+  }
+
+  const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+
+  let provDropdown: any;
+  let cityDropdown: any;
+  let regencyDropdown: any;
+  let villageDropdown: any;
+
+  // Initialize dropdowns
+  provDropdown = initSearchableDropdown(
+    provinceInput,
+    document.getElementById("province-list") as HTMLDivElement,
+    async () => {
+      const res = await fetch(`${API_URL}/api/v1/regions/provinces`).then(r => r.json());
+      return res.data || [];
+    },
+    async (prov) => {
+      cityDropdown.clear();
+      regencyDropdown.clear();
+      villageDropdown.clear();
+      const res = await fetch(`${API_URL}/api/v1/regions/provinces/${prov.code}/regencies`).then(r => r.json());
+      cityDropdown.setOptions(res.data || []);
+    },
+    () => {
+      cityDropdown.clear();
+      regencyDropdown.clear();
+      villageDropdown.clear();
+    }
+  );
+
+  cityDropdown = initSearchableDropdown(
+    cityInput,
+    document.getElementById("city-list") as HTMLDivElement,
+    async () => {
+      const provCode = provDropdown.getSelectedCode();
+      if (!provCode) return [];
+      const res = await fetch(`${API_URL}/api/v1/regions/provinces/${provCode}/regencies`).then(r => r.json());
+      return res.data || [];
+    },
+    async (city) => {
+      regencyDropdown.clear();
+      villageDropdown.clear();
+      const res = await fetch(`${API_URL}/api/v1/regions/regencies/${city.code}/districts`).then(r => r.json());
+      regencyDropdown.setOptions(res.data || []);
+    },
+    () => {
+      regencyDropdown.clear();
+      villageDropdown.clear();
+    }
+  );
+
+  regencyDropdown = initSearchableDropdown(
+    regencyInput,
+    document.getElementById("regency-list") as HTMLDivElement,
+    async () => {
+      const cityCode = cityDropdown.getSelectedCode();
+      if (!cityCode) return [];
+      const res = await fetch(`${API_URL}/api/v1/regions/regencies/${cityCode}/districts`).then(r => r.json());
+      return res.data || [];
+    },
+    async (dist) => {
+      villageDropdown.clear();
+      const res = await fetch(`${API_URL}/api/v1/regions/districts/${dist.code}/villages`).then(r => r.json());
+      villageDropdown.setOptions(res.data || []);
+    },
+    () => {
+      villageDropdown.clear();
+    }
+  );
+
+  villageDropdown = initSearchableDropdown(
+    villageInput,
+    document.getElementById("village-list") as HTMLDivElement,
+    async () => {
+      const regCode = regencyDropdown.getSelectedCode();
+      if (!regCode) return [];
+      const res = await fetch(`${API_URL}/api/v1/regions/districts/${regCode}/villages`).then(r => r.json());
+      return res.data || [];
+    },
+    (vill) => {
+      if (vill.postal_codes && vill.postal_codes.length > 0) {
+        zipCodeInput.value = vill.postal_codes[0];
+      }
+    },
+    () => {
+      zipCodeInput.value = "";
+    }
+  );
+
+  // Auto-clean phone input so it contains only numbers, discarding leading 0 or +62/62
+  if (phoneInput) {
+    const cleanPhone = (val: string) => {
+      let cleaned = val.replace(/\D/g, '');
+      while (cleaned.startsWith('62') || cleaned.startsWith('0')) {
+        if (cleaned.startsWith('62')) {
+          cleaned = cleaned.substring(2);
+        } else if (cleaned.startsWith('0')) {
+          cleaned = cleaned.substring(1);
+        }
+      }
+      return cleaned;
+    };
+
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = cleanPhone(phoneInput.value);
+    });
+
+    phoneInput.addEventListener("paste", () => {
+      setTimeout(() => {
+        phoneInput.value = cleanPhone(phoneInput.value);
+      }, 10);
+    });
+  }
+
+  // Load profile data
+  async function loadProfile() {
+    try {
+      const user = await getCurrentUser();
+
+      // Update local storage user data for other dashboard widgets
+      localStorage.setItem("dp_user", JSON.stringify(user));
+
+      nameInput.value = user.name || "";
+      emailInput.value = user.email || "";
+
+      // Phone number load logic: strip +62 or 0
+      const rawPhone = user.phone_number || "";
+      let cleanedPhone = rawPhone.replace(/\D/g, '');
+      while (cleanedPhone.startsWith('62') || cleanedPhone.startsWith('0')) {
+        if (cleanedPhone.startsWith('62')) {
+          cleanedPhone = cleanedPhone.substring(2);
+        } else if (cleanedPhone.startsWith('0')) {
+          cleanedPhone = cleanedPhone.substring(1);
+        }
+      }
+      phoneInput.value = cleanedPhone;
+
+      addressInput.value = user.address || "";
+      provinceInput.value = "";
+      cityInput.value = "";
+      regencyInput.value = "";
+      villageInput.value = "";
+      zipCodeInput.value = user.zip_code || "";
+
+      // Fetch region hierarchy matching loaded values to set dropdown selection codes
+      if (user.province) {
+        try {
+          const provRes = await fetch(`${API_URL}/api/v1/regions/provinces`).then(r => r.json());
+          const provinces = provRes.data || [];
+          provDropdown.setOptions(provinces);
+          provDropdown.setSelectedByCode(user.province);
+
+          const provCode = provDropdown.getSelectedCode();
+          if (provCode && user.city) {
+            const cityRes = await fetch(`${API_URL}/api/v1/regions/provinces/${provCode}/regencies`).then(r => r.json());
+            const cities = cityRes.data || [];
+            cityDropdown.setOptions(cities);
+            cityDropdown.setSelectedByCode(user.city);
+
+            const cityCode = cityDropdown.getSelectedCode();
+            if (cityCode && user.regency) {
+              const regencyRes = await fetch(`${API_URL}/api/v1/regions/regencies/${cityCode}/districts`).then(r => r.json());
+              const regencies = regencyRes.data || [];
+              regencyDropdown.setOptions(regencies);
+              regencyDropdown.setSelectedByCode(user.regency);
+
+              const regencyCode = regencyDropdown.getSelectedCode();
+              if (regencyCode && user.village) {
+                const villageRes = await fetch(`${API_URL}/api/v1/regions/districts/${regencyCode}/villages`).then(r => r.json());
+                const villages = villageRes.data || [];
+                villageDropdown.setOptions(villages);
+                villageDropdown.setSelectedByCode(user.village);
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error setting region selection codes:", err);
+        }
+      }
+
+      updateVerificationBadge(user);
+    } catch (err: any) {
+      showStatus("Failed to load profile settings.", "error");
+    }
+  }
+
+  const successModal = document.getElementById("success-modal") as HTMLDivElement;
+  const closeModalBtn = document.getElementById("close-modal-btn") as HTMLButtonElement;
+
+  if (closeModalBtn && successModal) {
+    closeModalBtn.addEventListener("click", () => {
+      successModal.classList.add("hidden");
+    });
+    successModal.addEventListener("click", (e) => {
+      if (e.target === successModal) {
+        successModal.classList.add("hidden");
+      }
+    });
+  }
+
+  // Submit profile edit
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusBox.classList.add("hidden");
+
+      const name = nameInput.value.trim();
+      const rawPhoneInput = phoneInput.value.trim();
+      const address = addressInput.value.trim();
+      const province = provDropdown.getSelectedCode() || "";
+      const city = cityDropdown.getSelectedCode() || "";
+      const regency = regencyDropdown.getSelectedCode() || "";
+      const village = villageDropdown.getSelectedCode() || "";
+      const zipCode = zipCodeInput.value.trim();
+
+      // If currently not verified, require all fields to be filled
+      if (!isCurrentlyVerified) {
+        if (!name || !rawPhoneInput || !address || !province || !city || !regency || !village || !zipCode) {
+          showStatus("Semua form harus terisi untuk memverifikasi akun Anda.", "error");
+          return;
+        }
+      } else {
+        // Standard check for name
+        if (!name) {
+          showStatus("Name field is required.", "error");
+          return;
+        }
+      }
+
+      setSaving(true);
+
+      try {
+        const phoneNumber = rawPhoneInput ? "+62" + rawPhoneInput : "";
+
+        const payload = {
+          name,
+          phone_number: phoneNumber,
+          address,
+          province,
+          city,
+          regency,
+          village,
+          zip_code: zipCode,
+        };
+
+        const wasVerifiedBefore = isCurrentlyVerified;
+        const updatedUser = await updateProfile(payload);
+
+        // Update local storage
+        localStorage.setItem("dp_user", JSON.stringify(updatedUser));
+
+        // Update sidebar name if possible
+        const sidebarName = document.getElementById("sidebarUserName");
+        if (sidebarName) sidebarName.textContent = updatedUser.name;
+
+        updateVerificationBadge(updatedUser);
+
+        setSaving(false);
+
+        // If the user successfully completed verification just now
+        if (!wasVerifiedBefore && isCurrentlyVerified) {
+          successModal.classList.remove("hidden");
+          showStatus("Profile updated and account successfully verified!", "success");
+        } else {
+          showStatus("Profile updated successfully!", "success");
+        }
+      } catch (err: any) {
+        showStatus(err.message || "Failed to update profile.", "error");
+        setSaving(false);
+      }
+    });
+  }
+
+  loadProfile();
+</script>

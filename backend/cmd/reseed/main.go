@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	db, err := sql.Open("sqlite", "file:./data/digital_papyrus.db?_foreign_keys=OFF&_journal_mode=WAL")
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=postgres dbname=digital_papyrus sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}

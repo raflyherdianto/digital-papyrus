@@ -7,6 +7,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCategories, slugifyCategory } from '../lib/api';
 
+const pendingBookId = Astro.url.searchParams.get('add_to_cart');
 ---
 
 <BaseLayout title="Detail Buku — Digital Papyrus" description="Detail buku dari katalog Digital Papyrus." readingProgress={35}>
@@ -68,15 +69,26 @@ import { getCategories, slugifyCategory } from '../lib/api';
             </div>
           </div>
           <div class="flex gap-3 md:gap-4 w-full sm:w-auto">
-            <button class="flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 bg-surface-container-lowest border border-outline-variant/30 text-primary font-bold rounded-lg hover:bg-white transition-all active:scale-95 text-sm md:text-base">Add to Cart</button>
-            <button class="flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-lg shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 text-sm md:text-base">Buy Now</button>
+            <button id="addToCartBtn" class="flex-1 sm:flex-none px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-lg shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95 text-sm md:text-base flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg">add_shopping_cart</span>
+              Add to Cart
+            </button>
           </div>
+        </div>
+
+        <!-- External Platforms (Amazon & Google Play Books) -->
+        <div id="externalPlatforms" class="hidden p-4 md:p-5 rounded-xl bg-surface-container-low border border-outline-variant/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2 text-on-surface-variant text-xs font-bold uppercase tracking-wider">
+            <span class="material-symbols-outlined text-base text-tertiary">storefront</span>
+            <span>Tersedia Juga di Platform Global:</span>
+          </div>
+          <div id="platformLinks" class="flex flex-wrap gap-2.5 w-full sm:w-auto"></div>
         </div>
 
         <!-- Tabs -->
         <div class="flex flex-col gap-6 md:gap-8">
           <div class="flex gap-6 md:gap-8 border-b border-outline-variant/20 overflow-x-auto">
-            <button id="tab-synopsis" class="pb-4 border-b-2 border-tertiary text-primary font-bold whitespace-nowrap text-sm md:text-base">Synopsis</button>
+            <button id="tab-synopsis" class="pb-4 border-b-2 border-tertiary text-primary font-bold whitespace-nowrap text-sm md:text-base">Description</button>
             <button id="tab-details" class="pb-4 text-on-surface-variant hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap text-sm md:text-base">Details</button>
           </div>
           <div id="content-synopsis" class="space-y-6 tab-content block">
@@ -103,10 +115,25 @@ import { getCategories, slugifyCategory } from '../lib/api';
       <div id="relatedGrid" class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"></div>
     </section>
   </div>
+
+  <!-- Success Modal -->
+  <div id="cartSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-2xl p-8 max-w-sm w-full mx-4 text-center transform scale-95 transition-all duration-300">
+      <div class="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-4xl">check_circle</span>
+      </div>
+      <h3 class="text-xl font-bold text-primary font-headline mb-2">Berhasil!</h3>
+      <p class="text-on-surface-variant font-body text-sm mb-6">Item berhasil dimasukkan ke dalam keranjang.</p>
+      <div class="flex gap-3">
+        <button id="modalContinueBtn" class="flex-1 py-3 bg-surface-container border border-outline-variant/30 text-primary font-bold rounded-xl text-sm hover:bg-surface-container-high transition-all">Lanjut Belanja</button>
+        <a href="/customer-cart" class="flex-1 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all text-center shadow-lg shadow-primary/10">Lihat Keranjang</a>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
 
 <script>
-  import { getBook, getBooks, formatRupiah, slugifyCategory } from '../lib/api';
+  import { getBook, getBooks, formatRupiah, slugifyCategory, isAuthenticated } from '../lib/api';
 
   // Tab switching
   const tabIds = ['synopsis', 'details'];
@@ -184,8 +211,37 @@ import { getCategories, slugifyCategory } from '../lib/api';
       // Price
       document.getElementById('bookPrice')!.textContent = formatRupiah(book.price);
 
-      // Synopsis
-      document.getElementById('bookSynopsis')!.textContent = book.synopsis || book.description || 'No synopsis available.';
+      // External Platforms (Amazon & Google Play Books)
+      const externalPlatforms = document.getElementById('externalPlatforms');
+      const platformLinks = document.getElementById('platformLinks');
+      if (externalPlatforms && platformLinks) {
+        let linksHtml = '';
+        if (book.amazon_url && book.amazon_url.trim() !== '') {
+          linksHtml += `
+            <a href="${book.amazon_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF9900]/10 hover:bg-[#FF9900]/20 text-[#B45309] font-bold text-xs border border-[#FF9900]/30 transition-all hover:scale-105 shadow-xs">
+              <span class="material-symbols-outlined text-base text-[#FF9900]">shopping_bag</span>
+              <span>Amazon Books</span>
+              <span class="material-symbols-outlined text-xs opacity-60">open_in_new</span>
+            </a>`;
+        }
+        if (book.gplay_books_url && book.gplay_books_url.trim() !== '') {
+          linksHtml += `
+            <a href="${book.gplay_books_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#01875f]/10 hover:bg-[#01875f]/20 text-[#047857] font-bold text-xs border border-[#01875f]/30 transition-all hover:scale-105 shadow-xs">
+              <span class="material-symbols-outlined text-base text-[#01875f]">menu_book</span>
+              <span>Google Play Books</span>
+              <span class="material-symbols-outlined text-xs opacity-60">open_in_new</span>
+            </a>`;
+        }
+        if (linksHtml) {
+          platformLinks.innerHTML = linksHtml;
+          externalPlatforms.classList.remove('hidden');
+        } else {
+          externalPlatforms.classList.add('hidden');
+        }
+      }
+
+      // Description
+      document.getElementById('bookSynopsis')!.textContent = book.description || 'No description available.';
 
       // Details tab
       document.getElementById('bookDetailsGrid')!.innerHTML = `
@@ -196,10 +252,12 @@ import { getCategories, slugifyCategory } from '../lib/api';
         <strong>QRCBN:</strong> ${book.qrcbn || '-'}<br/>
         <strong>Dimensions:</strong> ${book.dimensions || '-'}<br/>
         <strong>Weight:</strong> ${formatWeight(book.weight)}<br/>
-        <strong>ISBN:</strong> ${book.isbn || '-'}</p>`;
+        <strong>ISBN:</strong> ${book.isbn || '-'}<br/>
+        <strong>Amazon Books:</strong> ${book.amazon_url && book.amazon_url.trim() !== '' ? `<a href="${book.amazon_url}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-tertiary underline font-semibold inline-flex items-center gap-1">Buka di Amazon <span class="material-symbols-outlined text-xs">open_in_new</span></a>` : '-'}<br/>
+        <strong>Google Play Books:</strong> ${book.gplay_books_url && book.gplay_books_url.trim() !== '' ? `<a href="${book.gplay_books_url}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-tertiary underline font-semibold inline-flex items-center gap-1">Buka di Google Play Books <span class="material-symbols-outlined text-xs">open_in_new</span></a>` : '-'}</p>`;
 
       // Specs
-      document.getElementById('bookSpecs')!.innerHTML = `
+      let specsHtml = `
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Badge</p><p class="font-bold text-primary text-sm md:text-base">${book.badge || 'Regular'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">ISBN-13</p><p class="font-bold text-primary text-sm md:text-base">${book.isbn || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">GGKEY</p><p class="font-bold text-primary text-sm md:text-base">${book.ggkey || '-'}</p></div>
@@ -207,6 +265,13 @@ import { getCategories, slugifyCategory } from '../lib/api';
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Pages</p><p class="font-bold text-primary text-sm md:text-base">${book.pages || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Format</p><p class="font-bold text-primary text-sm md:text-base">${book.format || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Language</p><p class="font-bold text-primary text-sm md:text-base">${book.language || '-'}</p></div>`;
+      if (book.amazon_url && book.amazon_url.trim() !== '') {
+        specsHtml += `<div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Amazon</p><a href="${book.amazon_url}" target="_blank" rel="noopener noreferrer" class="font-bold text-amber-600 hover:underline text-sm md:text-base inline-flex items-center gap-1">Tersedia <span class="material-symbols-outlined text-xs">open_in_new</span></a></div>`;
+      }
+      if (book.gplay_books_url && book.gplay_books_url.trim() !== '') {
+        specsHtml += `<div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Google Play</p><a href="${book.gplay_books_url}" target="_blank" rel="noopener noreferrer" class="font-bold text-emerald-600 hover:underline text-sm md:text-base inline-flex items-center gap-1">Tersedia <span class="material-symbols-outlined text-xs">open_in_new</span></a></div>`;
+      }
+      document.getElementById('bookSpecs')!.innerHTML = specsHtml;
 
       // Show content, hide loading
       document.getElementById('bookLoading')!.classList.add('hidden');
@@ -214,6 +279,30 @@ import { getCategories, slugifyCategory } from '../lib/api';
 
       // Load related books
       loadRelatedBooks(book.category_id, book.id);
+
+      // Add to Cart handler
+      const addToCartBtn = document.getElementById('addToCartBtn');
+      if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', () => {
+          if (!isAuthenticated()) {
+            // Save current page URL so user returns after login
+            sessionStorage.setItem('dp_redirect_after_login', window.location.href + '&add_to_cart=1');
+            window.location.href = '/customer-login';
+            return;
+          }
+          addBookToCart(book);
+        });
+      }
+
+      // Auto-add if returning from login with pending add_to_cart
+      const urlP = new URLSearchParams(window.location.search);
+      if (urlP.get('add_to_cart') === '1' && isAuthenticated()) {
+        addBookToCart(book);
+        // Clean up URL
+        urlP.delete('add_to_cart');
+        const cleanUrl = `${window.location.pathname}?${urlP.toString()}`;
+        window.history.replaceState({}, '', cleanUrl);
+      }
 
     } catch (err) {
       document.getElementById('bookLoading')!.innerHTML = `
@@ -245,5 +334,45 @@ import { getCategories, slugifyCategory } from '../lib/api';
         document.getElementById('relatedSection')!.classList.remove('hidden');
       }
     } catch { /* silently skip if related books fail */ }
+  }
+
+  function addBookToCart(book: any) {
+    const cartRaw = localStorage.getItem('dp_cart') || '[]';
+    let cart = JSON.parse(cartRaw);
+    const existing = cart.find((item: any) => item.id === book.id && item.type === 'book');
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cart.push({
+        id: book.id,
+        type: 'book',
+        title: book.title,
+        author: book.author,
+        price: book.price,
+        image_url: book.image_url,
+        qty: 1,
+        weight: book.weight ? parseFloat(book.weight) || 0.3 : 0.3,
+        format: book.format || ''
+      });
+    }
+    localStorage.setItem('dp_cart', JSON.stringify(cart));
+    showCartSuccessModal();
+  }
+
+  function showCartSuccessModal() {
+    const modal = document.getElementById('cartSuccessModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  // Modal close handlers
+  const modal = document.getElementById('cartSuccessModal');
+  const continueBtn = document.getElementById('modalContinueBtn');
+  if (continueBtn && modal) {
+    continueBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  }
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.add('hidden');
+    });
   }
 </script>

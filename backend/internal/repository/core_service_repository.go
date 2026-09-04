@@ -44,7 +44,7 @@ func (r *CoreServiceRepository) FindAll() ([]*model.CoreService, error) {
 
 func (r *CoreServiceRepository) FindByID(id string) (*model.CoreService, error) {
 	query := `SELECT id, title, description, icon, sort_order, is_active, created_at, updated_at 
-			  FROM core_services WHERE id = ?`
+			  FROM core_services WHERE id = $1`
 	
 	s := &model.CoreService{}
 	err := r.db.QueryRow(query, id).Scan(
@@ -68,7 +68,7 @@ func (r *CoreServiceRepository) Create(s *model.CoreService) error {
 
 	query := `INSERT INTO core_services 
 		(id, title, description, icon, sort_order, is_active, created_at, updated_at) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	
 	_, err := r.db.Exec(query,
 		s.ID, s.Title, s.Description, s.Icon,
@@ -84,8 +84,8 @@ func (r *CoreServiceRepository) Update(s *model.CoreService) error {
 	s.UpdatedAt = time.Now().UTC()
 
 	query := `UPDATE core_services SET 
-		title = ?, description = ?, icon = ?, sort_order = ?, is_active = ?, updated_at = ? 
-		WHERE id = ?`
+		title = $1, description = $2, icon = $3, sort_order = $4, is_active = $5, updated_at = $6 
+		WHERE id = $7`
 	
 	_, err := r.db.Exec(query,
 		s.Title, s.Description, s.Icon, s.SortOrder, s.IsActive, s.UpdatedAt, s.ID,
@@ -97,7 +97,7 @@ func (r *CoreServiceRepository) Update(s *model.CoreService) error {
 }
 
 func (r *CoreServiceRepository) Delete(id string) error {
-	query := `DELETE FROM core_services WHERE id = ?`
+	query := `DELETE FROM core_services WHERE id = $1`
 	_, err := r.db.Exec(query, id)
 	if err != nil {
 		return fmt.Errorf("core_service repo: delete: %w", err)

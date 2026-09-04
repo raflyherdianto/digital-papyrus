@@ -16,13 +16,41 @@ const { title, activePage = 'dashboard' } = Astro.props;
 ---
 
 <Head title={title} description="Digital Papyrus Admin Console">
+  <!-- Authorization Middleware -->
+  <script is:inline>
+    (function() {
+      try {
+        const token = localStorage.getItem('dp_token');
+        if (!token) {
+          window.location.replace('/admin-login');
+          return;
+        }
+        const rawUser = localStorage.getItem('dp_user');
+        if (!rawUser) {
+          window.location.replace('/admin-login');
+          return;
+        }
+        const user = JSON.parse(rawUser);
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
+          window.location.replace('/customer-dashboard');
+          return;
+        }
+      } catch (e) {
+        window.location.replace('/admin-login');
+      }
+    })();
+  </script>
+
   <!-- Admin Sidebar -->
   <AdminSidebar activePage={activePage} />
 
+  <!-- Sidebar Backdrop (Mobile Drawer Overlay) -->
+  <div id="sidebarBackdrop" class="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-40 hidden opacity-0 transition-opacity duration-300 md:hidden" aria-hidden="true"></div>
+
   <!-- Main Content Area -->
-  <main id="mainContent" class="ml-64 min-h-screen transition-all duration-300">
+  <main id="mainContent" class="ml-0 md:ml-64 min-h-screen w-full md:w-[calc(100%-16rem)] max-w-full overflow-x-hidden min-w-0 transition-all duration-300">
     <AdminTopbar />
-    <section class="pt-24 px-4 md:px-12 pb-12">
+    <section class="pt-20 md:pt-24 px-3 sm:px-6 lg:px-8 pb-12 w-full max-w-full min-w-0">
       <slot />
     </section>
   </main>
@@ -30,48 +58,55 @@ const { title, activePage = 'dashboard' } = Astro.props;
   <!-- Portal for modals (outside main to avoid transform context issues) -->
   <slot name="modals" />
 
-  <!-- Sidebar Toggle Script -->
+  <!-- Sidebar Drawer Toggle Script -->
   <script>
     const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('mainContent');
-    const topHeader = document.getElementById('topHeader');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    if (toggleBtn && sidebar && mainContent && topHeader) {
-      const toggleIcon = toggleBtn.querySelector('span');
-      const sidebarTexts = document.querySelectorAll('.sidebar-text');
-      let isCollapsed = false;
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileSidebarClose = document.getElementById('mobileSidebarClose');
 
-      toggleBtn.addEventListener('click', () => {
-        isCollapsed = !isCollapsed;
-        if (isCollapsed) {
-          sidebar.classList.remove('w-64');
-          sidebar.classList.add('w-[84px]', 'px-3');
-          sidebar.classList.remove('px-4');
-          mainContent.classList.remove('ml-64');
-          mainContent.classList.add('ml-[84px]');
-          topHeader.classList.remove('w-[calc(100%-16rem)]');
-          topHeader.classList.add('w-[calc(100%-84px)]');
-          if (toggleIcon) toggleIcon.textContent = 'menu';
-          sidebarTexts.forEach(el => {
-            (el as HTMLElement).style.opacity = '0';
-            (el as HTMLElement).style.width = '0px';
-            (el as HTMLElement).style.transform = 'scale(0.9)';
-          });
-        } else {
-          sidebar.classList.remove('w-[84px]', 'px-3');
-          sidebar.classList.add('w-64', 'px-4');
-          mainContent.classList.remove('ml-[84px]');
-          mainContent.classList.add('ml-64');
-          topHeader.classList.remove('w-[calc(100%-84px)]');
-          topHeader.classList.add('w-[calc(100%-16rem)]');
-          if (toggleIcon) toggleIcon.textContent = 'menu_open';
-          sidebarTexts.forEach(el => {
-            (el as HTMLElement).style.opacity = '1';
-            (el as HTMLElement).style.width = '100%';
-            (el as HTMLElement).style.transform = 'scale(1)';
-          });
+    function openMobileSidebar() {
+      if (!sidebar || !backdrop) return;
+      sidebar.classList.remove('-translate-x-full');
+      sidebar.classList.add('translate-x-0');
+      backdrop.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        backdrop.classList.add('opacity-100');
+        backdrop.classList.remove('opacity-0');
+      });
+      document.body.classList.add('overflow-hidden', 'md:overflow-auto');
+    }
+
+    function closeMobileSidebar() {
+      if (!sidebar || !backdrop) return;
+      sidebar.classList.add('-translate-x-full');
+      sidebar.classList.remove('translate-x-0');
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0');
+      setTimeout(() => {
+        backdrop.classList.add('hidden');
+      }, 300);
+      document.body.classList.remove('overflow-hidden', 'md:overflow-auto');
+    }
+
+    mobileMenuBtn?.addEventListener('click', openMobileSidebar);
+    mobileSidebarClose?.addEventListener('click', closeMobileSidebar);
+    backdrop?.addEventListener('click', closeMobileSidebar);
+
+    // Close when navigating links on mobile
+    sidebar?.querySelectorAll('nav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 768) {
+          closeMobileSidebar();
         }
       });
-    }
+    });
+
+    // Reset when resizing to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) {
+        closeMobileSidebar();
+      }
+    });
   </script>
 </Head>

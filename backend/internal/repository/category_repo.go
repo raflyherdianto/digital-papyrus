@@ -40,7 +40,7 @@ func (r *CategoryRepository) FindAll() ([]model.Category, error) {
 // FindByID retrieves a single category by its ID.
 func (r *CategoryRepository) FindByID(id string) (*model.Category, error) {
 	var c model.Category
-	err := r.db.QueryRow(`SELECT id, name, slug, created_at, updated_at FROM categories WHERE id = ?`, id).
+	err := r.db.QueryRow(`SELECT id, name, slug, created_at, updated_at FROM categories WHERE id = $1`, id).
 		Scan(&c.ID, &c.Name, &c.Slug, &c.CreatedAt, &c.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -54,7 +54,7 @@ func (r *CategoryRepository) FindByID(id string) (*model.Category, error) {
 // FindBySlug retrieves a single category by slug.
 func (r *CategoryRepository) FindBySlug(slug string) (*model.Category, error) {
 	var c model.Category
-	err := r.db.QueryRow(`SELECT id, name, slug, created_at, updated_at FROM categories WHERE slug = ?`, slug).
+	err := r.db.QueryRow(`SELECT id, name, slug, created_at, updated_at FROM categories WHERE slug = $1`, slug).
 		Scan(&c.ID, &c.Name, &c.Slug, &c.CreatedAt, &c.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -71,7 +71,7 @@ func (r *CategoryRepository) Create(c *model.Category) error {
 	c.CreatedAt = now
 	c.UpdatedAt = now
 
-	_, err := r.db.Exec(`INSERT INTO categories (id, name, slug, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
+	_, err := r.db.Exec(`INSERT INTO categories (id, name, slug, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`,
 		c.ID, c.Name, c.Slug, c.CreatedAt, c.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("category_repo: create: %w", err)
@@ -82,7 +82,7 @@ func (r *CategoryRepository) Create(c *model.Category) error {
 // Update modifies an existing category record.
 func (r *CategoryRepository) Update(c *model.Category) error {
 	c.UpdatedAt = time.Now().UTC()
-	_, err := r.db.Exec(`UPDATE categories SET name = ?, slug = ?, updated_at = ? WHERE id = ?`,
+	_, err := r.db.Exec(`UPDATE categories SET name = $1, slug = $2, updated_at = $3 WHERE id = $4`,
 		c.Name, c.Slug, c.UpdatedAt, c.ID)
 	if err != nil {
 		return fmt.Errorf("category_repo: update: %w", err)
@@ -92,7 +92,7 @@ func (r *CategoryRepository) Update(c *model.Category) error {
 
 // Delete removes a category by its ID.
 func (r *CategoryRepository) Delete(id string) error {
-	result, err := r.db.Exec("DELETE FROM categories WHERE id = ?", id)
+	result, err := r.db.Exec("DELETE FROM categories WHERE id = $1", id)
 	if err != nil {
 		return fmt.Errorf("category_repo: delete: %w", err)
 	}

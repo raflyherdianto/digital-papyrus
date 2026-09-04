@@ -1,0 +1,81 @@
+---
+/**
+ * CustomerSidebar — Collapsible sidebar for customer dashboard.
+ */
+export interface Props {
+  activePage?: string;
+}
+const { activePage = 'dashboard' } = Astro.props;
+
+const navItems = [
+  { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', href: '/customer-dashboard' },
+  { id: 'cart', icon: 'shopping_cart', label: 'Cart', href: '/customer-cart' },
+  { id: 'transactions', icon: 'receipt_long', label: 'Transactions', href: '/customer-transactions' },
+  { id: 'publish', icon: 'publish', label: 'Publish', href: '/customer-publish' },
+  { id: 'profile', icon: 'person', label: 'Profile', href: '/customer-profile' },
+];
+---
+
+<aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 bg-stone-100 flex flex-col py-6 md:py-8 px-4 z-50 transition-transform duration-300 overflow-x-hidden -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
+  <!-- Branding & Mobile Close Button -->
+  <div class="mb-8 mt-2 relative">
+    <button
+      id="mobileSidebarClose"
+      type="button"
+      class="md:hidden absolute -top-2 right-0 p-2 text-stone-500 hover:text-stone-900 rounded-xl hover:bg-stone-200/60 transition-colors focus:outline-none"
+      aria-label="Close sidebar menu"
+    >
+      <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <a href="/customer-dashboard" class="flex flex-col items-center justify-center text-center gap-3 md:gap-4 overflow-hidden pt-2 md:pt-0">
+      <img src="/logo.png" alt="Digital Papyrus Logo" class="h-20 md:h-24 w-auto shrink-0" width="96" height="96" loading="eager" />
+      <div class="sidebar-text transition-all duration-200 min-w-0 w-full">
+        <h1 class="text-xl font-bold text-primary tracking-tight font-headline truncate leading-tight">Digital Papyrus</h1>
+        <p class="text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mt-1.5 truncate">Customer Space</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 space-y-2" aria-label="Customer navigation">
+    {navItems.map((item) => (
+      <a
+        class={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all ${
+          activePage === item.id
+            ? 'text-primary font-bold border-r-4 border-primary hover:bg-stone-200/50'
+            : 'text-stone-500 hover:text-primary hover:bg-stone-200/50'
+        }`}
+        href={item.href}
+      >
+        <span class="material-symbols-outlined">{item.icon}</span>
+        <span class="sidebar-text text-sm font-medium tracking-wide whitespace-nowrap overflow-hidden transition-all duration-200 w-full opacity-100">{item.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  <!-- User Avatar -->
+  <div class="mt-8 px-4 flex items-center gap-3 pt-6 border-t border-stone-200/50">
+    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-primary">person</span>
+    </div>
+    <div class="sidebar-text transition-all duration-200 overflow-hidden w-full opacity-100">
+      <p id="sidebarUserName" class="text-sm font-bold text-primary font-headline truncate">Loading...</p>
+      <p id="sidebarUserRole" class="text-[10px] text-stone-500 font-medium uppercase tracking-wider truncate">Loading...</p>
+    </div>
+  </div>
+</aside>
+
+<script>
+  const userStr = localStorage.getItem('dp_user');
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      const nameEl = document.getElementById('sidebarUserName');
+      const roleEl = document.getElementById('sidebarUserRole');
+      if (nameEl) nameEl.textContent = user.name || 'Customer User';
+      if (roleEl) roleEl.textContent = 'Customer';
+    } catch (e) {
+      console.error('Failed to parse user data from localStorage', e);
+    }
+  }
+</script>

@@ -3,7 +3,7 @@
 # ============================================================
 
 # Stage 1: Build
-FROM golang:1.26-alpine AS builder
+FROM golang:alpine AS builder
 
 RUN apk add --no-cache git ca-certificates tzdata
 
@@ -33,7 +33,7 @@ WORKDIR /app
 COPY --from=builder /build/server /app/server
 COPY entrypoint.sh /app/entrypoint.sh
 
-# Create data directory for SQLite with correct permissions
+# Create data directory with correct permissions
 RUN mkdir -p /app/data && \
     chmod +x /app/entrypoint.sh && \
     chown -R appuser:appgroup /app

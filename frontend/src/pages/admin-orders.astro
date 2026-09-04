@@ -26,29 +26,32 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
         <input id="searchInput" class="w-full bg-surface-container py-2.5 pl-10 pr-4 rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-stone-400" placeholder="Search by invoice or customer..." type="text" />
       </div>
-      <select id="statusFilter" class="bg-surface-container py-2.5 px-4 rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 transition-all text-stone-600">
+      <select id="statusFilter" class="w-full sm:w-auto bg-surface-container py-2.5 px-4 rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 transition-all text-stone-600">
         <option value="">All Status</option>
         <option value="pending">Pending</option>
+        <option value="waiting_confirmation">Waiting Confirmation</option>
         <option value="confirmed">Confirmed</option>
+        <option value="processed">Processed</option>
         <option value="shipped">Shipped</option>
         <option value="delivered">Delivered</option>
+        <option value="completed">Completed</option>
         <option value="cancelled">Cancelled</option>
       </select>
     </div>
   </div>
 
-  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[900px]">
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm w-full max-w-full min-w-0 overflow-hidden">
+    <div class="table-responsive-container overflow-x-auto w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[900px] border-collapse">
         <thead>
-          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Invoice</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Name</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Total Qty</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Total</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Status</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Date</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30 whitespace-nowrap">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Invoice</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Name</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Total Qty</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Total</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Status</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Date</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody id="ordersTableBody" class="text-sm font-body">
@@ -83,29 +86,114 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Add New Order</h3>
         <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="addOrderModal"><span class="material-symbols-outlined">close</span></button>
       </div>
-      <div class="px-6 md:px-8 py-6 max-h-[60vh] overflow-y-auto">
+      <div class="px-6 md:px-8 py-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
         <form id="addOrderForm" class="space-y-4">
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Customer *</label>
-            <select id="customerSelect" name="user_id" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
-              <option value="">Loading customers...</option>
-            </select>
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Customer *</label>
+              <div class="inline-flex p-1 bg-stone-100 rounded-xl border border-stone-200 text-xs font-semibold self-start sm:self-auto">
+                <button type="button" id="custModeSelectBtn" class="px-3.5 py-1.5 rounded-lg bg-white text-primary shadow-xs transition-all cursor-pointer">Pilih Terdaftar</button>
+                <button type="button" id="custModeManualBtn" class="px-3.5 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 transition-all cursor-pointer">Input Manual</button>
+              </div>
+            </div>
+            
+            <!-- Mode 1: Select Existing Customer -->
+            <div id="custSelectWrapper">
+              <select id="customerSelect" name="user_id" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all cursor-pointer">
+                <option value="">Loading customers...</option>
+              </select>
+            </div>
+
+            <!-- Mode 2: Manual Customer Input -->
+            <div id="custManualWrapper" class="hidden space-y-3.5 bg-stone-50/90 p-4 sm:p-5 rounded-2xl border border-stone-200/90">
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Nama Lengkap Customer *</label>
+                <input id="manualCustomerName" name="customer_name" type="text" class="w-full bg-white py-2.5 px-3.5 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Contoh: Budi Santoso" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Email Customer *</label>
+                  <input id="manualCustomerEmail" name="customer_email" type="email" class="w-full bg-white py-2.5 px-3.5 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="budi@example.com" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">No. WhatsApp / HP *</label>
+                  <input id="manualCustomerPhone" name="customer_phone" type="tel" class="w-full bg-white py-2.5 px-3.5 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="08123456789" />
+                </div>
+              </div>
+
+              <!-- Alamat Lengkap -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Alamat Lengkap</label>
+                <textarea id="manualCustomerAddress" name="customer_address" rows="2" class="w-full bg-white py-2.5 px-3.5 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none" placeholder="Nama jalan, gedung, nomor rumah, RT/RW"></textarea>
+              </div>
+
+              <!-- Cascading Regional Dropdowns (Responsive, No Clipped Values) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
+                <!-- Province -->
+                <div class="space-y-1.5 relative" id="manual_province_wrapper">
+                  <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Provinsi</label>
+                  <div class="relative">
+                    <input id="manual_province_input" name="customer_province" type="text" autocomplete="off" class="w-full bg-white py-2.5 pl-3.5 pr-8 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-stone-400" placeholder="Pilih / cari provinsi..." />
+                    <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none text-xl">arrow_drop_down</span>
+                  </div>
+                  <div id="manual_province_list" class="hidden absolute left-0 right-0 top-full mt-1.5 z-[100] bg-surface-container-lowest border border-stone-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- City / Regency -->
+                <div class="space-y-1.5 relative" id="manual_city_wrapper">
+                  <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Kota / Kabupaten (Regency)</label>
+                  <div class="relative">
+                    <input id="manual_city_input" name="customer_city" type="text" autocomplete="off" class="w-full bg-white py-2.5 pl-3.5 pr-8 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-stone-400" placeholder="Pilih / cari kota/kabupaten..." />
+                    <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none text-xl">arrow_drop_down</span>
+                  </div>
+                  <div id="manual_city_list" class="hidden absolute left-0 right-0 top-full mt-1.5 z-[100] bg-surface-container-lowest border border-stone-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- District (Kecamatan) -->
+                <div class="space-y-1.5 relative" id="manual_district_wrapper">
+                  <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Kecamatan (District)</label>
+                  <div class="relative">
+                    <input id="manual_district_input" name="customer_district" type="text" autocomplete="off" class="w-full bg-white py-2.5 pl-3.5 pr-8 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-stone-400" placeholder="Pilih / cari kecamatan..." />
+                    <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none text-xl">arrow_drop_down</span>
+                  </div>
+                  <div id="manual_district_list" class="hidden absolute left-0 right-0 top-full mt-1.5 z-[100] bg-surface-container-lowest border border-stone-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- Village (Kelurahan / Desa) -->
+                <div class="space-y-1.5 relative" id="manual_village_wrapper">
+                  <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Kelurahan / Desa (Village)</label>
+                  <div class="relative">
+                    <input id="manual_village_input" name="customer_village" type="text" autocomplete="off" class="w-full bg-white py-2.5 pl-3.5 pr-8 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-stone-400" placeholder="Pilih / cari kelurahan..." />
+                    <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none text-xl">arrow_drop_down</span>
+                  </div>
+                  <div id="manual_village_list" class="hidden absolute left-0 right-0 top-full mt-1.5 z-[100] bg-surface-container-lowest border border-stone-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- Zip Code -->
+                <div class="space-y-1.5 sm:col-span-2">
+                  <label class="text-xs font-bold text-stone-600 uppercase tracking-wider">Kode Pos (Zip Code)</label>
+                  <input id="manualCustomerZipCode" name="customer_zip_code" type="text" class="w-full bg-white py-2.5 px-3.5 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-stone-400" placeholder="Contoh: 40135" />
+                </div>
+              </div>
+            </div>
           </div>
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Invoice Number</label>
               <input id="invoiceInput" name="invoice" type="text" readonly class="w-full bg-stone-100 py-2.5 px-4 rounded-xl text-sm border border-stone-200 outline-none transition-all cursor-not-allowed font-mono font-bold text-primary" placeholder="Generating..." />
-              <p class="text-[10px] text-stone-400">Generated automatically (INV-YYYYMMDDXXX).</p>
+              <p class="text-[10px] text-stone-400">Generated automatically (INV-DDMMYYYY-XXXX-XXXX).</p>
             </div>
             <div class="space-y-2">
-              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Status *</label>
-              <select name="status" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium">
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Status</label>
+              <div class="py-2.5 px-4 bg-stone-100/70 border border-stone-200 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                  <span class="text-sm font-bold text-stone-700">Pending</span>
+                </div>
+                <span class="text-[11px] text-stone-400 font-medium bg-stone-200/60 px-2 py-0.5 rounded-md">Otomatis</span>
+              </div>
+              <input type="hidden" name="status" value="pending" />
             </div>
           </div>
           <input type="hidden" name="total_qty" value="0" />
@@ -127,32 +215,99 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <!-- Item rows will be injected here -->
             </div>
             <textarea name="items" id="itemsHidden" class="hidden"></textarea>
-            <div class="rounded-2xl border-2 border-dashed border-stone-200 bg-stone-50/50 p-5 flex justify-between items-center">
-              <div class="space-y-1.5">
-                <p class="text-[10px] text-stone-400 uppercase font-bold tracking-widest">Items List</p>
-                <p id="itemsSummary" class="text-sm font-medium text-stone-600 leading-relaxed italic">No items added.</p>
-                <div class="flex items-center gap-4 pt-1">
-                  <p class="text-[10px] text-stone-400 uppercase font-bold tracking-widest">Total Qty: <span id="summaryTotalQty" class="text-primary ml-1 text-xs">0</span></p>
+
+            <!-- Biaya Tambahan & Rincian Grand Total -->
+            <div class="bg-stone-50/80 p-4 sm:p-5 rounded-2xl border border-stone-200 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-primary text-base">receipt_long</span>
+                  Rincian Biaya & Total
+                </span>
+                <span class="text-[11px] text-stone-400 font-medium">Bisa disesuaikan</span>
+              </div>
+
+              <!-- Inputs for Additional Fees -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Ongkir (Rp)</label>
+                  <input id="orderShippingPriceInput" name="shipping_price" type="number" min="0" value="0" class="w-full bg-white py-2 px-3 rounded-xl text-xs font-bold text-stone-800 border border-stone-200 focus:border-primary outline-none transition-all" />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Biaya Layanan (Rp)</label>
+                  <input id="orderServiceFeeInput" name="service_fee" type="number" min="0" value="0" class="w-full bg-white py-2 px-3 rounded-xl text-xs font-bold text-stone-800 border border-stone-200 focus:border-primary outline-none transition-all" />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Pajak / PPN (%)</label>
+                  <div class="relative">
+                    <input id="orderTaxRateInput" name="tax_rate" type="number" min="0" max="100" step="0.1" value="0" class="w-full bg-white py-2 pl-3 pr-7 rounded-xl text-xs font-bold text-stone-800 border border-stone-200 focus:border-primary outline-none transition-all" placeholder="0" />
+                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-xs pointer-events-none">%</span>
+                  </div>
+                  <input type="hidden" id="orderTaxHidden" name="tax" value="0" />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Diskon (Rp)</label>
+                  <input id="orderDiscountInput" name="discount" min="0" value="0" type="number" class="w-full bg-white py-2 px-3 rounded-xl text-xs font-bold text-emerald-600 border border-stone-200 focus:border-primary outline-none transition-all" />
                 </div>
               </div>
-              <div class="text-right">
-                <p class="text-[10px] text-stone-400 uppercase font-bold tracking-widest mb-1">Grand Total</p>
-                <p id="estimatedTotal" class="text-xl font-black text-primary">Rp 0</p>
+
+              <!-- Breakdown Summary Card -->
+              <div class="pt-3 border-t border-stone-200/80 space-y-1.5 text-xs text-stone-600">
+                <div class="flex justify-between">
+                  <span>Subtotal Produk (<span id="summaryTotalQty">0</span> item)</span>
+                  <span id="summarySubtotalItems" class="font-bold text-stone-800">Rp 0</span>
+                </div>
+                <div id="summaryRowShipping" class="flex justify-between">
+                  <span>Biaya Pengiriman (Ongkir)</span>
+                  <span id="summaryShippingPrice" class="font-bold text-stone-800">Rp 0</span>
+                </div>
+                <div id="summaryRowServiceFee" class="flex justify-between">
+                  <span>Biaya Layanan</span>
+                  <span id="summaryServiceFee" class="font-bold text-stone-800">Rp 0</span>
+                </div>
+                <div id="summaryRowTax" class="flex justify-between">
+                  <span>Pajak (PPN)</span>
+                  <span id="summaryTax" class="font-bold text-stone-800">Rp 0</span>
+                </div>
+                <div id="summaryRowDiscount" class="flex justify-between text-emerald-600 hidden">
+                  <span>Diskon</span>
+                  <span id="summaryDiscount" class="font-bold">-Rp 0</span>
+                </div>
+                <div class="pt-2.5 border-t border-stone-300 flex justify-between items-baseline">
+                  <div>
+                    <span class="font-black text-primary text-sm uppercase tracking-wider">Grand Total</span>
+                    <p id="itemsSummary" class="text-[11px] text-stone-400 font-medium italic truncate max-w-[200px] sm:max-w-xs">No items added.</p>
+                  </div>
+                  <span id="estimatedTotal" class="text-xl sm:text-2xl font-black text-primary font-headline">Rp 0</span>
+                </div>
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-4">
             <div class="space-y-2">
-              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Payment Type</label>
-              <input name="payment_type" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Bank Transfer" />
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Payment Type *</label>
+              <select name="payment_type" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium cursor-pointer">
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="E-Wallet">E-Wallet</option>
+                <option value="Cash">Cash</option>
+              </select>
             </div>
-            <div class="space-y-2">
-              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Shipping Name</label>
-              <input name="shipping_name" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="JNE" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Shipping Service</label>
-              <input name="shipping_service" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="REG" />
+
+            <!-- Shipping container: only shown when softcover or hardcover book items are added -->
+            <div id="shippingFieldsContainer" class="hidden space-y-3 bg-stone-50/80 p-4 rounded-xl border border-stone-200">
+              <div class="flex items-center gap-2 text-xs font-bold text-stone-700 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-primary text-base">local_shipping</span>
+                Informasi Pengiriman (Buku Fisik)
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Shipping Name</label>
+                  <input name="shipping_name" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Contoh: JNE / J&T / SiCepat / Kurir" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Shipping Service</label>
+                  <input name="shipping_service" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Contoh: REG / OKE / Express" />
+                </div>
+              </div>
             </div>
           </div>
         </form>
@@ -200,10 +355,48 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           <div id="viewOrderNotes" class="bg-surface-container rounded-lg p-4 text-sm text-stone-600"></div>
         </div>
 
-        <div class="border-t border-stone-200/20 pt-4">
-          <div class="flex justify-between items-center">
-            <span class="font-semibold text-stone-600">Total:</span>
-            <span id="viewOrderTotal" class="text-xl font-bold text-tertiary"></span>
+        <!-- Rincian Biaya & Biaya Lain-lain -->
+        <div class="border-t border-stone-200/20 pt-4 space-y-2.5">
+          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Rincian Pembayaran</p>
+          
+          <div class="bg-surface-container/60 rounded-xl p-4 space-y-2 text-xs">
+            <div class="flex justify-between items-center text-stone-600">
+              <span>Subtotal Produk</span>
+              <span id="viewOrderSubtotal" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-stone-600" id="viewOrderShippingRow">
+              <span id="viewOrderShippingLabel">Biaya Pengiriman (Ongkir)</span>
+              <span id="viewOrderShippingCost" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-stone-600" id="viewOrderServiceFeeRow">
+              <span>Biaya Layanan (Service Fee)</span>
+              <span id="viewOrderServiceFee" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-stone-600" id="viewOrderTaxRow">
+              <span>Pajak (Tax)</span>
+              <span id="viewOrderTax" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-emerald-600" id="viewOrderDiscountRow">
+              <span>Potongan Diskon</span>
+              <span id="viewOrderDiscount" class="font-semibold">-Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-amber-900 mt-1" id="viewOrderUniqueCodeRow">
+              <div>
+                <span class="text-xs font-bold block">Kode Unik Transaksi</span>
+                <span class="text-[10px] text-amber-700 block">*Nominal unik verifikasi pembayaran</span>
+              </div>
+              <span id="viewOrderUniqueCode" class="text-xs font-mono font-extrabold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded border border-amber-300">0</span>
+            </div>
+
+            <div class="pt-2.5 border-t border-stone-200/50 flex justify-between items-center font-bold text-sm md:text-base text-primary">
+              <span>Total Pembayaran</span>
+              <span id="viewOrderTotal" class="text-lg md:text-xl font-bold text-tertiary">Rp 0</span>
+            </div>
           </div>
         </div>
 
@@ -218,7 +411,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </div>
         </div>
       </div>
-      <div class="px-6 md:px-8 py-5 bg-surface-container flex items-center justify-end gap-3 border-t border-stone-200/50">
+      <div class="px-6 md:px-8 py-5 bg-surface-container flex flex-wrap items-center justify-end gap-3 border-t border-stone-200/50">
+        <button id="adminConfirmPaymentBtn" type="button" class="hidden px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          Konfirmasi Pembayaran
+        </button>
+        <button id="adminProcessOrderBtn" type="button" class="hidden px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-sm transition-all flex items-center gap-1.5 shadow-md shadow-sky-600/20 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+          Proses Pesanan
+        </button>
+        <div id="adminStatusUpdateWrapper" class="hidden flex items-center gap-2 mr-auto sm:mr-0">
+          <label class="text-xs font-bold text-stone-500 uppercase tracking-wider hidden sm:inline">Ubah Status:</label>
+          <select id="adminStatusDropdown" class="bg-white border border-stone-300 text-stone-800 text-xs sm:text-sm font-semibold rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-sm">
+            <option value="processed">Processed (Diproses)</option>
+            <option value="shipped">Shipped (Dikirim)</option>
+            <option value="delivered">Delivered (Terkirim)</option>
+            <option value="completed">Completed (Selesai)</option>
+          </select>
+          <button id="adminUpdateStatusBtn" type="button" class="px-4 py-2 bg-primary hover:opacity-90 text-white font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 shadow-md shadow-primary/10 cursor-pointer">
+            <span class="material-symbols-outlined text-base">update</span>
+            Update
+          </button>
+        </div>
         <button class="closeModalBtn px-5 py-2.5 border border-stone-300 text-stone-600 font-bold rounded-xl text-sm hover:bg-stone-200/50 transition-all" data-modal="viewOrderModal">Close</button>
       </div>
     </div>
@@ -241,7 +455,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   </div>
 
   <script>
-    import { createOrder, deleteOrder, getBooks, getOrder, getOrders, getServices, getUsers, isAuthenticated } from '../lib/api';
+    import { createAdminOrder, deleteOrder, getBooks, getOrder, getOrders, getServices, getUsers, isAuthenticated, confirmAdminOrderPayment, updateOrderStatus, settingsApi, getProvinces, getRegencies, getDistricts, getVillages, type RegionOption } from '../lib/api';
     import type { Book, Order as ApiOrder, Service, User } from '../lib/api';
 
     if (!isAuthenticated()) {
@@ -270,6 +484,279 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     let searchKeyword = '';
     let selectedStatus = '';
     let deleteTargetId = '';
+    let currentViewingOrder: Order | null = null;
+    let isCustomerManual = false;
+    const custModeSelectBtn = document.getElementById('custModeSelectBtn') as HTMLButtonElement;
+    const custModeManualBtn = document.getElementById('custModeManualBtn') as HTMLButtonElement;
+    const custSelectWrapper = document.getElementById('custSelectWrapper');
+    const custManualWrapper = document.getElementById('custManualWrapper');
+    const manualCustomerName = document.getElementById('manualCustomerName') as HTMLInputElement;
+    const manualCustomerEmail = document.getElementById('manualCustomerEmail') as HTMLInputElement;
+    const manualCustomerPhone = document.getElementById('manualCustomerPhone') as HTMLInputElement;
+    const manualCustomerAddress = document.getElementById('manualCustomerAddress') as HTMLTextAreaElement;
+
+    const orderShippingPriceInput = document.getElementById('orderShippingPriceInput') as HTMLInputElement;
+    const orderServiceFeeInput = document.getElementById('orderServiceFeeInput') as HTMLInputElement;
+    const orderTaxRateInput = document.getElementById('orderTaxRateInput') as HTMLInputElement;
+    const orderTaxHidden = document.getElementById('orderTaxHidden') as HTMLInputElement;
+    const orderDiscountInput = document.getElementById('orderDiscountInput') as HTMLInputElement;
+
+    orderShippingPriceInput?.addEventListener('input', () => syncAllItems());
+    orderServiceFeeInput?.addEventListener('input', () => syncAllItems());
+    orderTaxRateInput?.addEventListener('input', () => syncAllItems());
+    orderDiscountInput?.addEventListener('input', () => syncAllItems());
+
+    interface DropdownInstance {
+      setOptions: (opts: RegionOption[]) => void;
+      getOptions: () => RegionOption[];
+      getSelectedCode: () => string;
+      getSelectedName: () => string;
+      setSelected: (val: string) => void;
+      clear: () => void;
+    }
+
+    function initSearchableDropdown(
+      inputEl: HTMLInputElement,
+      listEl: HTMLDivElement,
+      fetchFn: () => Promise<RegionOption[]>,
+      onSelect: (option: RegionOption) => void,
+      onClear: () => void
+    ): DropdownInstance {
+      let allOptions: RegionOption[] = [];
+      let selectedCode: string | null = null;
+      let selectedName: string = '';
+
+      function renderOptions(opts: RegionOption[]) {
+        listEl.innerHTML = '';
+        if (opts.length === 0) {
+          listEl.innerHTML = '<div class="px-4 py-3 text-stone-400 text-xs italic text-center">No results found</div>';
+          return;
+        }
+        opts.forEach(opt => {
+          const item = document.createElement('div');
+          item.className = 'w-full px-4 py-2.5 text-stone-700 hover:bg-primary/10 hover:text-primary cursor-pointer text-xs sm:text-sm transition-colors border-b border-stone-100 last:border-b-0 whitespace-normal break-words leading-relaxed text-left font-medium select-none';
+          item.textContent = opt.name;
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            inputEl.value = opt.name;
+            selectedCode = opt.code;
+            selectedName = opt.name;
+            listEl.classList.add('hidden');
+            onSelect(opt);
+          });
+          listEl.appendChild(item);
+        });
+      }
+
+      inputEl.addEventListener('focus', async () => {
+        if (allOptions.length === 0) {
+          listEl.innerHTML = '<div class="px-4 py-3 text-stone-400 text-xs italic text-center">Loading options...</div>';
+          listEl.classList.remove('hidden');
+          try {
+            allOptions = await fetchFn();
+            renderOptions(allOptions);
+          } catch {
+            listEl.innerHTML = '<div class="px-4 py-3 text-red-500 text-xs text-center">Failed to load options</div>';
+          }
+        } else {
+          const term = inputEl.value.toLowerCase().trim();
+          const filtered = term ? allOptions.filter(opt => opt.name.toLowerCase().includes(term) || opt.code.toLowerCase().includes(term)) : allOptions;
+          renderOptions(filtered);
+          listEl.classList.remove('hidden');
+        }
+      });
+
+      inputEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (listEl.classList.contains('hidden') && allOptions.length > 0) {
+          const term = inputEl.value.toLowerCase().trim();
+          const filtered = term ? allOptions.filter(opt => opt.name.toLowerCase().includes(term) || opt.code.toLowerCase().includes(term)) : allOptions;
+          renderOptions(filtered);
+          listEl.classList.remove('hidden');
+        }
+      });
+
+      inputEl.addEventListener('input', () => {
+        const term = inputEl.value.toLowerCase().trim();
+        const filtered = allOptions.filter(opt => opt.name.toLowerCase().includes(term) || opt.code.toLowerCase().includes(term));
+        renderOptions(filtered);
+        listEl.classList.remove('hidden');
+        if (term === '') {
+          selectedCode = null;
+          selectedName = '';
+          onClear();
+        } else {
+          const exact = allOptions.find(opt => opt.name.toLowerCase() === term || opt.code.toLowerCase() === term);
+          if (exact) {
+            selectedCode = exact.code;
+            selectedName = exact.name;
+          } else {
+            selectedCode = null;
+            selectedName = '';
+          }
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        const target = e.target as Node;
+        if (!inputEl.parentElement?.contains(target) && !listEl.contains(target)) {
+          listEl.classList.add('hidden');
+        }
+      });
+
+      return {
+        setOptions: (opts: RegionOption[]) => {
+          allOptions = opts;
+          if (selectedCode) {
+            const found = opts.find(opt => opt.code === selectedCode || opt.name.toLowerCase() === selectedCode?.toLowerCase());
+            if (found) {
+              inputEl.value = found.name;
+              selectedCode = found.code;
+              selectedName = found.name;
+            }
+          }
+        },
+        getOptions: () => allOptions,
+        getSelectedCode: () => selectedCode || inputEl.value.trim(),
+        getSelectedName: () => selectedName || inputEl.value.trim(),
+        setSelected: (val: string) => {
+          if (!val) {
+            inputEl.value = '';
+            selectedCode = null;
+            selectedName = '';
+            return;
+          }
+          const found = allOptions.find(opt => opt.code === val || opt.name.toLowerCase() === val.toLowerCase());
+          if (found) {
+            inputEl.value = found.name;
+            selectedCode = found.code;
+            selectedName = found.name;
+          } else {
+            inputEl.value = val;
+            selectedCode = val;
+            selectedName = val;
+          }
+        },
+        clear: () => {
+          inputEl.value = '';
+          selectedCode = null;
+          selectedName = '';
+          allOptions = [];
+          listEl.innerHTML = '';
+          listEl.classList.add('hidden');
+        }
+      };
+    }
+
+    const manualProvInput = document.getElementById('manual_province_input') as HTMLInputElement;
+    const manualProvList = document.getElementById('manual_province_list') as HTMLDivElement;
+    const manualCityInput = document.getElementById('manual_city_input') as HTMLInputElement;
+    const manualCityList = document.getElementById('manual_city_list') as HTMLDivElement;
+    const manualDistInput = document.getElementById('manual_district_input') as HTMLInputElement;
+    const manualDistList = document.getElementById('manual_district_list') as HTMLDivElement;
+    const manualVillInput = document.getElementById('manual_village_input') as HTMLInputElement;
+    const manualVillList = document.getElementById('manual_village_list') as HTMLDivElement;
+    const manualZipInput = document.getElementById('manualCustomerZipCode') as HTMLInputElement;
+
+    const manualProvDropdown = initSearchableDropdown(
+      manualProvInput,
+      manualProvList,
+      async () => getProvinces(),
+      async (prov) => {
+        manualCityDropdown.clear();
+        manualDistDropdown.clear();
+        manualVillDropdown.clear();
+        const cities = await getRegencies(prov.code);
+        manualCityDropdown.setOptions(cities);
+      },
+      () => {
+        manualCityDropdown.clear();
+        manualDistDropdown.clear();
+        manualVillDropdown.clear();
+      }
+    );
+
+    const manualCityDropdown = initSearchableDropdown(
+      manualCityInput,
+      manualCityList,
+      async () => {
+        const provCode = manualProvDropdown.getSelectedCode();
+        if (!provCode) return [];
+        return getRegencies(provCode);
+      },
+      async (city) => {
+        manualDistDropdown.clear();
+        manualVillDropdown.clear();
+        const districts = await getDistricts(city.code);
+        manualDistDropdown.setOptions(districts);
+      },
+      () => {
+        manualDistDropdown.clear();
+        manualVillDropdown.clear();
+      }
+    );
+
+    const manualDistDropdown = initSearchableDropdown(
+      manualDistInput,
+      manualDistList,
+      async () => {
+        const cityCode = manualCityDropdown.getSelectedCode();
+        if (!cityCode) return [];
+        return getDistricts(cityCode);
+      },
+      async (dist) => {
+        manualVillDropdown.clear();
+        const villages = await getVillages(dist.code);
+        manualVillDropdown.setOptions(villages);
+      },
+      () => {
+        manualVillDropdown.clear();
+      }
+    );
+
+    const manualVillDropdown = initSearchableDropdown(
+      manualVillInput,
+      manualVillList,
+      async () => {
+        const distCode = manualDistDropdown.getSelectedCode();
+        if (!distCode) return [];
+        return getVillages(distCode);
+      },
+      (vill) => {
+        if (vill.postal_codes && vill.postal_codes.length > 0 && manualZipInput) {
+          manualZipInput.value = vill.postal_codes[0];
+        }
+      },
+      () => {}
+    );
+
+    custModeSelectBtn?.addEventListener('click', () => {
+      isCustomerManual = false;
+      custModeSelectBtn.className = 'px-3.5 py-1.5 rounded-lg bg-white text-primary shadow-xs transition-all cursor-pointer';
+      custModeManualBtn.className = 'px-3.5 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 transition-all cursor-pointer';
+      custSelectWrapper?.classList.remove('hidden');
+      custManualWrapper?.classList.add('hidden');
+      if (customerSelect) customerSelect.required = true;
+      if (manualCustomerName) manualCustomerName.required = false;
+      if (manualCustomerEmail) manualCustomerEmail.required = false;
+      if (manualCustomerPhone) manualCustomerPhone.required = false;
+    });
+
+    custModeManualBtn?.addEventListener('click', () => {
+      isCustomerManual = true;
+      custModeManualBtn.className = 'px-3.5 py-1.5 rounded-lg bg-white text-primary shadow-xs transition-all cursor-pointer';
+      custModeSelectBtn.className = 'px-3.5 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 transition-all cursor-pointer';
+      custSelectWrapper?.classList.add('hidden');
+      custManualWrapper?.classList.remove('hidden');
+      if (customerSelect) {
+        customerSelect.required = false;
+        customerSelect.value = '';
+      }
+      if (manualCustomerName) manualCustomerName.required = true;
+      if (manualCustomerEmail) manualCustomerEmail.required = true;
+      if (manualCustomerPhone) manualCustomerPhone.required = true;
+    });
+
     const modalIds = ['addOrderModal', 'viewOrderModal', 'deleteModal', 'editOrderModal'];
 
     document.querySelectorAll('#addOrderModal, #viewOrderModal, #deleteModal, #toast').forEach((el) => {
@@ -299,6 +786,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
+    function formatDateTimeWIB(dateStr: string): string {
+      if (!dateStr) return '--';
+      const d = new Date(dateStr);
+      const datePart = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${datePart}, ${hours}:${minutes} WIB`;
+    }
+
     function formatPrice(price: number): string {
       return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price);
     }
@@ -315,11 +811,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function getStatusBadgeClass(status: string): string {
       const classes: Record<string, string> = {
         pending: 'bg-yellow-500',
-        confirmed: 'bg-blue-500',
+        waiting_confirmation: 'bg-indigo-600',
+        confirmed: 'bg-emerald-600',
+        processed: 'bg-sky-500',
+        diproses: 'bg-sky-500',
         shipped: 'bg-purple-500',
         delivered: 'bg-green-500',
         cancelled: 'bg-red-500',
-        completed: 'bg-green-500',
+        completed: 'bg-teal-600',
       };
       return classes[status] || 'bg-stone-500';
     }
@@ -370,29 +869,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       customerSelect.innerHTML = `<option value="">Select customer</option>${options}`;
     }
     
-    function generateNextInvoice() {
+    function generateNextInvoice(): string {
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const dateStr = `${year}${month}${day}`;
-      const prefix = `INV-${dateStr}`;
-      
-      let maxSeq = 0;
-      if (allOrders && allOrders.length > 0) {
-        allOrders.forEach(o => {
-          if (o.invoice && o.invoice.startsWith(prefix)) {
-            const seqPart = o.invoice.substring(prefix.length);
-            const seq = parseInt(seqPart, 10);
-            if (!isNaN(seq) && seq > maxSeq) {
-              maxSeq = seq;
-            }
-          }
-        });
-      }
-      
-      const nextSeq = maxSeq + 1;
-      return `${prefix}${String(nextSeq).padStart(3, '0')}`;
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = String(now.getFullYear());
+      const seq = Date.now().toString().slice(-4);
+      const uniqueChars = Math.random().toString(36).substring(2, 6).toUpperCase();
+      return `INV-${d}${m}${y}-${seq}-${uniqueChars}`;
     }
 
     function addItemRow() {
@@ -407,7 +891,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       let options = '<option value="">Choose item...</option>';
       if (orderBooks.length > 0) {
         options += '<optgroup label="Books">';
-        orderBooks.forEach(b => options += `<option value="book:${b.id}" data-price="${b.price}" data-title="${escapeHtml(b.title)}">${escapeHtml(b.title)} - ${formatPrice(b.price)}</option>`);
+        orderBooks.forEach(b => {
+          const fmt = (b.format || '').trim();
+          const label = fmt ? `${b.title} (${fmt})` : b.title;
+          options += `<option value="book:${b.id}" data-price="${b.price}" data-title="${escapeHtml(b.title)}" data-format="${escapeHtml(fmt)}">${escapeHtml(label)} - ${formatPrice(b.price)}</option>`;
+        });
         options += '</optgroup>';
       }
       if (orderServices.length > 0) {
@@ -463,13 +951,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function syncAllItems() {
       const rows = document.querySelectorAll('.item-row');
       const summaryTotalQty = document.getElementById('summaryTotalQty');
+      const summarySubtotalItems = document.getElementById('summarySubtotalItems');
+      const summaryShippingPrice = document.getElementById('summaryShippingPrice');
+      const summaryServiceFee = document.getElementById('summaryServiceFee');
+      const summaryTax = document.getElementById('summaryTax');
+      const summaryDiscount = document.getElementById('summaryDiscount');
+      const summaryRowDiscount = document.getElementById('summaryRowDiscount');
+
       const totalQtyInput = addOrderForm.querySelector('input[name="total_qty"]') as HTMLInputElement;
       const totalPriceInput = addOrderForm.querySelector('input[name="total_price"]') as HTMLInputElement;
 
       if (!itemsSummary || !estimatedTotal || !summaryTotalQty || !itemsHidden || !totalQtyInput || !totalPriceInput) return;
 
       let totalQty = 0;
-      let totalPrice = 0;
+      let itemsSubtotal = 0;
+      let hasPhysicalBook = false;
+      let hasInvalidItem = false;
+      let validItemsCount = 0;
       const itemStrings: string[] = [];
 
       rows.forEach(row => {
@@ -477,30 +975,88 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const qtyInput = row.querySelector('.item-qty') as HTMLInputElement;
         const opt = select.selectedOptions[0];
 
-        if (opt && opt.value) {
-          const title = opt.dataset.title || '';
-          const price = parseInt(opt.dataset.price || '0', 10);
-          const qty = parseInt(qtyInput.value || '1', 10);
-          
-          totalQty += qty;
-          totalPrice += (price * qty);
-          itemStrings.push(`${title} x${qty}`);
+        if (!opt || !opt.value) {
+          hasInvalidItem = true;
+          return;
         }
+
+        validItemsCount++;
+        const title = opt.dataset.title || '';
+        const price = parseInt(opt.dataset.price || '0', 10);
+        const qty = parseInt(qtyInput.value || '1', 10);
+        const format = (opt.dataset.format || '').toLowerCase();
+        if (format.includes('softcover') || format.includes('hardcover')) {
+          hasPhysicalBook = true;
+        }
+        
+        totalQty += qty;
+        itemsSubtotal += (price * qty);
+        itemStrings.push(`${title} x${qty}`);
       });
 
+      const shippingContainer = document.getElementById('shippingFieldsContainer');
+      const shippingNameInput = document.querySelector('input[name="shipping_name"]') as HTMLInputElement;
+      const shippingServiceInput = document.querySelector('input[name="shipping_service"]') as HTMLInputElement;
+      if (shippingContainer) {
+        if (hasPhysicalBook) {
+          shippingContainer.classList.remove('hidden');
+        } else {
+          shippingContainer.classList.add('hidden');
+          if (shippingNameInput) shippingNameInput.value = '';
+          if (shippingServiceInput) shippingServiceInput.value = '';
+        }
+      }
+
+      // Additional fee calculations
+      const shipPrice = Math.max(0, parseInt(orderShippingPriceInput?.value || '0', 10) || 0);
+      const sFee = Math.max(0, parseInt(orderServiceFeeInput?.value || '0', 10) || 0);
+      const taxRate = Math.max(0, parseFloat(orderTaxRateInput?.value || '0') || 0);
+      const tax = Math.round((itemsSubtotal * taxRate) / 100);
+      if (orderTaxHidden) orderTaxHidden.value = String(tax);
+      const disc = Math.max(0, parseInt(orderDiscountInput?.value || '0', 10) || 0);
+
+      let grandTotal = itemsSubtotal + shipPrice + sFee + tax - disc;
+      if (grandTotal < 0) grandTotal = 0;
+
       summaryTotalQty.textContent = String(totalQty);
+      if (summarySubtotalItems) summarySubtotalItems.textContent = formatPrice(itemsSubtotal);
+      if (summaryShippingPrice) summaryShippingPrice.textContent = formatPrice(shipPrice);
+      if (summaryServiceFee) summaryServiceFee.textContent = formatPrice(sFee);
+      if (summaryTax) summaryTax.textContent = taxRate > 0 ? `${formatPrice(tax)} (${taxRate}%)` : formatPrice(tax);
+      if (summaryRowDiscount && summaryDiscount) {
+        if (disc > 0) {
+          summaryRowDiscount.classList.remove('hidden');
+          summaryDiscount.textContent = `-${formatPrice(disc)}`;
+        } else {
+          summaryRowDiscount.classList.add('hidden');
+        }
+      }
+
       if (itemStrings.length === 0) {
         itemsSummary.textContent = 'No items added.';
-        estimatedTotal.textContent = 'Rp 0';
         itemsHidden.value = '';
         totalQtyInput.value = '0';
-        totalPriceInput.value = '0';
       } else {
         itemsSummary.textContent = itemStrings.join(', ');
-        estimatedTotal.textContent = formatPrice(totalPrice);
         itemsHidden.value = itemStrings.join(', ');
         totalQtyInput.value = String(totalQty);
-        totalPriceInput.value = String(totalPrice);
+      }
+
+      estimatedTotal.textContent = formatPrice(grandTotal);
+      totalPriceInput.value = String(grandTotal);
+
+      // Disable or enable Save Order button based on valid items
+      const canSave = !hasInvalidItem && validItemsCount > 0;
+      if (saveOrderBtn) {
+        if (!canSave) {
+          saveOrderBtn.disabled = true;
+          saveOrderBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          saveOrderBtn.title = 'Silakan pilih produk/layanan yang valid (tidak boleh "Choose item...")';
+        } else {
+          saveOrderBtn.disabled = false;
+          saveOrderBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          saveOrderBtn.title = '';
+        }
       }
     }
 
@@ -573,18 +1129,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       tableBody.innerHTML = paged
         .map((order, idx) => {
           const borderCls = idx < paged.length - 1 ? 'border-b border-stone-200/10' : '';
-          return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${borderCls}" data-id="${order.id}">
-            <td class="py-4 md:py-5 px-3 md:px-4">
+          return `<tr class="group hover:bg-surface-container-low/50 transition-colors whitespace-nowrap ${borderCls}" data-id="${order.id}">
+            <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">
               <p class="font-bold text-primary text-sm md:text-base font-mono">${order.invoice}</p>
             </td>
-            <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 font-medium">${order.user_name || order.user_id}</td>
-            <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 text-xs">${order.total_qty}</td>
-            <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 font-semibold">${formatPrice(order.total_price)}</td>
-            <td class="py-4 md:py-5 px-3 md:px-4">
-              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeClass(order.status)}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+            <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 font-medium whitespace-nowrap">${order.user_name || order.user_id}</td>
+            <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 text-xs whitespace-nowrap">${order.total_qty}</td>
+            <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 font-semibold whitespace-nowrap">${formatPrice(order.total_price)}</td>
+            <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeClass(order.status)}">${order.status.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</span>
             </td>
-            <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600 text-xs">${formatDate(order.created_at)}</td>
-            <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+            <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600 text-xs whitespace-nowrap">${formatDate(order.created_at)}</td>
+            <td class="py-4 md:py-5 px-3 md:px-4 text-right whitespace-nowrap">
               <div class="flex items-center justify-end gap-2">
                 <button class="viewBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="View" data-id="${order.id}">
                   <span class="material-symbols-outlined text-lg">visibility</span>
@@ -637,7 +1193,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
           document.getElementById('viewOrderId')!.textContent = order.invoice;
           const statusBadge = document.getElementById('viewOrderStatus')!;
-          statusBadge.textContent = order.status.charAt(0).toUpperCase() + order.status.slice(1);
+          statusBadge.textContent = order.status.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
           statusBadge.className = `inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeClass(order.status)}`;
           document.getElementById('viewOrderCustomer')!.textContent = order.user_name || order.user_id;
           document.getElementById('viewOrderPaymentType')!.textContent = order.payment_type || '--';
@@ -657,10 +1213,107 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           } else {
             itemsWrap.innerHTML = '<p class="text-sm text-stone-500 italic">No item details found.</p>';
           }
+          currentViewingOrder = order;
           document.getElementById('viewOrderNotes')!.textContent = order.notes || '--';
-          document.getElementById('viewOrderTotal')!.textContent = formatPrice(order.total_price);
-          document.getElementById('viewOrderCreated')!.textContent = formatDate(order.created_at);
-          document.getElementById('viewOrderUpdated')!.textContent = formatDate(order.updated_at);
+
+          // Detailed Cost Breakdown
+          const itemsTotal = order.items ? order.items.reduce((sum: number, item: any) => sum + (item.total_price || 0), 0) : 0;
+          const shippingPrice = order.shipping_price || 0;
+          const serviceFee = order.service_fee || 0;
+          const tax = order.tax || 0;
+          const discount = order.discount || 0;
+          const totalPrice = order.total_price || 0;
+          const baseCalculated = itemsTotal + shippingPrice + serviceFee + tax - discount;
+          const uniqueCode = totalPrice > baseCalculated ? (totalPrice - baseCalculated) : 0;
+
+          document.getElementById('viewOrderSubtotal')!.textContent = formatPrice(itemsTotal);
+
+          const shippingRow = document.getElementById('viewOrderShippingRow')!;
+          const shippingLabel = document.getElementById('viewOrderShippingLabel')!;
+          const shippingCostEl = document.getElementById('viewOrderShippingCost')!;
+          if (shippingPrice > 0) {
+            const courierName = order.shipping_name && order.shipping_name !== '-' ? order.shipping_name : 'Kurir';
+            const courierService = order.shipping_service && order.shipping_service !== '-' ? ` (${order.shipping_service})` : '';
+            shippingLabel.textContent = `Biaya Pengiriman (${courierName}${courierService})`;
+            shippingCostEl.textContent = formatPrice(shippingPrice);
+            shippingRow.classList.remove('hidden');
+          } else {
+            shippingLabel.textContent = 'Biaya Pengiriman';
+            shippingCostEl.textContent = 'Gratis Ongkir (E-Book / Layanan)';
+            shippingRow.classList.remove('hidden');
+          }
+
+          const serviceFeeRow = document.getElementById('viewOrderServiceFeeRow')!;
+          if (serviceFee > 0) {
+            serviceFeeRow.classList.remove('hidden');
+            document.getElementById('viewOrderServiceFee')!.textContent = formatPrice(serviceFee);
+          } else {
+            serviceFeeRow.classList.add('hidden');
+          }
+
+          const taxRow = document.getElementById('viewOrderTaxRow')!;
+          if (tax > 0) {
+            taxRow.classList.remove('hidden');
+            document.getElementById('viewOrderTax')!.textContent = formatPrice(tax);
+          } else {
+            taxRow.classList.add('hidden');
+          }
+
+          const discountRow = document.getElementById('viewOrderDiscountRow')!;
+          if (discount > 0) {
+            discountRow.classList.remove('hidden');
+            document.getElementById('viewOrderDiscount')!.textContent = `-${formatPrice(discount)}`;
+          } else {
+            discountRow.classList.add('hidden');
+          }
+
+          const uniqueCodeRow = document.getElementById('viewOrderUniqueCodeRow')!;
+          if (uniqueCode > 0) {
+            uniqueCodeRow.classList.remove('hidden');
+            document.getElementById('viewOrderUniqueCode')!.textContent = String(uniqueCode);
+          } else {
+            uniqueCodeRow.classList.add('hidden');
+          }
+
+          document.getElementById('viewOrderTotal')!.textContent = formatPrice(totalPrice);
+          document.getElementById('viewOrderCreated')!.textContent = formatDateTimeWIB(order.created_at);
+          document.getElementById('viewOrderUpdated')!.textContent = formatDateTimeWIB(order.updated_at);
+
+          const adminConfirmBtn = document.getElementById('adminConfirmPaymentBtn') as HTMLButtonElement;
+          const adminProcessBtn = document.getElementById('adminProcessOrderBtn') as HTMLButtonElement;
+          const st = (order.status || '').toLowerCase();
+
+          if (adminConfirmBtn) {
+            if (st === 'pending' || st === 'waiting_confirmation') {
+              adminConfirmBtn.classList.remove('hidden');
+              adminConfirmBtn.disabled = false;
+              adminConfirmBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">check_circle</span> Konfirmasi Pembayaran`;
+            } else {
+              adminConfirmBtn.classList.add('hidden');
+            }
+          }
+
+          if (adminProcessBtn) {
+            if (st === 'confirmed') {
+              adminProcessBtn.classList.remove('hidden');
+              adminProcessBtn.disabled = false;
+              adminProcessBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">inventory_2</span> Proses Pesanan`;
+            } else {
+              adminProcessBtn.classList.add('hidden');
+            }
+          }
+
+          const adminStatusWrapper = document.getElementById('adminStatusUpdateWrapper');
+          const adminStatusDropdown = document.getElementById('adminStatusDropdown') as HTMLSelectElement;
+          if (adminStatusWrapper && adminStatusDropdown) {
+            if (['processed', 'shipped', 'delivered', 'completed'].includes(st)) {
+              adminStatusWrapper.classList.remove('hidden');
+              adminStatusDropdown.value = st;
+            } else {
+              adminStatusWrapper.classList.add('hidden');
+            }
+          }
+
           openModal('viewOrderModal');
         });
       });
@@ -685,6 +1338,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     document.getElementById('addOrderBtn')?.addEventListener('click', () => {
       addOrderForm.reset();
+      isCustomerManual = false;
+      if (custModeSelectBtn && custModeManualBtn) {
+        custModeSelectBtn.className = 'px-3.5 py-1.5 rounded-lg bg-white text-primary shadow-xs transition-all cursor-pointer';
+        custModeManualBtn.className = 'px-3.5 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 transition-all cursor-pointer';
+      }
+      custSelectWrapper?.classList.remove('hidden');
+      custManualWrapper?.classList.add('hidden');
+      if (customerSelect) customerSelect.required = true;
+      if (manualCustomerName) manualCustomerName.required = false;
+      if (manualCustomerEmail) manualCustomerEmail.required = false;
+      if (manualCustomerPhone) manualCustomerPhone.required = false;
+
+      manualProvDropdown.clear();
+      manualCityDropdown.clear();
+      manualDistDropdown.clear();
+      manualVillDropdown.clear();
+      if (manualCustomerAddress) manualCustomerAddress.value = '';
+      if (manualCustomerZipCode) manualCustomerZipCode.value = '';
+
+      const shippingContainer = document.getElementById('shippingFieldsContainer');
+      if (shippingContainer) shippingContainer.classList.add('hidden');
+
       const itemsList = document.getElementById('itemsList');
       if (itemsList) itemsList.innerHTML = '';
       
@@ -692,6 +1367,21 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       if (invoiceInput) {
         invoiceInput.value = generateNextInvoice();
       }
+
+      if (orderShippingPriceInput) orderShippingPriceInput.value = '0';
+      if (orderDiscountInput) orderDiscountInput.value = '0';
+      if (orderTaxRateInput) orderTaxRateInput.value = '0';
+      if (orderTaxHidden) orderTaxHidden.value = '0';
+
+      // Load settings default for tax percentage and service fee
+      settingsApi.get().then(res => {
+        if (res?.data) {
+          const defaultTaxRate = res.data.tax_percentage !== undefined ? res.data.tax_percentage : (res.data.tax || 0);
+          if (orderTaxRateInput) orderTaxRateInput.value = String(defaultTaxRate);
+          if (orderServiceFeeInput) orderServiceFeeInput.value = String(res.data.service_fee || 0);
+          syncAllItems();
+        }
+      }).catch(() => {});
 
       populateCustomerSelect();
       syncAllItems();
@@ -705,13 +1395,63 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     saveOrderBtn?.addEventListener('click', async () => {
       const formData = new FormData(addOrderForm);
-      const userId = String(formData.get('user_id') || '').trim();
+      const userId = isCustomerManual ? '' : String(formData.get('user_id') || '').trim();
+      const customerName = isCustomerManual ? String(formData.get('customer_name') || '').trim() : '';
+      const customerEmail = isCustomerManual ? String(formData.get('customer_email') || '').trim() : '';
+      const customerPhone = isCustomerManual ? String(formData.get('customer_phone') || '').trim() : '';
+
+      const manualStreet = manualCustomerAddress?.value.trim() || '';
+      const manualProv = manualProvDropdown.getSelectedName();
+      const manualCity = manualCityDropdown.getSelectedName();
+      const manualDist = manualDistDropdown.getSelectedName();
+      const manualVill = manualVillDropdown.getSelectedName();
+      const manualZip = manualCustomerZipCode?.value.trim() || '';
+
+      const addressParts = [
+        manualStreet,
+        manualVill ? `Kel. ${manualVill}` : '',
+        manualDist ? `Kec. ${manualDist}` : '',
+        manualCity,
+        manualProv,
+        manualZip
+      ].filter(Boolean);
+      const combinedAddress = addressParts.join(', ');
+
       const totalQty = parseInt(String(formData.get('total_qty') || '0'), 10);
       const totalPrice = parseInt(String(formData.get('total_price') || '0'), 10);
-      const status = String(formData.get('status') || 'pending').trim().toLowerCase();
 
-      if (!userId || Number.isNaN(totalQty) || totalQty <= 0 || Number.isNaN(totalPrice) || totalPrice <= 0 || !status) {
-        showToast('Please fill in all required fields', 'error');
+      // Validate items: cannot be empty or "Choose item..."
+      let hasInvalidItem = false;
+      let validItemsCount = 0;
+      const rows = document.querySelectorAll('.item-row');
+      rows.forEach(row => {
+        const select = row.querySelector('.item-select') as HTMLSelectElement;
+        if (!select || !select.value) {
+          hasInvalidItem = true;
+        } else {
+          validItemsCount++;
+        }
+      });
+
+      if (hasInvalidItem || validItemsCount === 0) {
+        showToast('Silakan pilih produk atau layanan pada Order Items (tidak boleh "Choose item...")', 'error');
+        return;
+      }
+
+      if (isCustomerManual) {
+        if (!customerName || !customerEmail || !customerPhone) {
+          showToast('Nama lengkap, Email, dan No. WhatsApp/HP customer wajib diisi', 'error');
+          return;
+        }
+      } else {
+        if (!userId) {
+          showToast('Silakan pilih customer terdaftar', 'error');
+          return;
+        }
+      }
+
+      if (Number.isNaN(totalQty) || totalQty <= 0 || Number.isNaN(totalPrice) || totalPrice <= 0) {
+        showToast('Silakan lengkapi item dan biaya pesanan dengan benar', 'error');
         return;
       }
 
@@ -719,27 +1459,43 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       saveOrderBtn.textContent = 'Saving...';
 
       try {
-        await createOrder({
+        const calculatedTax = Math.max(0, parseInt(String(formData.get('tax') || orderTaxHidden?.value || '0'), 10) || 0);
+        const createdOrder = await createAdminOrder({
           invoice: String(formData.get('invoice') || '').trim(),
           user_id: userId,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          customer_address: combinedAddress || manualStreet,
+          customer_province: manualProv,
+          customer_city: manualCity,
+          customer_district: manualDist,
+          customer_village: manualVill,
+          customer_zip_code: manualZip,
           items: String(formData.get('items') || '').trim(),
           notes: String(formData.get('notes') || '').trim(),
           total_qty: totalQty,
           total_weight: 0,
           total_price: totalPrice,
-          payment_type: String(formData.get('payment_type') || '').trim(),
-          status,
+          payment_type: String(formData.get('payment_type') || 'Bank Transfer').trim(),
+          status: 'pending',
           shipping_name: String(formData.get('shipping_name') || '').trim(),
           shipping_service: String(formData.get('shipping_service') || '').trim(),
-          shipping_price: 0,
+          shipping_price: Math.max(0, parseInt(String(formData.get('shipping_price') || '0'), 10) || 0),
+          tax: calculatedTax,
+          service_fee: Math.max(0, parseInt(String(formData.get('service_fee') || '0'), 10) || 0),
+          discount: Math.max(0, parseInt(String(formData.get('discount') || '0'), 10) || 0),
         });
 
         closeModalById('addOrderModal');
-        showToast('Order created successfully');
+        showToast('Order berhasil dibuat & invoice telah dikirim ke email!');
         await loadOrders();
+
+        // Redirect ke halaman khusus invoice
+        const invParam = encodeURIComponent(createdOrder.invoice || createdOrder.id);
+        window.location.href = `/invoice?inv=${invParam}`;
       } catch (err: any) {
         showToast(err.message || 'Failed to create order', 'error');
-      } finally {
         saveOrderBtn.disabled = false;
         saveOrderBtn.textContent = 'Save Order';
       }
@@ -776,6 +1532,94 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       selectedStatus = statusFilter.value;
       currentPage = 1;
       loadOrders();
+    });
+
+    const adminConfirmPaymentBtn = document.getElementById('adminConfirmPaymentBtn') as HTMLButtonElement;
+    const adminProcessOrderBtn = document.getElementById('adminProcessOrderBtn') as HTMLButtonElement;
+
+    adminConfirmPaymentBtn?.addEventListener('click', async () => {
+      if (!currentViewingOrder) return;
+      const originalText = adminConfirmPaymentBtn.innerHTML;
+      adminConfirmPaymentBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Memproses...`;
+      adminConfirmPaymentBtn.disabled = true;
+
+      try {
+        await confirmAdminOrderPayment(currentViewingOrder.id);
+        showToast('Pembayaran berhasil dikonfirmasi dan email invoice status "Lunas" telah dikirim!', 'success');
+        currentViewingOrder.status = 'confirmed';
+        const statusBadge = document.getElementById('viewOrderStatus')!;
+        statusBadge.textContent = 'Confirmed';
+        statusBadge.className = `inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeClass('confirmed')}`;
+        document.getElementById('viewOrderUpdated')!.textContent = formatDateTimeWIB(new Date().toISOString());
+        adminConfirmPaymentBtn.classList.add('hidden');
+        if (adminProcessOrderBtn) {
+          adminProcessOrderBtn.classList.remove('hidden');
+          adminProcessOrderBtn.disabled = false;
+          adminProcessOrderBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">inventory_2</span> Proses Pesanan`;
+        }
+        await loadOrders();
+      } catch (err: any) {
+        showToast(err.message || 'Gagal konfirmasi pembayaran', 'error');
+        adminConfirmPaymentBtn.innerHTML = originalText;
+        adminConfirmPaymentBtn.disabled = false;
+      }
+    });
+
+    adminProcessOrderBtn?.addEventListener('click', async () => {
+      if (!currentViewingOrder) return;
+      const originalText = adminProcessOrderBtn.innerHTML;
+      adminProcessOrderBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Memproses...`;
+      adminProcessOrderBtn.disabled = true;
+
+      try {
+        await updateOrderStatus(currentViewingOrder.id, 'processed');
+        showToast('Pesanan berhasil diproses dan email notifikasi status "Diproses" telah dikirim!', 'success');
+        currentViewingOrder.status = 'processed';
+        const statusBadge = document.getElementById('viewOrderStatus')!;
+        statusBadge.textContent = 'Processed';
+        statusBadge.className = `inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeClass('processed')}`;
+        document.getElementById('viewOrderUpdated')!.textContent = formatDateTimeWIB(new Date().toISOString());
+        adminProcessOrderBtn.classList.add('hidden');
+        const adminStatusWrapper = document.getElementById('adminStatusUpdateWrapper');
+        const adminStatusDropdown = document.getElementById('adminStatusDropdown') as HTMLSelectElement;
+        if (adminStatusWrapper && adminStatusDropdown) {
+          adminStatusWrapper.classList.remove('hidden');
+          adminStatusDropdown.value = 'processed';
+        }
+        await loadOrders();
+      } catch (err: any) {
+        showToast(err.message || 'Gagal memproses pesanan', 'error');
+        adminProcessOrderBtn.innerHTML = originalText;
+        adminProcessOrderBtn.disabled = false;
+      }
+    });
+
+    const adminUpdateStatusBtn = document.getElementById('adminUpdateStatusBtn') as HTMLButtonElement;
+    adminUpdateStatusBtn?.addEventListener('click', async () => {
+      if (!currentViewingOrder) return;
+      const adminStatusDropdown = document.getElementById('adminStatusDropdown') as HTMLSelectElement;
+      if (!adminStatusDropdown) return;
+      const newStatus = adminStatusDropdown.value;
+
+      const originalHtml = adminUpdateStatusBtn.innerHTML;
+      adminUpdateStatusBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-base">sync</span> Menyimpan...`;
+      adminUpdateStatusBtn.disabled = true;
+
+      try {
+        await updateOrderStatus(currentViewingOrder.id, newStatus);
+        showToast(`Status pesanan berhasil diubah menjadi "${newStatus.toUpperCase()}"!`, 'success');
+        currentViewingOrder.status = newStatus;
+        const statusBadge = document.getElementById('viewOrderStatus')!;
+        statusBadge.textContent = newStatus.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+        statusBadge.className = `inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusBadgeClass(newStatus)}`;
+        document.getElementById('viewOrderUpdated')!.textContent = formatDateTimeWIB(new Date().toISOString());
+        await loadOrders();
+      } catch (err: any) {
+        showToast(err.message || 'Gagal mengubah status pesanan', 'error');
+      } finally {
+        adminUpdateStatusBtn.innerHTML = originalHtml;
+        adminUpdateStatusBtn.disabled = false;
+      }
     });
 
     Promise.all([loadCustomers(), loadOrderItems(), loadOrders()]);

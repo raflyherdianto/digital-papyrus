@@ -38,7 +38,7 @@ func (r *ReviewRepository) Create(rev *model.Review) error {
 	}
 
 	query := `INSERT INTO reviews (id, user_id, order_id, service_id, book_id, details, rating, created_at, updated_at)
-			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 	_, err = r.db.Exec(query, rev.ID, rev.UserID, rev.OrderID, string(serviceIDJSON), string(bookIDJSON), string(detailsJSON), string(ratingJSON), rev.CreatedAt, rev.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("repository: failed to insert review: %w", err)
@@ -52,7 +52,7 @@ func (r *ReviewRepository) GetByID(id string) (*model.Review, error) {
 	query := `SELECT r.id, r.user_id, r.order_id, COALESCE(o.invoice, ''), r.service_id, r.book_id, r.details, r.rating, r.created_at, r.updated_at
 			  FROM reviews r 
 			  LEFT JOIN orders o ON r.order_id = o.id
-			  WHERE r.id = ?`
+			  WHERE r.id = $1`
 	row := r.db.QueryRow(query, id)
 
 	var rev model.Review
@@ -86,7 +86,7 @@ func (r *ReviewRepository) GetAll(page, limit int) ([]*model.Review, int, error)
 	query := `SELECT r.id, r.user_id, r.order_id, COALESCE(o.invoice, ''), r.service_id, r.book_id, r.details, r.rating, r.created_at, r.updated_at
 			  FROM reviews r 
 			  LEFT JOIN orders o ON r.order_id = o.id
-			  ORDER BY r.created_at DESC LIMIT ? OFFSET ?`
+			  ORDER BY r.created_at DESC LIMIT $1 OFFSET $2`
 
 	rows, err := r.db.Query(query, limit, offset)
 	if err != nil {
@@ -123,8 +123,8 @@ func (r *ReviewRepository) Update(rev *model.Review) error {
 
 	rev.UpdatedAt = time.Now()
 
-	query := `UPDATE reviews SET service_id = ?, book_id = ?, details = ?, rating = ?, updated_at = ?
-			  WHERE id = ?`
+	query := `UPDATE reviews SET service_id = $1, book_id = $2, details = $3, rating = $4, updated_at = $5
+			  WHERE id = $6`
 	res, err := r.db.Exec(query, string(serviceIDJSON), string(bookIDJSON), string(detailsJSON), string(ratingJSON), rev.UpdatedAt, rev.ID)
 	if err != nil {
 		return fmt.Errorf("repository: failed to update review: %w", err)
@@ -140,7 +140,7 @@ func (r *ReviewRepository) Update(rev *model.Review) error {
 
 // Delete removes a review by ID.
 func (r *ReviewRepository) Delete(id string) error {
-	query := `DELETE FROM reviews WHERE id = ?`
+	query := `DELETE FROM reviews WHERE id = $1`
 	res, err := r.db.Exec(query, id)
 	if err != nil {
 		return err
@@ -157,7 +157,7 @@ func (r *ReviewRepository) Delete(id string) error {
 // CheckOrderCompleted verifies if an order exists for the user and is delivered/completed.
 func (r *ReviewRepository) CheckOrderCompleted(userID, orderID string) error {
 	var status string
-	err := r.db.QueryRow(`SELECT status FROM orders WHERE id = ? AND user_id = ?`, orderID, userID).Scan(&status)
+	err := r.db.QueryRow(`SELECT status FROM orders WHERE id = $1 AND user_id = $2`, orderID, userID).Scan(&status)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return errors.New("order not found or does not belong to user")

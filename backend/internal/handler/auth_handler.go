@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"log"
 
 	"github.com/gin-gonic/gin"
 
@@ -72,11 +73,12 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	result, err := h.authService.Register(input)
 	if err != nil {
+		log.Printf("[REGISTER ERROR] %v", err)
 		if err.Error() == "email already exists" {
 			response.Conflict(c, "Email already registered")
 			return
 		}
-		response.InternalError(c, "An error occurred during registration")
+		response.InternalError(c, err.Error())
 		return
 	}
 
@@ -102,6 +104,39 @@ func (h *AuthHandler) Me(c *gin.Context) {
 	}
 
 	response.OK(c, "User retrieved successfully", user)
+}
+
+// UpdateProfile handles PUT /api/v1/auth/me
+func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+	userID, exists := c.Get(middleware.ContextKeyUserID)
+	if !exists {
+		response.Unauthorized(c, "Authentication required")
+		return
+	}
+
+	var input struct {
+		Name        string `json:"name" binding:"required"`
+		PhoneNumber string `json:"phone_number"`
+		Address     string `json:"address"`
+		Province    string `json:"province"`
+		City        string `json:"city"`
+		Regency     string `json:"regency"`
+		Village     string `json:"village"`
+		ZipCode     string `json:"zip_code"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Invalid request body", nil)
+		return
+	}
+
+	user, err := h.authService.UpdateProfile(userID.(string), input.Name, input.PhoneNumber, input.Address, input.Province, input.City, input.Regency, input.Village, input.ZipCode)
+	if err != nil {
+		response.InternalError(c, "Failed to update profile: "+err.Error())
+		return
+	}
+
+	response.OK(c, "Profile updated successfully", user)
 }
 
 // Logout handles POST /api/v1/auth/logout
@@ -148,3 +183,46 @@ func (h *AuthHandler) VerifyOTP(c *gin.Context) {
 
 	response.OK(c, "OTP verified successfully", nil)
 }
+
+// ForgotPassword handles POST /api/v1/auth/forgot-password
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	var input struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Valid email is required", nil)
+		return
+	}
+
+	if err := h.authService.RequestPasswordReset(input.Email); err != nil {
+		if err.Error() == "email not found" {
+			response.NotFound(c, "Email tidak terdaftar")
+			return
+		}
+		response.InternalError(c, "Failed to initiate password reset")
+		return
+	}
+
+	response.OK(c, "Password reset link has been sent to your email", nil)
+}
+
+// ResetPassword handles POST /api/v1/auth/reset-password
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	var input struct {
+		Email    string `json:"email" binding:"required,email"`
+		Token    string `json:"token" binding:"required"`
+		Password string `json:"password" binding:"required,min=6"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Email, token, and new password (min 6 chars) are required", nil)
+		return
+	}
+
+	if err := h.authService.ResetPassword(input.Email, input.Token, input.Password); err != nil {
+		response.BadRequest(c, err.Error(), nil)
+		return
+	}
+
+	response.OK(c, "Password has been successfully updated", nil)
+}
+

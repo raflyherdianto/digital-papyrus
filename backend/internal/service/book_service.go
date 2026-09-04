@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/digitalpapyrus/backend/internal/config"
 	"github.com/digitalpapyrus/backend/internal/model"
 	"github.com/digitalpapyrus/backend/internal/repository"
 	"github.com/digitalpapyrus/backend/pkg/validator"
@@ -16,11 +17,19 @@ import (
 // BookService handles book business logic.
 type BookService struct {
 	bookRepo *repository.BookRepository
+	userRepo *repository.UserRepository
+	orderRepo *repository.OrderRepository
+	cfg      *config.Config
 }
 
 // NewBookService creates a new BookService.
-func NewBookService(bookRepo *repository.BookRepository) *BookService {
-	return &BookService{bookRepo: bookRepo}
+func NewBookService(bookRepo *repository.BookRepository, userRepo *repository.UserRepository, orderRepo *repository.OrderRepository, cfg *config.Config) *BookService {
+	return &BookService{
+		bookRepo:  bookRepo,
+		userRepo:  userRepo,
+		orderRepo: orderRepo,
+		cfg:       cfg,
+	}
 }
 
 // CreateBookInput represents the request body for creating a book.
@@ -31,7 +40,6 @@ type CreateBookInput struct {
 	Price           int     `json:"price"`
 	Rating          float64 `json:"rating"`
 	Description     string  `json:"description"`
-	Synopsis        string  `json:"synopsis"`
 	ImageURL        string  `json:"image_url"`
 	CategoryID      string  `json:"category_id"`
 	Status          string  `json:"status"`
@@ -43,6 +51,11 @@ type CreateBookInput struct {
 	Language        string  `json:"language"`
 	Dimensions      string  `json:"dimensions"`
 	Weight          string  `json:"weight"`
+	ValidationStatus string `json:"validation_status"`
+	AmazonURL       string  `json:"amazon_url"`
+	GPlayBooksURL   string  `json:"gplay_books_url"`
+	ProductionCost  int     `json:"production_cost"`
+	RoyaltyFee      int     `json:"royalty_fee"`
 }
 
 // Validate checks all required fields and business rules.
@@ -99,7 +112,6 @@ func (s *BookService) CreateBook(input CreateBookInput) (*model.Book, error) {
 		Price:           input.Price,
 		Rating:          input.Rating,
 		Description:     input.Description,
-		Synopsis:        input.Synopsis,
 		ImageURL:        input.ImageURL,
 		CategoryID:     input.CategoryID,
 		Status:          input.Status,
@@ -111,6 +123,11 @@ func (s *BookService) CreateBook(input CreateBookInput) (*model.Book, error) {
 		Language:        input.Language,
 		Dimensions:      input.Dimensions,
 		Weight:          input.Weight,
+		ValidationStatus: input.ValidationStatus,
+		AmazonURL:       input.AmazonURL,
+		GPlayBooksURL:   input.GPlayBooksURL,
+		ProductionCost:  input.ProductionCost,
+		RoyaltyFee:      input.RoyaltyFee,
 	}
 
 	if err := s.bookRepo.Create(book); err != nil {
@@ -128,7 +145,6 @@ type UpdateBookInput struct {
 	Rating          *float64 `json:"rating"`
 	ReviewCount     *int     `json:"review_count"`
 	Description     *string  `json:"description"`
-	Synopsis        *string  `json:"synopsis"`
 	ImageURL        *string  `json:"image_url"`
 	CategoryID      *string  `json:"category_id"`
 	Status          *string  `json:"status"`
@@ -140,6 +156,10 @@ type UpdateBookInput struct {
 	Language        *string  `json:"language"`
 	Dimensions      *string  `json:"dimensions"`
 	Weight          *string  `json:"weight"`
+	AmazonURL       *string  `json:"amazon_url"`
+	GPlayBooksURL   *string  `json:"gplay_books_url"`
+	ProductionCost  *int     `json:"production_cost"`
+	RoyaltyFee      *int     `json:"royalty_fee"`
 }
 
 // UpdateBook applies partial updates to an existing book.
@@ -176,9 +196,6 @@ func (s *BookService) UpdateBook(id string, input UpdateBookInput) (*model.Book,
 	if input.Description != nil {
 		book.Description = *input.Description
 	}
-	if input.Synopsis != nil {
-		book.Synopsis = *input.Synopsis
-	}
 	if input.ImageURL != nil {
 		book.ImageURL = *input.ImageURL
 	}
@@ -212,6 +229,18 @@ func (s *BookService) UpdateBook(id string, input UpdateBookInput) (*model.Book,
 	if input.Weight != nil {
 		book.Weight = *input.Weight
 	}
+	if input.AmazonURL != nil {
+		book.AmazonURL = *input.AmazonURL
+	}
+	if input.GPlayBooksURL != nil {
+		book.GPlayBooksURL = *input.GPlayBooksURL
+	}
+	if input.ProductionCost != nil {
+		book.ProductionCost = *input.ProductionCost
+	}
+	if input.RoyaltyFee != nil {
+		book.RoyaltyFee = *input.RoyaltyFee
+	}
 
 	if err := s.bookRepo.Update(book); err != nil {
 		return nil, fmt.Errorf("book_service: update: %w", err)
@@ -220,7 +249,7 @@ func (s *BookService) UpdateBook(id string, input UpdateBookInput) (*model.Book,
 	// Clean up old image if it was replaced
 	if input.ImageURL != nil && *input.ImageURL != oldImageURL && oldImageURL != "" {
 		if strings.HasPrefix(oldImageURL, "/uploads/") {
-			oldPath := filepath.Join("frontend", "public", "uploads", filepath.Base(oldImageURL))
+			oldPath := getUploadPath(oldImageURL)
 			_ = os.Remove(oldPath)
 		}
 	}
@@ -244,9 +273,209 @@ func (s *BookService) DeleteBook(id string) error {
 
 	// Clean up image
 	if book.ImageURL != "" && strings.HasPrefix(book.ImageURL, "/uploads/") {
-		oldPath := filepath.Join("frontend", "public", "uploads", filepath.Base(book.ImageURL))
+		oldPath := getUploadPath(book.ImageURL)
 		_ = os.Remove(oldPath)
 	}
 
+	// Clean up draft
+	if book.DraftURL != "" && strings.HasPrefix(book.DraftURL, "/uploads/drafts/") {
+		oldDraftPath := getDraftUploadPath(book.DraftURL)
+		_ = os.Remove(oldDraftPath)
+	}
+
 	return nil
+}
+
+func getUploadPath(imageURL string) string {
+	baseName := filepath.Base(imageURL)
+	if _, err := os.Stat(filepath.Join("..", "frontend", "public")); err == nil {
+		return filepath.Join("..", "frontend", "public", "uploads", baseName)
+	}
+	return filepath.Join("frontend", "public", "uploads", baseName)
+}
+
+func getDraftUploadPath(draftURL string) string {
+	baseName := filepath.Base(draftURL)
+	if _, err := os.Stat(filepath.Join("..", "frontend", "public")); err == nil {
+		return filepath.Join("..", "frontend", "public", "uploads", "drafts", baseName)
+	}
+	return filepath.Join("frontend", "public", "uploads", "drafts", baseName)
+}
+
+// CreateCustomerBookInput represents the input for customer book draft creation.
+type CreateCustomerBookInput struct {
+	Title       string `json:"title"`
+	Author      string `json:"author"`
+	CategoryID  string `json:"category_id"`
+	Description string `json:"description"`
+	Publisher   string `json:"publisher"`
+	Format      string `json:"format"`
+	Language    string `json:"language"`
+	Pages       int    `json:"pages"`
+	Dimensions  string `json:"dimensions"`
+	Weight      string `json:"weight"`
+	DraftURL    string `json:"draft_url"`
+	OrderID     string `json:"order_id"`
+	UserID      string `json:"user_id"` // injected from auth context
+}
+
+// Validate checks fields submitted by a customer.
+func (i *CreateCustomerBookInput) Validate() map[string]string {
+	errs := make(map[string]string)
+	i.Title = validator.SanitizeString(i.Title)
+	i.Author = validator.SanitizeString(i.Author)
+
+	if i.Title == "" {
+		errs["title"] = "Title is required"
+	}
+	if i.Author == "" {
+		errs["author"] = "Author is required"
+	}
+	if i.CategoryID == "" {
+		errs["category_id"] = "Category is required"
+	}
+	if i.OrderID == "" {
+		errs["order_id"] = "Order/Invoice selection is required"
+	}
+	if i.DraftURL == "" {
+		errs["draft_url"] = "Book draft file is required"
+	}
+	return errs
+}
+
+// CreateCustomerBook creates a new book draft from a customer submission.
+func (s *BookService) CreateCustomerBook(input CreateCustomerBookInput) (*model.Book, error) {
+	book := &model.Book{
+		ID:               uuid.New().String(),
+		Title:            input.Title,
+		Author:           input.Author,
+		Description:      input.Description,
+		Publisher:        input.Publisher,
+		CategoryID:       input.CategoryID,
+		Format:           input.Format,
+		Language:         input.Language,
+		Pages:            input.Pages,
+		Dimensions:       input.Dimensions,
+		Weight:           input.Weight,
+		DraftURL:         input.DraftURL,
+		OrderID:          input.OrderID,
+		UserID:           input.UserID,
+		Status:           model.BookStatusDraft,
+		ValidationStatus: "pending",
+		Price:            0,
+		Rating:           0.0,
+		ReviewCount:      0,
+		Stock:            0,
+	}
+
+	if err := s.bookRepo.Create(book); err != nil {
+		return nil, fmt.Errorf("book_service: create customer book: %w", err)
+	}
+
+	// Send email notification asynchronously
+	go func() {
+		if err := s.SendDraftSubmissionEmail(book); err != nil {
+			fmt.Printf("Failed to send draft submission email: %v\n", err)
+		}
+	}()
+
+	return book, nil
+}
+
+// ValidateBook updates the validation status of a book request.
+func (s *BookService) ValidateBook(id string, validationStatus string, notes string) (*model.Book, error) {
+	book, err := s.bookRepo.FindByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("book_service: %w", err)
+	}
+	if book == nil {
+		return nil, nil
+	}
+
+	book.ValidationStatus = validationStatus
+	if notes != "" {
+		book.Notes = notes
+	}
+
+	if err := s.bookRepo.Update(book); err != nil {
+		return nil, fmt.Errorf("book_service: validate update: %w", err)
+	}
+
+	// Send corresponding email asynchronously
+	go func() {
+		if validationStatus == "approved" {
+			if err := s.SendValidationApproveEmail(book); err != nil {
+				fmt.Printf("Failed to send approval email: %v\n", err)
+			}
+		} else if validationStatus == "rejected" {
+			if err := s.SendValidationRejectEmail(book); err != nil {
+				fmt.Printf("Failed to send rejection email: %v\n", err)
+			}
+		}
+	}()
+
+	return book, nil
+}
+
+// UpdateCustomerBookInput represents the payload for customer updating their draft.
+type UpdateCustomerBookInput struct {
+	Title       string `json:"title"`
+	Author      string `json:"author"`
+	CategoryID  string `json:"category_id"`
+	Description string `json:"description"`
+	Format      string `json:"format"`
+	Language    string `json:"language"`
+	DraftURL    string `json:"draft_url"`
+}
+
+// UpdateCustomerBookDraft updates book draft details and resets validation status.
+func (s *BookService) UpdateCustomerBookDraft(id string, userID string, input UpdateCustomerBookInput) (*model.Book, error) {
+	book, err := s.bookRepo.FindByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("book_service: %w", err)
+	}
+	if book == nil {
+		return nil, nil
+	}
+
+	// Verify ownership
+	if book.UserID != userID {
+		return nil, fmt.Errorf("unauthorized to update this book draft")
+	}
+
+	book.Title = input.Title
+	book.Author = input.Author
+	book.CategoryID = input.CategoryID
+	book.Description = input.Description
+	book.Format = input.Format
+	book.Language = input.Language
+
+	// Clean up old draft file from storage if a new draft is uploaded
+	if input.DraftURL != "" && input.DraftURL != book.DraftURL {
+		if book.DraftURL != "" && strings.HasPrefix(book.DraftURL, "/uploads/drafts/") {
+			oldDraftPath := getDraftUploadPath(book.DraftURL)
+			if err := os.Remove(oldDraftPath); err == nil {
+				fmt.Printf("[STORAGE CLEANUP] Successfully deleted old draft: %s\n", oldDraftPath)
+			} else {
+				fmt.Printf("[STORAGE CLEANUP] Warning: failed to delete old draft %s: %v\n", oldDraftPath, err)
+			}
+		}
+		book.DraftURL = input.DraftURL
+	}
+
+	book.ValidationStatus = "pending"
+	book.Notes = ""
+
+	if err := s.bookRepo.Update(book); err != nil {
+		return nil, fmt.Errorf("book_service: failed to update book draft: %w", err)
+	}
+
+	// Send email notification asynchronously
+	go func() {
+		if err := s.SendDraftSubmissionEmail(book); err != nil {
+			fmt.Printf("Failed to send draft submission email: %v\n", err)
+		}
+	}()
+
+	return book, nil
 }

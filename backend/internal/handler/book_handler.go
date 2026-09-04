@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/digitalpapyrus/backend/internal/middleware"
 	"github.com/digitalpapyrus/backend/internal/repository"
 	"github.com/digitalpapyrus/backend/internal/service"
 	"github.com/digitalpapyrus/backend/pkg/response"
@@ -151,4 +152,136 @@ func (h *BookHandler) DeleteBook(c *gin.Context) {
 	}
 
 	response.OK(c, "Book deleted successfully", nil)
+}
+
+// CreateCustomerBook handles POST /api/v1/customer/books
+func (h *BookHandler) CreateCustomerBook(c *gin.Context) {
+	userID, exists := c.Get(middleware.ContextKeyUserID)
+	if !exists {
+		response.Unauthorized(c, "Authentication required")
+		return
+	}
+	userIDStr, ok := userID.(string)
+	if !ok {
+		response.InternalError(c, "Invalid user ID type")
+		return
+	}
+
+	var input service.CreateCustomerBookInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Invalid request body", nil)
+		return
+	}
+
+	input.UserID = userIDStr
+
+	if errs := input.Validate(); len(errs) > 0 {
+		response.BadRequest(c, "Validation failed", errs)
+		return
+	}
+
+	book, err := h.bookService.CreateCustomerBook(input)
+	if err != nil {
+		response.InternalError(c, "Failed to submit publishing request: "+err.Error())
+		return
+	}
+
+	response.Created(c, "Publishing request submitted successfully", book)
+}
+
+// UpdateCustomerBookInput represents payload for customer updating their draft.
+type UpdateCustomerBookInput struct {
+	Title       string `json:"title" binding:"required"`
+	Author      string `json:"author" binding:"required"`
+	CategoryID  string `json:"category_id" binding:"required"`
+	Description string `json:"description"`
+	Format      string `json:"format" binding:"required"`
+	Language    string `json:"language" binding:"required"`
+	DraftURL    string `json:"draft_url" binding:"required"`
+}
+
+// UpdateCustomerBook handles PUT /api/v1/customer/books/:id
+func (h *BookHandler) UpdateCustomerBook(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.BadRequest(c, "Book ID is required", nil)
+		return
+	}
+
+	userID, exists := c.Get(middleware.ContextKeyUserID)
+	if !exists {
+		response.Unauthorized(c, "Authentication required")
+		return
+	}
+	userIDStr, ok := userID.(string)
+	if !ok {
+		response.InternalError(c, "Invalid user ID type")
+		return
+	}
+
+	var input UpdateCustomerBookInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Invalid request body", nil)
+		return
+	}
+
+	// Update the book service
+	book, err := h.bookService.UpdateCustomerBookDraft(id, userIDStr, service.UpdateCustomerBookInput{
+		Title:       input.Title,
+		Author:      input.Author,
+		CategoryID:  input.CategoryID,
+		Description: input.Description,
+		Format:      input.Format,
+		Language:    input.Language,
+		DraftURL:    input.DraftURL,
+	})
+	if err != nil {
+		response.InternalError(c, "Failed to update draft: "+err.Error())
+		return
+	}
+	if book == nil {
+		response.NotFound(c, "Book not found or unauthorized")
+		return
+	}
+
+	response.OK(c, "Draft updated successfully", book)
+}
+
+// ValidateBookInput represents payload for validating a book.
+type ValidateBookInput struct {
+	Status string `json:"status" binding:"required"`
+	Notes  string `json:"notes"`
+}
+
+// ValidateBook handles POST /api/v1/books/:id/validate
+func (h *BookHandler) ValidateBook(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.BadRequest(c, "Book ID is required", nil)
+		return
+	}
+
+	var input ValidateBookInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.BadRequest(c, "Invalid request body", nil)
+		return
+	}
+
+	status := strings.ToLower(input.Status)
+	if status != "approved" && status != "rejected" {
+		response.BadRequest(c, "Status must be 'approved' or 'rejected'", nil)
+		return
+	}
+
+	book, err := h.bookService.ValidateBook(id, status, input.Notes)
+	if err != nil {
+		response.InternalError(c, "Failed to validate book: "+err.Error())
+		return
+	}
+	if book == nil {
+		response.NotFound(c, "Book not found")
+		return
+	}
+
+	response.OK(c, "Book validation updated successfully", book)
 }

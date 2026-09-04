@@ -1,0 +1,585 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Settings | Digital Papyrus Admin" activePage="settings">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <header class="mb-10 flex flex-col gap-2">
+      <h1 class="text-3xl font-bold text-primary tracking-tight font-headline">Settings</h1>
+      <p class="text-stone-500 text-sm">Manage global configuration for Digital Papyrus</p>
+    </header>
+
+    <!-- Main Content -->
+    <div class="bg-white rounded-3xl p-4 sm:p-6 md:p-8 border border-stone-200/50 shadow-sm relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent"></div>
+      
+      <form id="settingsForm" class="space-y-8">
+        <div id="settingsAlert" class="hidden rounded-xl p-4 text-sm font-medium"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Shipping Information -->
+          <div class="col-span-1 md:col-span-2">
+            <h3 class="text-lg font-bold text-primary mb-4 border-b border-stone-200 pb-2">Shipping Information</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Phone Number -->
+              <div class="space-y-2">
+                <label for="origin_phone" class="block text-sm font-bold text-stone-700">Phone Number</label>
+                <div class="relative flex items-center">
+                  <span class="absolute left-4 text-stone-600 font-bold text-sm select-none">+62</span>
+                  <input
+                    type="text"
+                    id="origin_phone"
+                    name="origin_phone"
+                    class="w-full pl-14 pr-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium"
+                    placeholder="81234567890"
+                  />
+                </div>
+                <p class="text-xs text-stone-400">Masukkan nomor tanpa awalan 0 atau +62 (Contoh: 81234567890)</p>
+              </div>
+
+              <!-- Zip Code -->
+              <div class="space-y-2">
+                <label for="origin_zip_code" class="block text-sm font-bold text-stone-700">Zip Code</label>
+                <input type="text" id="origin_zip_code" name="origin_zip_code" class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium" placeholder="e.g. 60241" />
+              </div>
+
+              <!-- Address -->
+              <div class="col-span-1 md:col-span-2 space-y-2">
+                <label for="origin_address" class="block text-sm font-bold text-stone-700">Address</label>
+                <textarea id="origin_address" name="origin_address" rows="2" class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm resize-none font-medium" placeholder="Street name, building, house number"></textarea>
+              </div>
+
+              <!-- Province -->
+              <div class="relative space-y-2">
+                <label for="origin_province_input" class="block text-sm font-bold text-stone-700">Province</label>
+                <div class="relative">
+                  <input
+                    id="origin_province_input"
+                    type="text"
+                    placeholder="Search & select Province..."
+                    autocomplete="off"
+                    class="w-full px-4 py-3 pr-10 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium"
+                  />
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-stone-400 pointer-events-none select-none">arrow_drop_down</span>
+                </div>
+                <div
+                  id="origin_province_list"
+                  class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-lg hidden"
+                >
+                </div>
+              </div>
+
+              <!-- City / Regency -->
+              <div class="relative space-y-2">
+                <label for="origin_city_input" class="block text-sm font-bold text-stone-700">City / Regency</label>
+                <div class="relative">
+                  <input
+                    id="origin_city_input"
+                    type="text"
+                    placeholder="Search & select City..."
+                    autocomplete="off"
+                    class="w-full px-4 py-3 pr-10 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium"
+                  />
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-stone-400 pointer-events-none select-none">arrow_drop_down</span>
+                </div>
+                <div
+                  id="origin_city_list"
+                  class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-lg hidden"
+                >
+                </div>
+              </div>
+
+              <!-- District (Kecamatan) -->
+              <div class="relative space-y-2">
+                <label for="origin_district_input" class="block text-sm font-bold text-stone-700">District (Kecamatan)</label>
+                <div class="relative">
+                  <input
+                    id="origin_district_input"
+                    type="text"
+                    placeholder="Search & select District..."
+                    autocomplete="off"
+                    class="w-full px-4 py-3 pr-10 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium"
+                  />
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-stone-400 pointer-events-none select-none">arrow_drop_down</span>
+                </div>
+                <div
+                  id="origin_district_list"
+                  class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-lg hidden"
+                >
+                </div>
+              </div>
+
+              <!-- Village (Kelurahan) -->
+              <div class="relative space-y-2">
+                <label for="origin_village_input" class="block text-sm font-bold text-stone-700">Village (Kelurahan)</label>
+                <div class="relative">
+                  <input
+                    id="origin_village_input"
+                    type="text"
+                    placeholder="Search & select Village..."
+                    autocomplete="off"
+                    class="w-full px-4 py-3 pr-10 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium"
+                  />
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-stone-400 pointer-events-none select-none">arrow_drop_down</span>
+                </div>
+                <div
+                  id="origin_village_list"
+                  class="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-lg hidden"
+                >
+                </div>
+                <p class="text-xs text-stone-500 mt-1 font-medium" id="origin_village_code_display">Belum ada kelurahan dipilih.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank Account -->
+          <div class="col-span-1 md:col-span-2 mt-6">
+            <h3 class="text-lg font-bold text-primary mb-4 border-b border-stone-200 pb-2">Bank Account</h3>
+          </div>
+
+          <div class="space-y-2">
+            <label for="bank_name" class="block text-sm font-bold text-stone-700">Bank Name</label>
+            <input type="text" id="bank_name" name="bank_name" class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium" placeholder="e.g. Bank BCA" />
+          </div>
+
+          <div class="space-y-2">
+            <label for="bank_account_number" class="block text-sm font-bold text-stone-700">Account Number (No. Rekening)</label>
+            <input type="text" id="bank_account_number" name="bank_account_number" class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium" placeholder="e.g. 8735091234" />
+          </div>
+
+          <div class="col-span-1 md:col-span-2 space-y-2">
+            <label for="bank_account_holder" class="block text-sm font-bold text-stone-700">Account Holder Name (Atas Nama)</label>
+            <input type="text" id="bank_account_holder" name="bank_account_holder" class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium" placeholder="e.g. PT Digital Papyrus Indonesia" />
+          </div>
+
+          <!-- Fees & Taxes -->
+          <div class="col-span-1 md:col-span-2 mt-6">
+            <h3 class="text-lg font-bold text-primary mb-4 border-b border-stone-200 pb-2">Fees & Taxes</h3>
+          </div>
+
+          <div class="space-y-2">
+            <label for="tax" class="block text-sm font-bold text-stone-700">Tax (%)</label>
+            <div class="relative">
+              <input type="number" id="tax" name="tax" min="0" step="1" class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium" placeholder="0" />
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 font-medium">%</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="service_fee" class="block text-sm font-bold text-stone-700">Service Fee (Rp)</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 font-medium">Rp</span>
+              <input type="number" id="service_fee" name="service_fee" min="0" step="1" class="w-full pl-12 pr-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium" placeholder="0" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="discount" class="block text-sm font-bold text-stone-700">Global Discount (Rp)</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 font-medium">Rp</span>
+              <input type="number" id="discount" name="discount" min="0" step="1" class="w-full pl-12 pr-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 font-medium" placeholder="0" />
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-stone-200 flex justify-end">
+          <button type="submit" id="saveBtn" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">save</span>
+            Save Settings
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { settingsApi } from '../lib/api';
+
+  interface DropdownOption {
+    code: string;
+    name: string;
+    [key: string]: any;
+  }
+
+  const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8080';
+
+  function initSearchableDropdown(
+    inputEl: HTMLInputElement,
+    listEl: HTMLDivElement,
+    fetchFn: () => Promise<DropdownOption[]>,
+    onSelect: (option: DropdownOption) => void,
+    onClear: () => void
+  ) {
+    let allOptions: DropdownOption[] = [];
+    let selectedCode: string | null = null;
+
+    inputEl.addEventListener("focus", async () => {
+      if (allOptions.length === 0) {
+        listEl.innerHTML = '<div class="px-4 py-3 text-stone-500 text-sm">Loading...</div>';
+        listEl.classList.remove("hidden");
+        try {
+          allOptions = await fetchFn();
+          renderOptions(allOptions);
+          if (selectedCode) {
+            const found = allOptions.find(opt => opt.code === selectedCode || opt.name.toLowerCase() === selectedCode?.toLowerCase());
+            if (found) inputEl.value = found.name;
+          }
+        } catch (err) {
+          listEl.innerHTML = '<div class="px-4 py-3 text-red-500 text-sm">Failed to load</div>';
+        }
+      } else {
+        renderOptions(allOptions);
+        listEl.classList.remove("hidden");
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      const target = e.target as Node;
+      if (!inputEl.parentElement?.contains(target) && !listEl.contains(target)) {
+        listEl.classList.add("hidden");
+      }
+    });
+
+    inputEl.addEventListener("input", () => {
+      const term = inputEl.value.toLowerCase().trim();
+      const filtered = allOptions.filter(opt => opt.name.toLowerCase().includes(term));
+      renderOptions(filtered);
+      listEl.classList.remove("hidden");
+      if (term === "") {
+        selectedCode = null;
+        onClear();
+      }
+    });
+
+    function renderOptions(opts: DropdownOption[]) {
+      listEl.innerHTML = "";
+      if (opts.length === 0) {
+        listEl.innerHTML = '<div class="px-4 py-3 text-stone-500 text-sm">No results found</div>';
+        return;
+      }
+      opts.forEach(opt => {
+        const item = document.createElement("div");
+        item.className = "px-4 py-2.5 hover:bg-stone-100 text-stone-800 text-sm cursor-pointer transition-colors font-medium";
+        item.textContent = opt.name;
+        item.addEventListener("click", () => {
+          inputEl.value = opt.name;
+          selectedCode = opt.code;
+          listEl.classList.add("hidden");
+          onSelect(opt);
+        });
+        listEl.appendChild(item);
+      });
+    }
+
+    return {
+      setOptions: (opts: DropdownOption[]) => {
+        allOptions = opts;
+        if (selectedCode) {
+          const found = opts.find(opt => opt.code === selectedCode || opt.name.toLowerCase() === selectedCode?.toLowerCase());
+          if (found) {
+            inputEl.value = found.name;
+          }
+        }
+      },
+      getSelectedCode: () => selectedCode,
+      setSelectedCode: (code: string | null) => {
+        selectedCode = code;
+      },
+      setSelectedValue: (name: string) => {
+        inputEl.value = name;
+        const found = allOptions.find(opt => opt.name.toLowerCase() === name.toLowerCase());
+        if (found) {
+          selectedCode = found.code;
+        }
+      },
+      setSelectedByCode: (code: string) => {
+        selectedCode = code;
+        const found = allOptions.find(opt => opt.code === code || opt.name.toLowerCase() === code.toLowerCase());
+        if (found) {
+          inputEl.value = found.name;
+        }
+      },
+      clear: () => {
+        inputEl.value = "";
+        selectedCode = null;
+        allOptions = [];
+        listEl.innerHTML = "";
+      }
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const form = document.getElementById('settingsForm') as HTMLFormElement;
+    const saveBtn = document.getElementById('saveBtn') as HTMLButtonElement;
+    const alertBox = document.getElementById('settingsAlert') as HTMLDivElement;
+
+    const originPhoneInput = document.getElementById('origin_phone') as HTMLInputElement;
+    const originAddressInput = document.getElementById('origin_address') as HTMLTextAreaElement;
+    const originProvinceInput = document.getElementById('origin_province_input') as HTMLInputElement;
+    const originCityInput = document.getElementById('origin_city_input') as HTMLInputElement;
+    const originDistrictInput = document.getElementById('origin_district_input') as HTMLInputElement;
+    const originVillageInput = document.getElementById('origin_village_input') as HTMLInputElement;
+    const originZipCodeInput = document.getElementById('origin_zip_code') as HTMLInputElement;
+    const taxInput = document.getElementById('tax') as HTMLInputElement;
+    const serviceFeeInput = document.getElementById('service_fee') as HTMLInputElement;
+    const discountInput = document.getElementById('discount') as HTMLInputElement;
+    const bankNameInput = document.getElementById('bank_name') as HTMLInputElement;
+    const bankAccountNumberInput = document.getElementById('bank_account_number') as HTMLInputElement;
+    const bankAccountHolderInput = document.getElementById('bank_account_holder') as HTMLInputElement;
+    const villageCodeDisplay = document.getElementById('origin_village_code_display') as HTMLParagraphElement;
+
+    // Auto-clean phone input so it contains only numbers, discarding leading 0 or +62/62
+    if (originPhoneInput) {
+      const cleanPhone = (val: string) => {
+        let cleaned = val.replace(/\D/g, ''); // Keep digits only
+        while (cleaned.startsWith('62') || cleaned.startsWith('0')) {
+          if (cleaned.startsWith('62')) {
+            cleaned = cleaned.substring(2);
+          } else if (cleaned.startsWith('0')) {
+            cleaned = cleaned.substring(1);
+          }
+        }
+        return cleaned;
+      };
+
+      originPhoneInput.addEventListener("input", () => {
+        originPhoneInput.value = cleanPhone(originPhoneInput.value);
+      });
+
+      originPhoneInput.addEventListener("paste", () => {
+        setTimeout(() => {
+          originPhoneInput.value = cleanPhone(originPhoneInput.value);
+        }, 10);
+      });
+    }
+
+    let provDropdown: any;
+    let cityDropdown: any;
+    let districtDropdown: any;
+    let villageDropdown: any;
+
+    provDropdown = initSearchableDropdown(
+      originProvinceInput,
+      document.getElementById("origin_province_list") as HTMLDivElement,
+      async () => {
+        const res = await fetch(`${API_URL}/api/v1/regions/provinces`).then(r => r.json());
+        return res.data || [];
+      },
+      async (prov) => {
+        cityDropdown.clear();
+        districtDropdown.clear();
+        villageDropdown.clear();
+        updateVillageDisplay();
+        const res = await fetch(`${API_URL}/api/v1/regions/provinces/${prov.code}/regencies`).then(r => r.json());
+        cityDropdown.setOptions(res.data || []);
+      },
+      () => {
+        cityDropdown.clear();
+        districtDropdown.clear();
+        villageDropdown.clear();
+        updateVillageDisplay();
+      }
+    );
+
+    cityDropdown = initSearchableDropdown(
+      originCityInput,
+      document.getElementById("origin_city_list") as HTMLDivElement,
+      async () => {
+        const provCode = provDropdown.getSelectedCode();
+        if (!provCode) return [];
+        const res = await fetch(`${API_URL}/api/v1/regions/provinces/${provCode}/regencies`).then(r => r.json());
+        return res.data || [];
+      },
+      async (city) => {
+        districtDropdown.clear();
+        villageDropdown.clear();
+        updateVillageDisplay();
+        const res = await fetch(`${API_URL}/api/v1/regions/regencies/${city.code}/districts`).then(r => r.json());
+        districtDropdown.setOptions(res.data || []);
+      },
+      () => {
+        districtDropdown.clear();
+        villageDropdown.clear();
+        updateVillageDisplay();
+      }
+    );
+
+    districtDropdown = initSearchableDropdown(
+      originDistrictInput,
+      document.getElementById("origin_district_list") as HTMLDivElement,
+      async () => {
+        const cityCode = cityDropdown.getSelectedCode();
+        if (!cityCode) return [];
+        const res = await fetch(`${API_URL}/api/v1/regions/regencies/${cityCode}/districts`).then(r => r.json());
+        return res.data || [];
+      },
+      async (dist) => {
+        villageDropdown.clear();
+        updateVillageDisplay();
+        const res = await fetch(`${API_URL}/api/v1/regions/districts/${dist.code}/villages`).then(r => r.json());
+        villageDropdown.setOptions(res.data || []);
+      },
+      () => {
+        villageDropdown.clear();
+        updateVillageDisplay();
+      }
+    );
+
+    villageDropdown = initSearchableDropdown(
+      originVillageInput,
+      document.getElementById("origin_village_list") as HTMLDivElement,
+      async () => {
+        const distCode = districtDropdown.getSelectedCode();
+        if (!distCode) return [];
+        const res = await fetch(`${API_URL}/api/v1/regions/districts/${distCode}/villages`).then(r => r.json());
+        return res.data || [];
+      },
+      (vill) => {
+        updateVillageDisplay();
+        if (vill.postal_codes && vill.postal_codes.length > 0) {
+          originZipCodeInput.value = vill.postal_codes[0];
+        }
+      },
+      () => {
+        updateVillageDisplay();
+        originZipCodeInput.value = "";
+      }
+    );
+
+    function updateVillageDisplay() {
+      const code = villageDropdown.getSelectedCode();
+      const name = originVillageInput.value.trim();
+      if (code && name) {
+        villageCodeDisplay.textContent = `Terpilih: ${name} (Kode: ${code})`;
+        villageCodeDisplay.className = "text-xs text-emerald-600 font-semibold mt-1";
+      } else if (code) {
+        villageCodeDisplay.textContent = `Kode Kelurahan: ${code}`;
+        villageCodeDisplay.className = "text-xs text-emerald-600 font-semibold mt-1";
+      } else {
+        villageCodeDisplay.textContent = "Belum ada kelurahan dipilih.";
+        villageCodeDisplay.className = "text-xs text-stone-500 mt-1";
+      }
+    }
+
+    function showAlert(message: string, isError: boolean = false) {
+      alertBox.textContent = message;
+      alertBox.className = `rounded-xl p-4 text-sm font-medium ${
+        isError ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+      }`;
+      alertBox.classList.remove('hidden');
+      setTimeout(() => alertBox.classList.add('hidden'), 5000);
+    }
+
+    async function loadSettings() {
+      try {
+        const response = await settingsApi.get();
+        if (response.data) {
+          const s = response.data;
+          
+          taxInput.value = s.tax?.toString() || '0';
+          serviceFeeInput.value = s.service_fee?.toString() || '0';
+          discountInput.value = s.discount?.toString() || '0';
+          bankNameInput.value = s.bank_name || '';
+          bankAccountNumberInput.value = s.bank_account_number || '';
+          bankAccountHolderInput.value = s.bank_account_holder || '';
+          
+          const rawPhone = s.origin_phone || '';
+          let cleanedPhone = rawPhone.replace(/\D/g, '');
+          while (cleanedPhone.startsWith('62') || cleanedPhone.startsWith('0')) {
+            if (cleanedPhone.startsWith('62')) {
+              cleanedPhone = cleanedPhone.substring(2);
+            } else if (cleanedPhone.startsWith('0')) {
+              cleanedPhone = cleanedPhone.substring(1);
+            }
+          }
+          originPhoneInput.value = cleanedPhone;
+          
+          originAddressInput.value = s.origin_address || '';
+          originProvinceInput.value = '';
+          originCityInput.value = '';
+          originDistrictInput.value = '';
+          originVillageInput.value = '';
+          originZipCodeInput.value = s.origin_zip_code || '';
+
+          if (s.origin_province) {
+            try {
+              const provRes = await fetch(`${API_URL}/api/v1/regions/provinces`).then(r => r.json());
+              const provinces = provRes.data || [];
+              provDropdown.setOptions(provinces);
+              provDropdown.setSelectedByCode(s.origin_province);
+
+              const provCode = provDropdown.getSelectedCode();
+              if (provCode && s.origin_city) {
+                const cityRes = await fetch(`${API_URL}/api/v1/regions/provinces/${provCode}/regencies`).then(r => r.json());
+                const cities = cityRes.data || [];
+                cityDropdown.setOptions(cities);
+                cityDropdown.setSelectedByCode(s.origin_city);
+
+                const cityCode = cityDropdown.getSelectedCode();
+                if (cityCode && s.origin_district) {
+                  const districtRes = await fetch(`${API_URL}/api/v1/regions/regencies/${cityCode}/districts`).then(r => r.json());
+                  const districts = districtRes.data || [];
+                  districtDropdown.setOptions(districts);
+                  districtDropdown.setSelectedByCode(s.origin_district);
+
+                  const distCode = districtDropdown.getSelectedCode();
+                  if (distCode && s.origin_village_code) {
+                    const villageRes = await fetch(`${API_URL}/api/v1/regions/districts/${distCode}/villages`).then(r => r.json());
+                    const villages = villageRes.data || [];
+                    villageDropdown.setOptions(villages);
+                    villageDropdown.setSelectedByCode(s.origin_village_code);
+                    updateVillageDisplay();
+                  }
+                }
+              }
+            } catch (err) {
+              console.error("Error setting region selection codes:", err);
+            }
+          }
+        }
+      } catch (error: any) {
+        console.error('Failed to load settings:', error);
+        showAlert('Failed to load settings: ' + (error.message || 'Unknown error'), true);
+      }
+    }
+
+    await loadSettings();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const payload = {
+        tax: parseInt(taxInput.value) || 0,
+        service_fee: parseInt(serviceFeeInput.value) || 0,
+        discount: parseInt(discountInput.value) || 0,
+        origin_phone: originPhoneInput.value ? `+62${originPhoneInput.value.trim()}` : '',
+        origin_address: originAddressInput.value.trim(),
+        origin_province: provDropdown.getSelectedCode() || originProvinceInput.value.trim(),
+        origin_city: cityDropdown.getSelectedCode() || originCityInput.value.trim(),
+        origin_district: districtDropdown.getSelectedCode() || originDistrictInput.value.trim(),
+        origin_village_code: villageDropdown.getSelectedCode() || originVillageInput.value.trim(),
+        origin_zip_code: originZipCodeInput.value.trim(),
+        bank_name: bankNameInput.value.trim(),
+        bank_account_number: bankAccountNumberInput.value.trim(),
+        bank_account_holder: bankAccountHolderInput.value.trim()
+      };
+
+      try {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">refresh</span> Saving...';
+        
+        await settingsApi.update(payload);
+        showAlert('Settings saved successfully!');
+      } catch (error: any) {
+        console.error('Failed to save settings:', error);
+        showAlert('Failed to save settings: ' + (error.message || 'Unknown error'), true);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Save Settings';
+      }
+    });
+  });
+</script>

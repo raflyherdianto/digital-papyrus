@@ -22,8 +22,16 @@
 *.swp
 *.swo
 
-# Environment
+# Environment & Secrets
 .env
+.env.*
+.gopay_cache.json
+*.cache.json
+
+# Scratch & Temporary Scripts
+/scratch/
+scratch/
+alter_db.go
 
 # Database
 /data/*.db

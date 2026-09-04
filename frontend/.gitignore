@@ -19,6 +19,11 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.*
+
+# Scratch & Temporary Scripts
+scratch/
+*.cjs
 
 # macOS-specific files
 .DS_Store

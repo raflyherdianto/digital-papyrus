@@ -2,21 +2,38 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/raflyherdianto/digital-papyrus-backend:latest
     container_name: be-papyrus
-    restart: always
-    env_file: .env   # Load secret environment variables injected by GitHub Actions
+    restart: unless-stopped
+    env_file: .env
     ports:
       - "8080:8080"
     networks:
       - shared-network
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 128M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --spider http://127.0.0.1:8080/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
-      # Map the local data output for SQLite persistence
       - ./data:/app/data
-      # Map the upload location shared alongside frontend
-      - ../frontend/public/uploads:/app/frontend/public/uploads
+      - ../uploads:/app/frontend/public/uploads
 
 networks:
   shared-network:

@@ -23,20 +23,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
   </div>
 
-  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[700px]">
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm w-full max-w-full min-w-0 overflow-hidden">
+    <div class="table-responsive-container overflow-x-auto w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[700px] border-collapse">
         <thead>
-          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Invoice</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Name</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Date</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30 whitespace-nowrap">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Invoice</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Name</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Date</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody id="reviewsTableBody" class="text-sm font-body">
           <tr id="loadingRow">
-            <td colspan="3" class="py-16 text-center">
+            <td colspan="4" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span>
                 <p class="text-stone-400 text-sm">Loading reviews...</p>
@@ -222,7 +222,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       if (paged.length === 0) {
         tableBody.innerHTML = `
-          <tr><td colspan="3" class="py-16 text-center">
+          <tr><td colspan="4" class="py-16 text-center">
             <div class="flex flex-col items-center gap-3">
               <span class="material-symbols-outlined text-4xl text-stone-300">inbox</span>
               <p class="text-stone-400 text-sm">No reviews found</p>
@@ -235,13 +235,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       tableBody.innerHTML = paged.map((review, idx) => {
         const borderCls = idx < paged.length - 1 ? 'border-b border-stone-200/10' : '';
-        return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${borderCls}" data-id="${review.id}">
-          <td class="py-4 md:py-5 px-3 md:px-4">
+        return `<tr class="group hover:bg-surface-container-low/50 transition-colors whitespace-nowrap ${borderCls}" data-id="${review.id}">
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">
             <p class="font-bold text-primary text-sm md:text-base">${review.invoice || 'No Invoice'}</p>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${getUserName(review.user_id)}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${formatDate(review.created_at)}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600 whitespace-nowrap">${getUserName(review.user_id)}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600 whitespace-nowrap">${formatDate(review.created_at)}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-right whitespace-nowrap">
             <div class="flex items-center justify-end gap-2">
               <button class="viewBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="Detail" data-id="${review.id}">
                 <span class="material-symbols-outlined text-lg">visibility</span>
@@ -384,7 +384,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     });
 
     async function loadAllData() {
-      tableBody.innerHTML = `<tr><td colspan="3" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span><p class="text-stone-400 text-sm">Loading reviews...</p></div></td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="4" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span><p class="text-stone-400 text-sm">Loading reviews...</p></div></td></tr>`;
       try {
         const [usersRes, reviewsRes, booksRes, servicesRes] = await Promise.all([
           getUsers(),
@@ -408,7 +408,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         allReviews = reviewsRes.reviews;
         renderTable();
       } catch (err: any) {
-        tableBody.innerHTML = `<tr><td colspan="3" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-red-300">error</span><p class="text-stone-500 text-sm">${err.message || 'Failed to load data'}</p><button class="retryBtn text-primary font-bold text-sm mt-2 hover:underline">Retry</button></div></td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" class="py-16 text-center"><div class="flex flex-col items-center gap-3"><span class="material-symbols-outlined text-4xl text-red-300">error</span><p class="text-stone-500 text-sm">${err.message || 'Failed to load data'}</p><button class="retryBtn text-primary font-bold text-sm mt-2 hover:underline">Retry</button></div></td></tr>`;
         tableBody.querySelector('.retryBtn')?.addEventListener('click', loadAllData);
       }
     }

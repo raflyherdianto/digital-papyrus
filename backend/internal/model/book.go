@@ -22,7 +22,6 @@ type Book struct {
 	Rating          float64   `json:"rating"`
 	ReviewCount     int       `json:"review_count"`
 	Description     string    `json:"description,omitempty"`
-	Synopsis        string    `json:"synopsis,omitempty"`
 	ImageURL        string    `json:"image_url,omitempty"`
 	CategoryID      string    `json:"category_id,omitempty"`
 	CategoryName    string    `json:"category_name,omitempty"`
@@ -35,9 +34,18 @@ type Book struct {
 	Format          string    `json:"format,omitempty"`
 	Language        string    `json:"language,omitempty"`
 	Dimensions      string    `json:"dimensions,omitempty"`
-	Weight          string    `json:"weight,omitempty"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	Weight           string    `json:"weight,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+	UserID           string    `json:"user_id,omitempty"`
+	OrderID          string    `json:"order_id,omitempty"`
+	DraftURL         string    `json:"draft_url,omitempty"`
+	ValidationStatus string    `json:"validation_status,omitempty"`
+	Notes            string    `json:"notes,omitempty"`
+	AmazonURL        string    `json:"amazon_url,omitempty"`
+	GPlayBooksURL    string    `json:"gplay_books_url,omitempty"`
+	ProductionCost   int       `json:"production_cost"`
+	RoyaltyFee       int       `json:"royalty_fee"`
 }
 
 // PriceFormatted returns the price as a human-readable Rupiah string.

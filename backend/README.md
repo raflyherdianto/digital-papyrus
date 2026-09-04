@@ -1,6 +1,6 @@
 # Digital Papyrus API
 
-Production-grade RESTful backend for the **Digital Papyrus** book publishing platform, built with **Go 1.26**, **Gin**, and **SQLite**.
+Production-grade RESTful backend for the **Digital Papyrus** book publishing platform, built with **Go 1.26**, **Gin**, and **PostgreSQL**.
 
 ## Architecture
 
@@ -9,7 +9,7 @@ backend/
 ├── cmd/server/          # Application entry point
 ├── internal/
 │   ├── config/          # Centralized configuration (env vars)
-│   ├── database/        # SQLite connection, migrations, seeding
+│   ├── database/        # PostgreSQL connection, migrations, seeding
 │   ├── middleware/       # Auth (JWT), CORS, Rate Limiting, Security Headers
 │   ├── model/           # Domain entities (User, Book, Service)
 │   ├── handler/         # HTTP request handlers

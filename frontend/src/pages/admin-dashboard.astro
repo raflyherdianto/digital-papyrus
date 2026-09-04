@@ -27,26 +27,26 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   <!-- Statistics Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-16">
     <!-- Total Books -->
-    <div class="bg-primary p-6 md:p-8 rounded-xl text-on-primary-container relative overflow-hidden group">
+    <div class="bg-primary p-4 sm:p-6 md:p-8 rounded-xl text-on-primary-container relative overflow-hidden group">
       <div class="absolute -right-4 -bottom-4 opacity-10 transition-transform group-hover:scale-110"><span class="material-symbols-outlined text-8xl">auto_stories</span></div>
       <p class="text-xs font-label uppercase tracking-widest text-on-primary-container/80 mb-3 md:mb-4">Total Books</p>
       <h3 id="statTotalBooks" class="text-2xl md:text-3xl font-headline font-extrabold text-white">--</h3>
       <div class="mt-3 md:mt-4 flex items-center gap-2 text-xs text-primary-fixed-dim"><span class="material-symbols-outlined text-sm">library_books</span><span>All catalog items</span></div>
     </div>
     <!-- Published -->
-    <div class="bg-surface-container-low p-6 md:p-8 rounded-xl hover:bg-surface-container-high transition-colors">
+    <div class="bg-surface-container-low p-4 sm:p-6 md:p-8 rounded-xl hover:bg-surface-container-high transition-colors">
       <p class="text-xs font-label uppercase tracking-widest text-stone-500 mb-3 md:mb-4">Published</p>
       <h3 id="statPublished" class="text-2xl md:text-3xl font-headline font-extrabold text-primary">--</h3>
       <div class="mt-3 md:mt-4 flex items-center gap-2 text-xs text-teal-700"><span class="material-symbols-outlined text-sm">check_circle</span><span>Live in catalog</span></div>
     </div>
     <!-- Draft -->
-    <div class="bg-surface-container-low p-6 md:p-8 rounded-xl hover:bg-surface-container-high transition-colors">
+    <div class="bg-surface-container-low p-4 sm:p-6 md:p-8 rounded-xl hover:bg-surface-container-high transition-colors">
       <p class="text-xs font-label uppercase tracking-widest text-stone-500 mb-3 md:mb-4">Drafts</p>
       <h3 id="statDrafts" class="text-2xl md:text-3xl font-headline font-extrabold text-primary">--</h3>
       <div class="mt-3 md:mt-4 flex items-center gap-2 text-xs text-orange-600"><span class="material-symbols-outlined text-sm">edit_note</span><span>Pending review</span></div>
     </div>
     <!-- Services -->
-    <div class="bg-tertiary-fixed p-6 md:p-8 rounded-xl text-on-tertiary-fixed relative overflow-hidden group">
+    <div class="bg-tertiary-fixed p-4 sm:p-6 md:p-8 rounded-xl text-on-tertiary-fixed relative overflow-hidden group">
       <div class="absolute -right-4 -bottom-4 opacity-10 transition-transform group-hover:scale-110"><span class="material-symbols-outlined text-8xl">design_services</span></div>
       <p class="text-xs font-label uppercase tracking-widest text-on-tertiary-fixed-variant mb-3 md:mb-4">Active Services</p>
       <h3 id="statServices" class="text-2xl md:text-3xl font-headline font-extrabold text-tertiary">--</h3>
@@ -55,21 +55,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   </div>
 
   <!-- Recent Catalog Activity -->
-  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm w-full max-w-full min-w-0">
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 md:mb-8 gap-4">
       <h3 class="text-xl md:text-2xl font-headline font-bold text-primary">Recent Catalog Activity</h3>
       <a href="/admin-catalog" class="text-sm font-bold text-primary flex items-center gap-1 hover:underline">View all <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[600px]">
+    <div class="table-responsive-container overflow-x-auto md:overflow-x-visible w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[650px] md:min-w-0 md:table-fixed border-collapse">
+        <colgroup>
+          <col class="w-[45%]" />
+          <col class="w-[20%]" />
+          <col class="w-[14%]" />
+          <col class="w-[13%]" />
+          <col class="w-[8%]" />
+        </colgroup>
         <thead>
-          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest">
-            <th class="pb-4 md:pb-6 px-3 md:px-4">Title</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4">Author</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4">Price</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4">Status</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Title</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Author</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Price</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Status</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right font-semibold whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody id="recentBooksBody" class="text-sm font-body">
@@ -149,27 +156,31 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-stone-400">No books yet</td></tr>`;
         } else {
           tbody.innerHTML = books.map(book => `
-            <tr class="group hover:bg-surface-container-low/50 transition-colors">
-              <td class="py-4 md:py-6 px-3 md:px-4">
-                <div class="flex items-center gap-3 md:gap-4">
-                  <div class="w-8 h-12 md:w-10 md:h-14 bg-stone-200 rounded-md overflow-hidden flex-shrink-0 shadow-sm">
+            <tr class="group hover:bg-surface-container-low/50 transition-colors border-b border-stone-200/10">
+              <td class="py-4 md:py-5 px-3 md:px-4 align-middle">
+                <div class="flex items-center gap-3 md:gap-4 min-w-0">
+                  <div class="w-9 h-12 md:w-10 md:h-14 bg-stone-200 rounded-md overflow-hidden flex-shrink-0 shadow-sm border border-stone-200/50">
                     ${book.image_url
                       ? `<img alt="Cover ${book.title}" class="w-full h-full object-cover" src="${book.image_url}" loading="lazy" />`
-                      : `<div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-stone-400">text_snippet</span></div>`}
+                      : `<div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-stone-400 text-lg">text_snippet</span></div>`}
                   </div>
-                  <div>
-                    <p class="font-bold text-primary text-sm md:text-base">${book.title}</p>
-                    <p class="text-stone-400 text-xs">${book.category || '-'} • ${book.pages || '-'} pages</p>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-bold text-primary text-sm md:text-base leading-snug break-words" title="${book.title}">${book.title}</p>
+                    <p class="text-stone-400 text-xs mt-1">${book.category || '-'} • ${book.pages || '-'} pages</p>
                   </div>
                 </div>
               </td>
-              <td class="py-4 md:py-6 px-3 md:px-4 font-medium text-stone-600">${book.author}</td>
-              <td class="py-4 md:py-6 px-3 md:px-4 font-bold text-primary">${formatRupiah(book.price)}</td>
-              <td class="py-4 md:py-6 px-3 md:px-4">${getStatusHTML(book.status)}</td>
-              <td class="py-4 md:py-6 px-3 md:px-4 text-right">
-                <a href="/admin-catalog" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-stone-400 hover:text-primary hover:bg-white transition-all" title="Manage">
-                  <span class="material-symbols-outlined text-lg">edit</span>
-                </a>
+              <td class="py-4 md:py-5 px-3 md:px-4 align-middle font-medium text-stone-600">
+                <span class="break-words leading-snug" title="${book.author}">${book.author}</span>
+              </td>
+              <td class="py-4 md:py-5 px-3 md:px-4 align-middle font-bold font-mono text-primary whitespace-nowrap">${formatRupiah(book.price)}</td>
+              <td class="py-4 md:py-5 px-3 md:px-4 align-middle whitespace-nowrap">${getStatusHTML(book.status)}</td>
+              <td class="py-4 md:py-5 px-3 md:px-4 align-middle text-right whitespace-nowrap">
+                <div class="flex items-center justify-end">
+                  <a href="/admin-catalog" class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-stone-400 hover:text-primary hover:bg-stone-200/50 transition-all" title="Manage Publication">
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                  </a>
+                </div>
               </td>
             </tr>`).join('');
         }

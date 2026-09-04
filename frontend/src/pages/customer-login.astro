@@ -56,7 +56,7 @@ import AuthLayout from '../layouts/AuthLayout.astro';
           <input type="checkbox" class="accent-primary w-4 h-4 rounded" />
           <span>Remember me</span>
         </label>
-        <a href="#" class="text-primary font-semibold hover:underline">Forgot Password?</a>
+        <a href="/forgot-password" class="text-primary font-semibold hover:underline">Forgot Password?</a>
       </div>
 
       <!-- Puzzle CAPTCHA Section -->
@@ -123,16 +123,16 @@ import AuthLayout from '../layouts/AuthLayout.astro';
     if (userJson) {
       try {
         const user = JSON.parse(userJson);
-        if (user.role === 'superadmin') {
+        if (user.role === 'admin' || user.role === 'superadmin') {
           window.location.href = '/admin-dashboard';
         } else {
-          window.location.href = '/';
+          window.location.href = '/customer-dashboard';
         }
       } catch {
-        window.location.href = '/';
+        window.location.href = '/customer-dashboard';
       }
     } else {
-      window.location.href = '/';
+      window.location.href = '/customer-dashboard';
     }
   }
 
@@ -307,14 +307,24 @@ import AuthLayout from '../layouts/AuthLayout.astro';
 
       try {
         const result = await login(email, password);
+
+        if (result.user.role === 'admin' || result.user.role === 'superadmin') {
+          showError('Access denied. Admins cannot log in through the customer portal.');
+          setLoading(false);
+          return;
+        }
+
         setToken(result.token);
         // Store user info
         localStorage.setItem('dp_user', JSON.stringify(result.user));
         
-        if (result.user.role === 'superadmin') {
-          window.location.href = '/admin-dashboard';
+        // Check for pending redirect (e.g. add-to-cart flow)
+        const pendingRedirect = sessionStorage.getItem('dp_redirect_after_login');
+        if (pendingRedirect) {
+          sessionStorage.removeItem('dp_redirect_after_login');
+          window.location.href = pendingRedirect;
         } else {
-          window.location.href = '/';
+          window.location.href = '/customer-dashboard';
         }
       } catch (err: any) {
         const message = err?.message || 'Login failed. Please try again.';

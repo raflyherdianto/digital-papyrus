@@ -1,0 +1,14 @@
+﻿node_modules
+dist
+.astro
+.env
+.env.*
+.git
+.gitignore
+README.md
+scratch
+*.cjs
+
+# Exclude uploaded media from Docker image build
+public/uploads/*
+!public/uploads/.gitkeep

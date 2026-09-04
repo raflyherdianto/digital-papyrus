@@ -31,15 +31,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
         <input id="searchInput" class="w-full bg-surface-container py-2.5 pl-10 pr-4 rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-stone-400" placeholder="Search by ISBN, title, or author..." type="text" />
       </div>
-      <div class="flex gap-3">
-        <select id="categoryFilter" class="bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 text-stone-600 outline-none">
+      <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <select id="categoryFilter" class="w-full sm:w-auto bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 text-stone-600 outline-none">
           <option value="">All Categories</option>
           <option value="Fiksi Kontemporer">Fiksi Kontemporer</option>
           <option value="Filosofi Modern">Filosofi Modern</option>
           <option value="Teknologi & Sains">Teknologi & Sains</option>
           <option value="Seni & Desain">Seni & Desain</option>
         </select>
-        <select id="statusFilter" class="bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 text-stone-600 outline-none">
+        <select id="statusFilter" class="w-full sm:w-auto bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border-none focus:ring-2 focus:ring-primary/20 text-stone-600 outline-none">
           <option value="">Any Status</option>
           <option value="published">Published</option>
           <option value="draft">Draft</option>
@@ -50,18 +50,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   </div>
 
   <!-- Data Table -->
-  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[700px]">
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm w-full max-w-full min-w-0 overflow-hidden">
+    <div class="table-responsive-container overflow-x-auto lg:overflow-x-visible w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[750px] lg:min-w-0 border-collapse">
         <thead>
           <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Title & Cover</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold w-36">Badge</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Author</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Price</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Stock</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Status</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+            <th class="pb-4 md:pb-6 px-2.5 lg:px-4 font-semibold whitespace-nowrap">Title & Cover</th>
+            <th class="pb-4 md:pb-6 px-2.5 lg:px-4 font-semibold whitespace-nowrap">Badge</th>
+            <th class="pb-4 md:pb-6 px-2.5 lg:px-4 font-semibold whitespace-nowrap">Author</th>
+            <th class="pb-4 md:pb-6 px-2.5 lg:px-4 font-semibold whitespace-nowrap">Price</th>
+            <th class="pb-4 md:pb-6 px-2.5 lg:px-4 font-semibold whitespace-nowrap">Stock</th>
+            <th class="pb-4 md:pb-6 px-2.5 lg:px-4 font-semibold whitespace-nowrap">Status</th>
+            <th class="pb-4 md:pb-6 px-2.5 lg:px-4 text-right whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody id="catalogTableBody" class="text-sm font-body">
@@ -133,6 +133,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <input name="qrcbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: QRC-001" />
             </div>
             <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Amazon Books Link</label>
+              <input name="amazon_url" type="url" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: https://www.amazon.com/dp/..." />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Google Play Books Link</label>
+              <input name="gplay_books_url" type="url" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: https://play.google.com/store/books/details/..." />
+            </div>
+            <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Category</label>
               <select name="category" class="dynamic-category-select w-full bg-surface py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
                 <option value="">Select Category</option>
@@ -155,6 +163,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <input name="stock" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: 100" />
             </div>
             <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Production Cost (Rp) *</label>
+              <input name="production_cost" type="number" min="0" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="example:" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Royalty Fee (Rp) *</label>
+              <input name="royalty_fee" type="number" min="0" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="example:" />
+            </div>
+            <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Cover Image</label>
               <input name="image_upload" type="file" accept="image/*" class="w-full bg-surface py-2 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
             </div>
@@ -164,7 +180,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Publication Date</label>
-              <input name="publication_date" type="date" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="publication_date" type="date" onclick="try{this.showPicker()}catch(e){}" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all cursor-pointer" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Format</label>
@@ -245,11 +261,19 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">GGKEY</label>
-              <input name="ggkey" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="ggkey" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Kosongkan jika belum terbit" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">QRCBN</label>
-              <input name="qrcbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="qrcbn" type="text" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Kosongkan jika belum terbit" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Amazon Books Link</label>
+              <input name="amazon_url" type="url" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: https://www.amazon.com/dp/..." />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Google Play Books Link</label>
+              <input name="gplay_books_url" type="url" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Example: https://play.google.com/store/books/details/..." />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Category</label>
@@ -274,6 +298,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <input name="stock" type="number" min="0" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
             </div>
             <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Production Cost (Rp) *</label>
+              <input name="production_cost" type="number" min="0" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="example:" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Royalty Fee (Rp) *</label>
+              <input name="royalty_fee" type="number" min="0" required class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="example:" />
+            </div>
+            <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Cover Image</label>
               <input name="image_upload" type="file" accept="image/*" class="w-full bg-surface py-2 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
             </div>
@@ -283,7 +315,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Publication Date</label>
-              <input name="publication_date" type="date" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+              <input name="publication_date" type="date" onclick="try{this.showPicker()}catch(e){}" class="w-full bg-surface py-2.5 px-4 rounded-xl text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all cursor-pointer" />
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-stone-500 uppercase tracking-wider">Format</label>
@@ -361,6 +393,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Description</p>
               <p id="viewBookDesc" class="text-sm text-stone-600 leading-relaxed"></p>
             </div>
+            <div id="viewBookValidationBlock" class="hidden bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-3 mt-4">
+              <h5 class="text-xs font-bold text-stone-500 uppercase tracking-wider">Publish Request Validation</h5>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-stone-600">Draft Manuscript:</span>
+                <a id="viewBookDraftLink" href="#" target="_blank" class="text-primary font-bold hover:underline flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">download</span> Download Draft
+                </a>
+              </div>
+              <div class="mt-2">
+                <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Notes (Optional)</label>
+                <textarea id="viewBookNotes" class="w-full bg-white py-2 px-3 rounded-lg text-sm border border-stone-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all h-20 resize-none" placeholder="Add notes for the customer..."></textarea>
+              </div>
+              <div id="viewBookActionButtons" class="flex gap-2 pt-1.5">
+                <button id="viewBookApproveBtn" class="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition-all">Approve</button>
+                <button id="viewBookRejectBtn" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-all">Reject</button>
+              </div>
+              <div id="viewBookValidationStatusMsg" class="hidden text-xs font-bold mt-1 text-center"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -387,9 +437,43 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
   </div>
 
+  <!-- Approve Success Modal -->
+  <div id="approveSuccessModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity opacity-0"></div>
+    <div class="bg-surface rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl transform scale-95 opacity-0 transition-all z-10 relative">
+      <div class="p-6 md:p-8 text-center flex flex-col items-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-green-600 text-3xl">check_circle</span>
+        </div>
+        <h3 class="text-xl font-bold text-stone-900 mb-2 font-display">Sukses!</h3>
+        <p class="text-stone-600 text-sm leading-relaxed mb-6">
+          Admin telah menyetujui draft publikasi ini. Email notifikasi telah dikirimkan ke pelanggan.
+        </p>
+        <button class="closeModalBtn w-full py-3 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary/90 transition-all" data-modal="approveSuccessModal">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reject Success Modal -->
+  <div id="rejectSuccessModal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity opacity-0"></div>
+    <div class="bg-surface rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl transform scale-95 opacity-0 transition-all z-10 relative">
+      <div class="p-6 md:p-8 text-center flex flex-col items-center">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-red-600 text-3xl">cancel</span>
+        </div>
+        <h3 class="text-xl font-bold text-stone-900 mb-2 font-display">Sukses!</h3>
+        <p class="text-stone-600 text-sm leading-relaxed mb-6">
+          Admin telah menolak draft publikasi ini. Email notifikasi beserta catatan telah dikirimkan ke pelanggan.
+        </p>
+        <button class="closeModalBtn w-full py-3 bg-stone-200 text-stone-700 font-bold rounded-xl text-sm hover:bg-stone-300 transition-all" data-modal="rejectSuccessModal">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    import { getBooks, getBook, createBook, updateBook, deleteBook, formatRupiah, isAuthenticated, getCategories, uploadImage } from '../lib/api';
-    import type { Book, BookFilter  } from '../lib/api';
+    import { getBooks, getBook, createBook, updateBook, deleteBook, formatRupiah, isAuthenticated, getCategories, uploadImage, validateBook } from '../lib/api';
+    import type { Book, BookFilter } from '../lib/api';
 
     // ─── Auth guard ──────────────────────────────────────────────
     if (!isAuthenticated()) {
@@ -411,9 +495,50 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const statusFilter = document.getElementById('statusFilter') as HTMLSelectElement;
 
     // ─── Teleport modals ─────────────────────────────────────────
-    document.querySelectorAll('#addBookModal, #editBookModal, #viewBookModal, #deleteModal, #toast').forEach(el => {
+    document.querySelectorAll('#addBookModal, #editBookModal, #viewBookModal, #deleteModal, #approveSuccessModal, #rejectSuccessModal, #toast').forEach(el => {
       document.body.appendChild(el);
     });
+
+    // Bind validation approve/reject actions
+    const approveBtn = document.getElementById('viewBookApproveBtn') as HTMLButtonElement;
+    const rejectBtn = document.getElementById('viewBookRejectBtn') as HTMLButtonElement;
+    if (approveBtn && rejectBtn) {
+      approveBtn.addEventListener('click', async () => {
+        const id = approveBtn.dataset.id!;
+        const notes = (document.getElementById('viewBookNotes') as HTMLTextAreaElement).value;
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        try {
+          await validateBook(id, 'approved', notes);
+          closeModalById('viewBookModal');
+          openModal('approveSuccessModal');
+          loadCatalog();
+        } catch (err: any) {
+          showToast(err.message || 'Failed to approve book', 'error');
+        } finally {
+          approveBtn.disabled = false;
+          rejectBtn.disabled = false;
+        }
+      });
+
+      rejectBtn.addEventListener('click', async () => {
+        const id = rejectBtn.dataset.id!;
+        const notes = (document.getElementById('viewBookNotes') as HTMLTextAreaElement).value;
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        try {
+          await validateBook(id, 'rejected', notes);
+          closeModalById('viewBookModal');
+          openModal('rejectSuccessModal');
+          loadCatalog();
+        } catch (err: any) {
+          showToast(err.message || 'Failed to reject book', 'error');
+        } finally {
+          approveBtn.disabled = false;
+          rejectBtn.disabled = false;
+        }
+      });
+    }
 
     // ─── Helpers ─────────────────────────────────────────────────
     function getStatusClasses(status: string) {
@@ -549,43 +674,64 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const stockCls = getStockClasses(book.stock);
         const borderCls = i < books.length - 1 ? 'border-b border-stone-200/10' : '';
 
+        const valStatus = book.validation_status || '';
+        let valBadge = '';
+        if (book.status === 'draft') {
+          if (valStatus === 'pending') {
+            valBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 mt-1">Pending Validation</span>`;
+          } else if (valStatus === 'approved') {
+            valBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-100 text-green-800 border border-green-200 mt-1">Approved</span>`;
+          } else if (valStatus === 'rejected') {
+            valBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-800 border border-red-200 mt-1">Rejected</span>`;
+          }
+        }
+
         return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${borderCls}" data-id="${book.id}">
-          <td class="py-4 md:py-5 px-3 md:px-4">
-            <div class="flex items-center gap-3 md:gap-4">
-              <div class="w-8 h-12 md:w-10 md:h-14 bg-stone-200 rounded-md overflow-hidden flex-shrink-0 shadow-sm border border-stone-200/50">
+          <td class="py-3.5 md:py-4 px-2.5 lg:px-4">
+            <div class="flex items-center gap-2.5 lg:gap-3">
+              <div class="w-8 h-11 lg:w-9 lg:h-12 bg-stone-200 rounded-md overflow-hidden flex-shrink-0 shadow-sm border border-stone-200/50">
                 ${book.image_url
                   ? `<img alt="Cover ${book.title}" class="w-full h-full object-cover" src="${book.image_url}" loading="lazy" />`
-                  : `<div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-stone-400 text-lg">text_snippet</span></div>`}
+                  : `<div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-stone-400 text-base">text_snippet</span></div>`}
               </div>
-              <div>
-                <p class="font-bold text-primary text-sm md:text-base">${book.title}</p>
-                <p class="text-stone-400 text-[10px] mt-0.5 tracking-wider">ISBN: ${book.isbn || 'Belum Terbit'}</p>
+              <div class="min-w-0 max-w-[140px] md:max-w-[180px] lg:max-w-[200px] xl:max-w-xs">
+                <p class="font-bold text-primary text-xs md:text-sm truncate" title="${book.title}">${book.title}</p>
+                <p class="text-stone-400 text-[10px] mt-0.5 tracking-wider truncate">ISBN: ${book.isbn || 'Belum Terbit'}</p>
+                ${valBadge ? `<div class="mt-0.5">${valBadge}</div>` : ''}
               </div>
             </div>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4">
-            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[11px] font-bold leading-none bg-surface-container text-primary whitespace-nowrap">${book.badge || 'Regular'}</span>
+          <td class="py-3.5 md:py-4 px-2.5 lg:px-4 whitespace-nowrap">
+            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] lg:text-[11px] font-bold leading-none bg-surface-container text-primary whitespace-nowrap">${book.badge || 'Regular'}</span>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${book.author}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 font-bold text-primary">${book.price > 0 ? formatRupiah(book.price) : '--'}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4">
-            <span class="font-bold px-2.5 py-1 rounded-md text-xs ${stockCls}">${book.stock > 0 ? book.stock + ' Units' : '--'}</span>
+          <td class="py-3.5 md:py-4 px-2.5 lg:px-4 whitespace-nowrap lg:whitespace-normal">
+            <div class="truncate max-w-[90px] lg:max-w-[130px] font-medium text-stone-600 text-xs md:text-sm" title="${book.author}">${book.author}</div>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${st.badge}">
+          <td class="py-3.5 md:py-4 px-2.5 lg:px-4 font-bold text-primary whitespace-nowrap text-xs md:text-sm">${book.price > 0 ? formatRupiah(book.price) : '--'}</td>
+          <td class="py-3.5 md:py-4 px-2.5 lg:px-4 whitespace-nowrap">
+            <span class="font-bold px-2 py-0.5 rounded-md text-[11px] lg:text-xs ${stockCls}">${book.stock > 0 ? book.stock + ' Units' : '--'}</span>
+          </td>
+          <td class="py-3.5 md:py-4 px-2.5 lg:px-4 whitespace-nowrap">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] lg:text-[11px] font-bold ${st.badge}">
               <span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span>${st.label}
             </span>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
-            <div class="flex items-center justify-end gap-2">
-              <button class="viewBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="View" data-id="${book.id}">
-                <span class="material-symbols-outlined text-lg">visibility</span>
+          <td class="py-3.5 md:py-4 px-2.5 lg:px-4 text-right whitespace-nowrap">
+            <div class="flex items-center justify-end gap-1">
+              <button class="viewBtn w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="View" data-id="${book.id}">
+                <span class="material-symbols-outlined text-base lg:text-lg">visibility</span>
               </button>
-              <button class="editBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="Edit" data-id="${book.id}">
-                <span class="material-symbols-outlined text-lg">edit</span>
+              ${book.validation_status === 'rejected' ? `
+              <button class="w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-stone-300 cursor-not-allowed opacity-50" title="Edit Disabled (Rejected)" disabled>
+                <span class="material-symbols-outlined text-base lg:text-lg">edit</span>
               </button>
-              <button class="deleteBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-error hover:bg-stone-200/50 transition-all" title="Delete" data-id="${book.id}" data-title="${book.title}">
-                <span class="material-symbols-outlined text-lg">delete</span>
+              ` : `
+              <button class="editBtn w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="Edit" data-id="${book.id}">
+                <span class="material-symbols-outlined text-base lg:text-lg">edit</span>
+              </button>
+              `}
+              <button class="deleteBtn w-7 h-7 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-error hover:bg-stone-200/50 transition-all" title="Delete" data-id="${book.id}" data-name="${book.title}">
+                <span class="material-symbols-outlined text-base lg:text-lg">delete</span>
               </button>
             </div>
           </td>
@@ -656,6 +802,53 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             document.getElementById('viewBookStock')!.textContent = book.stock > 0 ? `${book.stock} Units` : '--';
             document.getElementById('viewBookDate')!.textContent = formatDate(book.created_at);
             document.getElementById('viewBookDesc')!.textContent = book.description || 'No description available.';
+
+            // Validation block logic
+            const valBlock = document.getElementById('viewBookValidationBlock')!;
+            const draftLink = document.getElementById('viewBookDraftLink') as HTMLAnchorElement;
+            const actionBtns = document.getElementById('viewBookActionButtons')!;
+            const statusMsg = document.getElementById('viewBookValidationStatusMsg')!;
+            
+            // Set current book ID on buttons for validation click handlers
+            const appBtn = document.getElementById('viewBookApproveBtn') as HTMLButtonElement;
+            const rejBtn = document.getElementById('viewBookRejectBtn') as HTMLButtonElement;
+            if (appBtn) appBtn.dataset.id = book.id;
+            if (rejBtn) rejBtn.dataset.id = book.id;
+
+            if (book.validation_status && book.status === 'draft') {
+              valBlock.classList.remove('hidden');
+              statusMsg.classList.add('hidden');
+              
+              if (book.draft_url) {
+                // Draft documents could be from Google Drive or local
+                draftLink.href = book.draft_url.startsWith('http') ? book.draft_url : `http://localhost:8080${book.draft_url}`;
+                draftLink.parentElement!.classList.remove('hidden');
+              } else {
+                draftLink.parentElement!.classList.add('hidden');
+              }
+
+              const notesEl = document.getElementById('viewBookNotes') as HTMLTextAreaElement;
+              if (notesEl) {
+                notesEl.value = book.notes || '';
+                notesEl.disabled = book.validation_status !== 'pending';
+              }
+
+              if (book.validation_status === 'pending') {
+                actionBtns.classList.remove('hidden');
+              } else {
+                actionBtns.classList.add('hidden');
+                statusMsg.classList.remove('hidden');
+                statusMsg.textContent = `Status: ${book.validation_status.toUpperCase()}`;
+                if (book.validation_status === 'approved') {
+                  statusMsg.className = 'text-xs font-bold mt-1 text-center text-green-600';
+                } else {
+                  statusMsg.className = 'text-xs font-bold mt-1 text-center text-red-600';
+                }
+              }
+            } else {
+              valBlock.classList.add('hidden');
+            }
+
             openModal('viewBookModal');
           } catch { showToast('Failed to load book details', 'error'); }
         });
@@ -674,20 +867,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             (form.querySelector('[name="author"]') as HTMLInputElement).value = book.author;
             (form.querySelector('[name="isbn"]') as HTMLInputElement).value = book.isbn || '';
             (form.querySelector('[name="badge"]') as HTMLSelectElement).value = book.badge || 'Regular';
-            (form.querySelector('[name="ggkey"]') as HTMLInputElement).value = book.ggkey || '';
-            (form.querySelector('[name="qrcbn"]') as HTMLInputElement).value = book.qrcbn || '';
+            (form.querySelector('[name="ggkey"]') as HTMLInputElement).value = (book.ggkey === "null" || !book.ggkey) ? '' : book.ggkey;
+            (form.querySelector('[name="qrcbn"]') as HTMLInputElement).value = (book.qrcbn === "null" || !book.qrcbn) ? '' : book.qrcbn;
             (form.querySelector('[name="category"]') as HTMLSelectElement).value = book.category_id || '';
             (form.querySelector('[name="status"]') as HTMLSelectElement).value = book.status;
             (form.querySelector('[name="price"]') as HTMLInputElement).value = String(book.price);
             (form.querySelector('[name="stock"]') as HTMLInputElement).value = String(book.stock);
+            (form.querySelector('[name="production_cost"]') as HTMLInputElement).value = String(book.production_cost ?? 0);
+            (form.querySelector('[name="royalty_fee"]') as HTMLInputElement).value = String(book.royalty_fee ?? 0);
             (form.querySelector('[name="existing_image_url"]') as HTMLInputElement).value = book.image_url || '';
             (form.querySelector('[name="publisher"]') as HTMLInputElement).value = book.publisher || '';
             (form.querySelector('[name="publication_date"]') as HTMLInputElement).value = book.publication_date || '';
+            (form.querySelector('[name="amazon_url"]') as HTMLInputElement).value = book.amazon_url || '';
+            (form.querySelector('[name="gplay_books_url"]') as HTMLInputElement).value = book.gplay_books_url || '';
             (form.querySelector('[name="format"]') as HTMLSelectElement).value = book.format || '';
             (form.querySelector('[name="language"]') as HTMLInputElement).value = book.language || '';
             (form.querySelector('[name="pages"]') as HTMLInputElement).value = String(book.pages || 0);
-            (form.querySelector('[name="dimensions"]') as HTMLInputElement).value = book.dimensions || '';
-            (form.querySelector('[name="weight"]') as HTMLInputElement).value = book.weight || '';
+            (form.querySelector('[name="dimensions"]') as HTMLInputElement).value = (book.dimensions === "null" || !book.dimensions) ? '' : book.dimensions;
+            (form.querySelector('[name="weight"]') as HTMLInputElement).value = (book.weight === "null" || !book.weight) ? '' : book.weight;
             (form.querySelector('[name="description"]') as HTMLTextAreaElement).value = book.description || '';
             openModal('editBookModal');
           } catch { showToast('Failed to load book for editing', 'error'); }
@@ -753,22 +950,37 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         ggkey: formData.get('ggkey') as string,
         qrcbn: formData.get('qrcbn') as string,
         category_id: formData.get('category') as string,
-        status: (formData.get('status') as string) || 'draft',
+        status: ((formData.get('status') as string) || 'draft') as Book['status'],
+        validation_status: 'approved' as const,
         price: parseInt(formData.get('price') as string) || 0,
         stock: parseInt(formData.get('stock') as string) || 0,
         image_url: imageUrl,
         description: formData.get('description') as string,
         publisher: formData.get('publisher') as string,
         publication_date: formData.get('publication_date') as string,
+        amazon_url: (formData.get('amazon_url') as string) || '',
+        gplay_books_url: (formData.get('gplay_books_url') as string) || '',
         format: formData.get('format') as string,
         language: formData.get('language') as string,
         pages: parseInt(formData.get('pages') as string) || 0,
         dimensions: formData.get('dimensions') as string,
         weight: formData.get('weight') as string,
+        production_cost: parseInt(String(formData.get('production_cost') || '0'), 10) || 0,
+        royalty_fee: parseInt(String(formData.get('royalty_fee') || '0'), 10) || 0,
       };
+
+      const prodCostRaw = formData.get('production_cost');
+      const royaltyFeeRaw = formData.get('royalty_fee');
+      const prodCostStr = prodCostRaw !== null ? String(prodCostRaw).trim() : '';
+      const royaltyFeeStr = royaltyFeeRaw !== null ? String(royaltyFeeRaw).trim() : '';
 
       if (!payload.title || !payload.author) {
         showModalError(alertBox, { message: 'Title and Author are required' }, 'Validation Error');
+        return;
+      }
+
+      if (prodCostStr === '' || royaltyFeeStr === '') {
+        showModalError(alertBox, { message: 'Production Cost and Royalty Fee are required' }, 'Validation Error');
         return;
       }
 
@@ -821,22 +1033,36 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         ggkey: formData.get('ggkey') as string,
         qrcbn: formData.get('qrcbn') as string,
         category_id: formData.get('category') as string,
-        status: (formData.get('status') as string) || 'draft',
+        status: ((formData.get('status') as string) || 'draft') as Book['status'],
         price: parseInt(formData.get('price') as string) || 0,
         stock: parseInt(formData.get('stock') as string) || 0,
         image_url: imageUrl,
         description: formData.get('description') as string,
         publisher: formData.get('publisher') as string,
         publication_date: formData.get('publication_date') as string,
+        amazon_url: (formData.get('amazon_url') as string) || '',
+        gplay_books_url: (formData.get('gplay_books_url') as string) || '',
         format: formData.get('format') as string,
         language: formData.get('language') as string,
         pages: parseInt(formData.get('pages') as string) || 0,
         dimensions: formData.get('dimensions') as string,
         weight: formData.get('weight') as string,
+        production_cost: parseInt(String(formData.get('production_cost') || '0'), 10) || 0,
+        royalty_fee: parseInt(String(formData.get('royalty_fee') || '0'), 10) || 0,
       };
+
+      const prodCostRaw = formData.get('production_cost');
+      const royaltyFeeRaw = formData.get('royalty_fee');
+      const prodCostStr = prodCostRaw !== null ? String(prodCostRaw).trim() : '';
+      const royaltyFeeStr = royaltyFeeRaw !== null ? String(royaltyFeeRaw).trim() : '';
 
       if (!payload.title || !payload.author) {
         showModalError(alertBox, { message: 'Title and Author are required' }, 'Validation Error');
+        return;
+      }
+
+      if (prodCostStr === '' || royaltyFeeStr === '') {
+        showModalError(alertBox, { message: 'Production Cost and Royalty Fee are required' }, 'Validation Error');
         return;
       }
 

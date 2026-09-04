@@ -22,6 +22,9 @@ type User struct {
 	Address      string    `json:"address"`
 	Province     string    `json:"province"`
 	City         string    `json:"city"`
+	Regency      string    `json:"regency"`
+	District     string    `json:"district,omitempty"`
+	Village      string    `json:"village"`
 	ZipCode      string    `json:"zip_code"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`

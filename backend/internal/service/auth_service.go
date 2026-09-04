@@ -2,9 +2,12 @@
 package service
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"log"
 	"net/smtp"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -19,11 +22,17 @@ import (
 )
 
 var (
-	otpStore = sync.Map{} // email -> otpInfo{code, expiresAt}
+	otpStore        = sync.Map{} // email -> otpInfo{code, expiresAt}
+	resetTokenStore = sync.Map{} // token -> resetInfo{email, expiresAt}
 )
 
 type otpInfo struct {
 	code      string
+	expiresAt time.Time
+}
+
+type resetInfo struct {
+	email     string
 	expiresAt time.Time
 }
 
@@ -204,19 +213,74 @@ func (s *AuthService) GetCurrentUser(userID string) (*model.User, error) {
 	return user, nil
 }
 
+// UpdateProfile updates the profile of the current authenticated user.
+func (s *AuthService) UpdateProfile(userID string, name, phoneNumber, address, province, city, regency, village, zipCode string) (*model.User, error) {
+	u, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, fmt.Errorf("auth_service: find user: %w", err)
+	}
+	if u == nil {
+		return nil, errors.New("user not found")
+	}
+
+	u.Name = name
+	u.PhoneNumber = phoneNumber
+	u.Address = address
+	u.Province = province
+	u.City = city
+	u.Regency = regency
+	u.Village = village
+	u.ZipCode = zipCode
+
+	if err := s.userRepo.Update(u); err != nil {
+		return nil, fmt.Errorf("auth_service: update user: %w", err)
+	}
+
+	return u, nil
+}
+
 // SendOTP generates and sends a 6-digit OTP to the email.
 func (s *AuthService) SendOTP(email string) error {
 	// Generate random 6-digit code
 	code := fmt.Sprintf("%06d", uuid.New().ID()%1000000)
 	
-	// Store in memory with 5 minute expiry
+	// Store in database verify_otps table with 5 minute expiry
+	expiredAt := time.Now().Add(5 * time.Minute)
+	if err := s.userRepo.SaveOTP(email, code, expiredAt); err != nil {
+		return fmt.Errorf("failed to save OTP: %w", err)
+	}
 	otpStore.Store(email, otpInfo{
 		code:      code,
-		expiresAt: time.Now().Add(5 * time.Minute),
+		expiresAt: expiredAt,
 	})
 
-	// Render the template by replacing the placeholder code
+	// Find logo file synchronously
+	var logoBytes []byte
+	logoPath := ""
+	logoPaths := []string{
+		"logo.png",
+		"../logo.png",
+		"./logo.png",
+		"backend/logo.png",
+		"frontend/public/logo.png",
+		"../frontend/public/logo.png",
+	}
+	for _, p := range logoPaths {
+		if _, err := os.Stat(p); err == nil {
+			logoPath = p
+			break
+		}
+	}
+	if logoPath != "" {
+		logoBytes, _ = os.ReadFile(logoPath)
+	}
+
+	// Render the template
 	body := strings.Replace(OTPEmailTemplate, "184920", code, 1)
+	useCID := len(logoBytes) > 0
+	if useCID {
+		body = strings.Replace(body, "https://digitalpapyrus.web.id/logo.png", "cid:logo_cid", 1)
+	}
 
 	// SMTP credentials and server info
 	smtpHost := s.cfg.SMTP.Host
@@ -224,44 +288,386 @@ func (s *AuthService) SendOTP(email string) error {
 	smtpUsername := s.cfg.SMTP.Username
 	smtpPassword := s.cfg.SMTP.Password
 
-	// Build headers and body
-	subject := "Subject: Verifikasi Akun Baru Anda - Digital Papyrus\n"
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	msg := []byte(subject + mime + body)
-
 	// Send email in a goroutine so it doesn't block the API client
 	go func() {
+		// Determine the sender domain for Message-ID alignment
+		domain := "gmail.com"
+		parts := strings.Split(smtpUsername, "@")
+		if len(parts) > 1 {
+			domain = parts[1]
+		}
+		messageID := fmt.Sprintf("<%s@%s>", uuid.New().String(), domain)
+		dateStr := time.Now().Format(time.RFC1123Z)
+
+		var msgBuilder strings.Builder
+		msgBuilder.WriteString(fmt.Sprintf("From: Digital Papyrus <%s>\r\n", smtpUsername))
+		msgBuilder.WriteString(fmt.Sprintf("To: %s\r\n", email))
+		msgBuilder.WriteString("Subject: Verifikasi Akun Baru Anda\r\n")
+		msgBuilder.WriteString(fmt.Sprintf("Date: %s\r\n", dateStr))
+		msgBuilder.WriteString(fmt.Sprintf("Message-ID: %s\r\n", messageID))
+		msgBuilder.WriteString("MIME-Version: 1.0\r\n")
+		msgBuilder.WriteString("Auto-Submitted: auto-generated\r\n")
+		msgBuilder.WriteString("X-Auto-Response-Suppress: OOF, AutoReply\r\n")
+
+		if useCID {
+			// Boundary for multipart/related
+			boundary := "----=_NextPart_" + uuid.New().String()
+			msgBuilder.WriteString(fmt.Sprintf("Content-Type: multipart/related; type=\"text/html\"; boundary=\"%s\"\r\n\r\n", boundary))
+
+			// HTML Body part
+			msgBuilder.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+			msgBuilder.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
+			msgBuilder.WriteString(body)
+			msgBuilder.WriteString("\r\n")
+
+			// Image Attachment part (inline CID)
+			msgBuilder.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+			msgBuilder.WriteString("Content-Type: image/png\r\n")
+			msgBuilder.WriteString("Content-Disposition: inline\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: base64\r\n")
+			msgBuilder.WriteString("Content-ID: <logo_cid>\r\n\r\n")
+
+			// Base64 encode in standard RFC MIME chunks (76 chars per line)
+			b64Bytes := make([]byte, base64.StdEncoding.EncodedLen(len(logoBytes)))
+			base64.StdEncoding.Encode(b64Bytes, logoBytes)
+			
+			for i := 0; i < len(b64Bytes); i += 76 {
+				end := i + 76
+				if end > len(b64Bytes) {
+					end = len(b64Bytes)
+				}
+				msgBuilder.Write(b64Bytes[i:end])
+				msgBuilder.WriteString("\r\n")
+			}
+
+			// Close boundary
+			msgBuilder.WriteString(fmt.Sprintf("--%s--\r\n", boundary))
+		} else {
+			// Simple non-multipart HTML email
+			msgBuilder.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
+			msgBuilder.WriteString(body)
+		}
+
 		auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
 		addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
-		err := smtp.SendMail(addr, auth, smtpUsername, []string{email}, msg)
+		err := smtp.SendMail(addr, auth, smtpUsername, []string{email}, []byte(msgBuilder.String()))
 		if err != nil {
-			fmt.Printf("\n[SMTP ERROR] Failed to send OTP to %s: %v\n\n", email, err)
+			log.Printf("[SMTP ERROR] Failed to send OTP to %s: %v", email, err)
 		} else {
-			fmt.Printf("\n[SMTP SUCCESS] Sent OTP to %s (Code: %s)\n\n", email, code)
+			log.Printf("[SMTP SUCCESS] Sent OTP to %s (Code: %s)", email, code)
 		}
 	}()
 	
 	return nil
 }
 
-// VerifyOTP checks if the provided code matches the one stored for the email.
+// VerifyOTP checks if the provided code matches the one stored for the email in verify_otps table.
+// If valid and matches, it deletes the entry from verify_otps.
 func (s *AuthService) VerifyOTP(email, code string) (bool, error) {
-	val, ok := otpStore.Load(email)
-	if !ok {
-		return false, errors.New("OTP not found or expired")
-	}
-
-	info := val.(otpInfo)
-	if time.Now().After(info.expiresAt) {
+	ok, err := s.userRepo.VerifyAndConsumeOTP(email, code)
+	if err != nil {
 		otpStore.Delete(email)
-		return false, errors.New("OTP has expired")
+		return false, err
 	}
 
-	if info.code != code {
-		return false, errors.New("invalid OTP code")
-	}
-
-	// Success! Delete the OTP so it can't be reused
 	otpStore.Delete(email)
-	return true, nil
+	return ok, nil
 }
+
+// RequestPasswordReset generates a reset token, saves it, and sends the email link.
+func (s *AuthService) RequestPasswordReset(email string) error {
+	user, err := s.userRepo.FindByEmail(email)
+	if err != nil {
+		return fmt.Errorf("auth_service: find user: %w", err)
+	}
+	if user == nil {
+		return errors.New("email not found")
+	}
+
+	token := uuid.New().String()
+	expiredAt := time.Now().Add(15 * time.Minute)
+
+	// Store in database verify_otps table
+	if err := s.userRepo.SaveOTP(email, token, expiredAt); err != nil {
+		return fmt.Errorf("auth_service: save reset token to verify_otps: %w", err)
+	}
+
+	resetTokenStore.Store(token, resetInfo{
+		email:     email,
+		expiresAt: expiredAt,
+	})
+
+	frontendURL := "http://localhost:4321"
+	if s.cfg.IsProduction() {
+		frontendURL = "https://digitalpapyrus.web.id"
+	}
+
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s&email=%s", frontendURL, token, email)
+
+	// Find logo file synchronously
+	var logoBytes []byte
+	logoPath := ""
+	logoPaths := []string{
+		"logo.png",
+		"../logo.png",
+		"./logo.png",
+		"backend/logo.png",
+		"frontend/public/logo.png",
+		"../frontend/public/logo.png",
+	}
+	for _, p := range logoPaths {
+		if _, err := os.Stat(p); err == nil {
+			logoPath = p
+			break
+		}
+	}
+	if logoPath != "" {
+		logoBytes, _ = os.ReadFile(logoPath)
+	}
+
+	// Render body template
+	body := strings.Replace(ResetPasswordEmailTemplate, "RESET_LINK_PLACEHOLDER", resetLink, 1)
+	useCID := len(logoBytes) > 0
+	if useCID {
+		body = strings.Replace(body, "https://digitalpapyrus.web.id/logo.png", "cid:logo_cid", 1)
+	}
+
+	smtpHost := s.cfg.SMTP.Host
+	smtpPort := s.cfg.SMTP.Port
+	smtpUsername := s.cfg.SMTP.Username
+	smtpPassword := s.cfg.SMTP.Password
+
+	go func() {
+		// Determine the sender domain for Message-ID alignment
+		domain := "gmail.com"
+		parts := strings.Split(smtpUsername, "@")
+		if len(parts) > 1 {
+			domain = parts[1]
+		}
+		messageID := fmt.Sprintf("<%s@%s>", uuid.New().String(), domain)
+		dateStr := time.Now().Format(time.RFC1123Z)
+
+		var msgBuilder strings.Builder
+		msgBuilder.WriteString(fmt.Sprintf("From: Digital Papyrus <%s>\r\n", smtpUsername))
+		msgBuilder.WriteString(fmt.Sprintf("To: %s\r\n", email))
+		msgBuilder.WriteString("Subject: Atur Ulang Kata Sandi Anda\r\n")
+		msgBuilder.WriteString(fmt.Sprintf("Date: %s\r\n", dateStr))
+		msgBuilder.WriteString(fmt.Sprintf("Message-ID: %s\r\n", messageID))
+		msgBuilder.WriteString("MIME-Version: 1.0\r\n")
+		msgBuilder.WriteString("Auto-Submitted: auto-generated\r\n")
+		msgBuilder.WriteString("X-Auto-Response-Suppress: OOF, AutoReply\r\n")
+
+		if useCID {
+			boundary := "----=_NextPart_" + uuid.New().String()
+			msgBuilder.WriteString(fmt.Sprintf("Content-Type: multipart/related; type=\"text/html\"; boundary=\"%s\"\r\n\r\n", boundary))
+
+			// HTML Body part
+			msgBuilder.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+			msgBuilder.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
+			msgBuilder.WriteString(body)
+			msgBuilder.WriteString("\r\n")
+
+			// Image Attachment part (inline CID)
+			msgBuilder.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+			msgBuilder.WriteString("Content-Type: image/png\r\n")
+			msgBuilder.WriteString("Content-Disposition: inline\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: base64\r\n")
+			msgBuilder.WriteString("Content-ID: <logo_cid>\r\n\r\n")
+
+			b64Bytes := make([]byte, base64.StdEncoding.EncodedLen(len(logoBytes)))
+			base64.StdEncoding.Encode(b64Bytes, logoBytes)
+			
+			for i := 0; i < len(b64Bytes); i += 76 {
+				end := i + 76
+				if end > len(b64Bytes) {
+					end = len(b64Bytes)
+				}
+				msgBuilder.Write(b64Bytes[i:end])
+				msgBuilder.WriteString("\r\n")
+			}
+
+			msgBuilder.WriteString(fmt.Sprintf("--%s--\r\n", boundary))
+		} else {
+			// Simple non-multipart HTML email
+			msgBuilder.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
+			msgBuilder.WriteString(body)
+		}
+
+		auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
+		addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
+		err := smtp.SendMail(addr, auth, smtpUsername, []string{email}, []byte(msgBuilder.String()))
+		if err != nil {
+			log.Printf("[SMTP ERROR] Failed to send password reset to %s: %v", email, err)
+		} else {
+			log.Printf("[SMTP SUCCESS] Sent password reset to %s (Link: %s)", email, resetLink)
+		}
+	}()
+
+	return nil
+}
+
+// ResetPassword validates the token and updates the user's password.
+func (s *AuthService) ResetPassword(email, token, newPassword string) error {
+	// First verify and consume from verify_otps database table
+	_, dbErr := s.userRepo.VerifyAndConsumeOTP(email, token)
+	if dbErr != nil {
+		// Fallback check memory store
+		val, ok := resetTokenStore.Load(token)
+		if !ok {
+			return errors.New("token invalid or expired")
+		}
+
+		info := val.(resetInfo)
+		if time.Now().After(info.expiresAt) {
+			resetTokenStore.Delete(token)
+			return errors.New("token has expired")
+		}
+
+		if info.email != email {
+			return errors.New("token does not belong to this email")
+		}
+	}
+
+	resetTokenStore.Delete(token)
+
+	user, err := s.userRepo.FindByEmail(email)
+	if err != nil {
+		return fmt.Errorf("auth_service: %w", err)
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), s.cfg.Security.BcryptCost)
+	if err != nil {
+		return fmt.Errorf("auth_service: hash password: %w", err)
+	}
+
+	if err := s.userRepo.UpdatePassword(user.ID, string(hash)); err != nil {
+		return fmt.Errorf("auth_service: update password: %w", err)
+	}
+
+	resetTokenStore.Delete(token)
+
+	// Send password change email notification
+	_ = s.SendPasswordChangedNotification(email)
+
+	return nil
+}
+
+// SendPasswordChangedNotification sends a security alert to the user's email.
+func (s *AuthService) SendPasswordChangedNotification(email string) error {
+	// Find logo file synchronously
+	var logoBytes []byte
+	logoPath := ""
+	logoPaths := []string{
+		"logo.png",
+		"../logo.png",
+		"./logo.png",
+		"backend/logo.png",
+		"frontend/public/logo.png",
+		"../frontend/public/logo.png",
+	}
+	for _, p := range logoPaths {
+		if _, err := os.Stat(p); err == nil {
+			logoPath = p
+			break
+		}
+	}
+	if logoPath != "" {
+		logoBytes, _ = os.ReadFile(logoPath)
+	}
+
+	// Format time in WIB (Western Indonesian Time) which is UTC+7
+	loc := time.FixedZone("WIB", 7*60*60)
+	timeStr := time.Now().In(loc).Format("02 Jan 2006 15:04:05")
+
+	// Render the template
+	body := strings.Replace(PasswordChangedEmailTemplate, "DATE_PLACEHOLDER", timeStr, 1)
+	body = strings.Replace(body, "EMAIL_PLACEHOLDER", email, 1)
+	
+	useCID := len(logoBytes) > 0
+	if useCID {
+		body = strings.Replace(body, "https://digitalpapyrus.web.id/logo.png", "cid:logo_cid", 1)
+	}
+
+	smtpHost := s.cfg.SMTP.Host
+	smtpPort := s.cfg.SMTP.Port
+	smtpUsername := s.cfg.SMTP.Username
+	smtpPassword := s.cfg.SMTP.Password
+
+	go func() {
+		// Determine the sender domain for Message-ID alignment
+		domain := "gmail.com"
+		parts := strings.Split(smtpUsername, "@")
+		if len(parts) > 1 {
+			domain = parts[1]
+		}
+		messageID := fmt.Sprintf("<%s@%s>", uuid.New().String(), domain)
+		dateStr := time.Now().Format(time.RFC1123Z)
+
+		var msgBuilder strings.Builder
+		msgBuilder.WriteString(fmt.Sprintf("From: Digital Papyrus <%s>\r\n", smtpUsername))
+		msgBuilder.WriteString(fmt.Sprintf("To: %s\r\n", email))
+		msgBuilder.WriteString("Subject: Kata Sandi Anda Berhasil Diperbarui\r\n")
+		msgBuilder.WriteString(fmt.Sprintf("Date: %s\r\n", dateStr))
+		msgBuilder.WriteString(fmt.Sprintf("Message-ID: %s\r\n", messageID))
+		msgBuilder.WriteString("MIME-Version: 1.0\r\n")
+		msgBuilder.WriteString("Auto-Submitted: auto-generated\r\n")
+		msgBuilder.WriteString("X-Auto-Response-Suppress: OOF, AutoReply\r\n")
+
+		if useCID {
+			boundary := "----=_NextPart_" + uuid.New().String()
+			msgBuilder.WriteString(fmt.Sprintf("Content-Type: multipart/related; type=\"text/html\"; boundary=\"%s\"\r\n\r\n", boundary))
+
+			// HTML Body part
+			msgBuilder.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+			msgBuilder.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
+			msgBuilder.WriteString(body)
+			msgBuilder.WriteString("\r\n")
+
+			// Image Attachment part (inline CID)
+			msgBuilder.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+			msgBuilder.WriteString("Content-Type: image/png\r\n")
+			msgBuilder.WriteString("Content-Disposition: inline\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: base64\r\n")
+			msgBuilder.WriteString("Content-ID: <logo_cid>\r\n\r\n")
+
+			b64Bytes := make([]byte, base64.StdEncoding.EncodedLen(len(logoBytes)))
+			base64.StdEncoding.Encode(b64Bytes, logoBytes)
+			
+			for i := 0; i < len(b64Bytes); i += 76 {
+				end := i + 76
+				if end > len(b64Bytes) {
+					end = len(b64Bytes)
+				}
+				msgBuilder.Write(b64Bytes[i:end])
+				msgBuilder.WriteString("\r\n")
+			}
+
+			msgBuilder.WriteString(fmt.Sprintf("--%s--\r\n", boundary))
+		} else {
+			// Simple non-multipart HTML email
+			msgBuilder.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+			msgBuilder.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
+			msgBuilder.WriteString(body)
+		}
+
+		auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
+		addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
+		err := smtp.SendMail(addr, auth, smtpUsername, []string{email}, []byte(msgBuilder.String()))
+		if err != nil {
+			log.Printf("[SMTP ERROR] Failed to send password change notification to %s: %v", email, err)
+		} else {
+			log.Printf("[SMTP SUCCESS] Sent password change notification to %s", email)
+		}
+	}()
+
+	return nil
+}
+

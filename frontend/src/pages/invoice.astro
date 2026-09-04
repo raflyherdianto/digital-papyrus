@@ -1,0 +1,433 @@
+---
+/**
+ * Public Invoice Page
+ * Route: /invoice
+ * Displays full official invoice for sharing and PDF export.
+ */
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice Resmi | Digital Papyrus</title>
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="shortcut icon" href="/logo.png" />
+  <link rel="apple-touch-icon" href="/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 12px !important;
+      }
+      .print-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      @page {
+        size: A4;
+        margin: 15mm 15mm 15mm 15mm;
+      }
+    }
+  </style>
+</head>
+<body class="bg-stone-100 font-['Plus_Jakarta_Sans',sans-serif] text-stone-800 antialiased min-h-screen py-6 sm:py-10 px-3 sm:px-6">
+
+  <!-- Top Action Bar (No Print) -->
+  <div class="no-print max-w-4xl mx-auto mb-6 flex items-center justify-center gap-2.5 bg-white p-4 rounded-2xl shadow-sm border border-stone-200">
+    <div class="flex items-center justify-center gap-2.5 flex-wrap">
+      <button id="copyLinkBtn" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-base">share</span>
+        <span>Bagikan URL</span>
+      </button>
+      <button id="printPdfBtn" type="button" class="inline-flex items-center gap-1.5 px-5 py-2 bg-primary hover:bg-primary/90 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md shadow-primary/20 transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-base">print</span>
+        <span>Simpan / Cetak PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div id="loadingState" class="max-w-4xl mx-auto bg-white p-12 rounded-3xl shadow-sm border border-stone-200 text-center space-y-4">
+    <span class="material-symbols-outlined text-5xl text-primary animate-spin">progress_activity</span>
+    <p class="text-stone-500 font-medium text-sm">Memuat dokumen invoice...</p>
+  </div>
+
+  <!-- Error State -->
+  <div id="errorState" class="hidden max-w-4xl mx-auto bg-white p-12 rounded-3xl shadow-sm border border-stone-200 text-center space-y-4">
+    <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+      <span class="material-symbols-outlined text-3xl">error_outline</span>
+    </div>
+    <h2 class="text-xl font-bold text-stone-800">Invoice Tidak Ditemukan</h2>
+    <p id="errorMsg" class="text-stone-500 text-sm max-w-md mx-auto">Nomor invoice atau ID order tidak valid atau telah dihapus.</p>
+    <a href="/" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold mt-2">
+      Kembali ke Beranda
+    </a>
+  </div>
+
+  <!-- Invoice Container -->
+  <div id="invoiceContainer" class="hidden print-container max-w-4xl mx-auto bg-white p-6 sm:p-12 rounded-3xl shadow-md border border-stone-200/80">
+    
+    <!-- Invoice Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start gap-6 border-b border-stone-200 pb-8">
+      <div>
+        <div class="flex items-center gap-2.5 mb-2">
+          <img src="/logo.png" alt="Digital Papyrus" class="h-9 w-auto object-contain" />
+          <span class="text-2xl font-black tracking-tight text-primary font-['Playfair_Display',serif]">Digital Papyrus</span>
+        </div>
+        <div class="text-xs sm:text-sm text-stone-500 max-w-sm leading-relaxed mt-1" id="companyAddress">
+          <span id="companyNameDisplay" class="font-bold text-stone-800 text-sm sm:text-base block">PT Digital Papyrus Indonesia</span>
+          <span class="block text-stone-600 text-xs sm:text-sm">Platform Penerbitan & Percetakan Buku Modern</span>
+          <span class="block text-stone-600 text-xs sm:text-sm font-medium">digitalpapyrus15@gmail.com</span>
+        </div>
+      </div>
+
+      <div class="text-left sm:text-right space-y-1">
+        <span class="inline-block uppercase tracking-widest text-[10px] font-extrabold text-stone-400">Official Invoice</span>
+        <h1 id="invoiceNumber" class="text-2xl sm:text-3xl font-extrabold font-mono text-primary">INV-00000000</h1>
+        <div class="pt-1 flex sm:justify-end">
+          <span id="statusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+            Pending
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Metadata Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 py-6 border-b border-stone-200 text-xs sm:text-sm">
+      <!-- Billed To -->
+      <div class="space-y-1">
+        <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400">Ditagihkan Kepada:</span>
+        <p id="custName" class="font-extrabold text-stone-900 text-sm sm:text-base">--</p>
+        <p id="custEmail" class="text-stone-600 flex items-center gap-2 pt-1">
+          <span class="material-symbols-outlined text-stone-400 text-[13px] leading-none shrink-0">mail</span>
+          <span class="break-all text-xs sm:text-sm font-medium text-stone-700">--</span>
+        </p>
+        <p id="custPhone" class="text-stone-600 flex items-center gap-2 pt-0.5">
+          <span class="material-symbols-outlined text-stone-400 text-[13px] leading-none shrink-0">call</span>
+          <span class="text-xs sm:text-sm font-medium text-stone-700">--</span>
+        </p>
+        <p id="custAddress" class="text-stone-500 pt-0.5 leading-relaxed hidden">--</p>
+      </div>
+
+      <!-- Dates & Shipping Info -->
+      <div class="space-y-2">
+        <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block pb-1.5 border-b border-stone-100 mb-2">Informasi Pemesanan:</span>
+        <div class="flex justify-between sm:block pt-1">
+          <span class="text-stone-500 text-xs block mb-0.5">Tanggal Invoice:</span>
+          <span id="invoiceDate" class="font-bold text-stone-800">--</span>
+        </div>
+        <div class="flex justify-between sm:block pt-1.5">
+          <span class="text-stone-500 text-xs block mb-0.5">Metode Pembayaran:</span>
+          <span id="paymentType" class="font-bold text-stone-800">Bank Transfer</span>
+        </div>
+        <div id="shippingInfoWrap" class="pt-1.5 hidden">
+          <span class="text-stone-500 text-xs block mb-0.5">Pengiriman:</span>
+          <span id="shippingCourier" class="font-bold text-stone-800">-</span>
+        </div>
+      </div>
+
+      <!-- Official Bank Payment Box -->
+      <div class="bg-stone-50 p-4 rounded-2xl border border-stone-200/80 space-y-1.5">
+        <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Tujuan Pembayaran:</span>
+        <p id="bankName" class="font-bold text-stone-900">Bank BCA</p>
+        <p id="bankAccNo" class="font-mono font-extrabold text-primary text-base tracking-wider">8735091234</p>
+        <p id="bankAccHolder" class="text-stone-500 text-[11px]">a.n. PT Digital Papyrus Indonesia</p>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="py-6 w-full max-w-full block overflow-x-auto">
+      <table class="w-full text-left border-collapse table-fixed min-w-[480px] sm:min-w-full">
+        <thead>
+          <tr class="border-b-2 border-stone-200 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-stone-400">
+            <th class="py-3 px-2 text-center w-[7%]">No</th>
+            <th class="py-3 px-2.5 w-[38%]">Item / Layanan</th>
+            <th class="py-3 px-2.5 w-[19%]">Format / Tipe</th>
+            <th class="py-3 px-2 text-center w-[10%]">Qty</th>
+            <th class="py-3 px-2.5 text-right w-[13%]">Harga Satuan</th>
+            <th class="py-3 px-2.5 text-right w-[13%]">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceItemsBody" class="divide-y divide-stone-100 text-xs sm:text-sm font-medium">
+          <!-- Rows injected via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Financial Breakdown & Notes -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-stone-200">
+      <div>
+        <div id="notesWrap" class="hidden bg-stone-50 p-4 rounded-2xl border border-stone-200/60 text-xs space-y-1">
+          <span class="font-bold text-stone-600 uppercase text-[10px] tracking-wider block">Catatan Pesanan:</span>
+          <p id="orderNotes" class="text-stone-600 leading-relaxed whitespace-pre-wrap"></p>
+        </div>
+
+        <div class="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/10 text-xs text-stone-600 space-y-1">
+          <p class="font-bold text-primary text-[11px]">Syarat & Ketentuan:</p>
+          <ul class="list-disc list-inside space-y-0.5 text-[11px] text-stone-500">
+            <li>Harap transfer tepat sesuai nominal yang tertera pada Grand Total.</li>
+            <li>Konfirmasi bukti pembayaran otomatis dapat dicek via sistem atau WhatsApp kami.</li>
+            <li>Dokumen ini sah dan diterbitkan secara digital oleh Digital Papyrus.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="space-y-2 text-xs sm:text-sm">
+        <div class="flex justify-between text-stone-600 py-1">
+          <span>Subtotal Produk</span>
+          <span id="subtotalItems" class="font-bold text-stone-800">Rp 0</span>
+        </div>
+        <div id="rowShipping" class="flex justify-between text-stone-600 py-1">
+          <span>Biaya Pengiriman</span>
+          <span id="costShipping" class="font-bold text-stone-800">Rp 0</span>
+        </div>
+        <div id="rowServiceFee" class="flex justify-between text-stone-600 py-1">
+          <span>Biaya Layanan</span>
+          <span id="costServiceFee" class="font-bold text-stone-800">Rp 0</span>
+        </div>
+        <div id="rowTax" class="flex justify-between text-stone-600 py-1">
+          <span>Pajak (PPN)</span>
+          <span id="costTax" class="font-bold text-stone-800">Rp 0</span>
+        </div>
+        <div id="rowDiscount" class="flex justify-between text-emerald-600 py-1 hidden">
+          <span>Diskon</span>
+          <span id="costDiscount" class="font-bold">-Rp 0</span>
+        </div>
+        <div class="pt-3 border-t-2 border-primary/20 flex justify-between items-baseline">
+          <span class="font-black text-primary text-base uppercase tracking-wider">Grand Total</span>
+          <span id="grandTotal" class="font-extrabold text-primary text-xl sm:text-2xl font-headline">Rp 0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Footer -->
+    <div class="mt-10 pt-6 border-t border-stone-200 text-center text-stone-400 text-xs space-y-1">
+      <p class="font-medium text-stone-500">Terima kasih atas kepercayaan Anda menerbitkan dan berbelanja bersama Digital Papyrus.</p>
+      <p class="text-[10px]">Dicetak secara otomatis pada <span id="printDate"></span></p>
+    </div>
+
+  </div>
+
+  <script>
+    import { getPublicInvoice, settingsApi, formatRupiah } from '../lib/api';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifier = urlParams.get('inv') || urlParams.get('id') || '';
+
+    const loadingState = document.getElementById('loadingState')!;
+    const errorState = document.getElementById('errorState')!;
+    const invoiceContainer = document.getElementById('invoiceContainer')!;
+    const errorMsg = document.getElementById('errorMsg')!;
+
+    // Status mapping
+    function getStatusBadge(status: string) {
+      const map: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+        completed: { bg: 'bg-teal-100', text: 'text-teal-800', dot: 'bg-teal-600', label: 'Completed' },
+        processed: { bg: 'bg-sky-100', text: 'text-sky-800', dot: 'bg-sky-600', label: 'Diproses' },
+        diproses: { bg: 'bg-sky-100', text: 'text-sky-800', dot: 'bg-sky-600', label: 'Diproses' },
+        processing: { bg: 'bg-sky-100', text: 'text-sky-800', dot: 'bg-sky-600', label: 'Diproses' },
+        confirmed: { bg: 'bg-emerald-100', text: 'text-emerald-800', dot: 'bg-emerald-600', label: 'Confirmed (Lunas)' },
+        shipped: { bg: 'bg-purple-100', text: 'text-purple-800', dot: 'bg-purple-600', label: 'Shipped (Dikirim)' },
+        delivered: { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-600', label: 'Delivered (Diterima)' },
+        pending: { bg: 'bg-orange-100', text: 'text-orange-800', dot: 'bg-orange-600', label: 'Pending (Belum Bayar)' },
+        waiting_confirmation: { bg: 'bg-indigo-100', text: 'text-indigo-800', dot: 'bg-indigo-600', label: 'Waiting Confirmation' },
+        unpaid: { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-600', label: 'Unpaid' },
+        cancelled: { bg: 'bg-stone-200', text: 'text-stone-600', dot: 'bg-stone-400', label: 'Cancelled' },
+      };
+      const st = map[(status || '').toLowerCase()] || map.pending;
+      return `<span id="statusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${st.bg} ${st.text}"><span class="w-2 h-2 rounded-full ${st.dot}"></span>${st.label}</span>`;
+    }
+
+    async function loadInvoice() {
+      if (!identifier) {
+        loadingState.classList.add('hidden');
+        errorState.classList.remove('hidden');
+        errorMsg.textContent = 'Parameter invoice atau ID tidak ditemukan pada URL.';
+        return;
+      }
+
+      try {
+        const [order, settingsRes] = await Promise.all([
+          getPublicInvoice(identifier),
+          settingsApi.get().catch(() => ({ data: null }))
+        ]);
+
+        if (!order) {
+          throw new Error('Invoice tidak ditemukan');
+        }
+
+        const settings = settingsRes?.data;
+        if (settings) {
+          if (settings.bank_name) document.getElementById('bankName')!.textContent = settings.bank_name;
+          if (settings.bank_account_number) document.getElementById('bankAccNo')!.textContent = settings.bank_account_number;
+          if (settings.bank_account_holder) {
+            document.getElementById('bankAccHolder')!.textContent = `a.n. ${settings.bank_account_holder}`;
+            const compNameEl = document.getElementById('companyNameDisplay');
+            if (compNameEl) compNameEl.textContent = settings.bank_account_holder;
+          }
+        }
+
+        // Render Invoice Data
+        document.getElementById('invoiceNumber')!.textContent = order.invoice || order.id;
+        const currentBadge = document.getElementById('statusBadge');
+        if (currentBadge) {
+          currentBadge.outerHTML = getStatusBadge(order.status);
+        }
+        
+        const createdDate = order.created_at ? new Date(order.created_at) : new Date();
+        document.getElementById('invoiceDate')!.textContent = createdDate.toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + ' WIB';
+
+        document.getElementById('paymentType')!.textContent = order.payment_type || 'Bank Transfer';
+
+        // Customer details
+        document.getElementById('custName')!.textContent = order.user_name || 'Pelanggan Digital Papyrus';
+        if (order.user_email) {
+          document.getElementById('custEmail')!.querySelector('span:last-child')!.textContent = order.user_email;
+        } else {
+          document.getElementById('custEmail')!.classList.add('hidden');
+        }
+
+        if (order.user_phone) {
+          document.getElementById('custPhone')!.querySelector('span:last-child')!.textContent = order.user_phone;
+        } else {
+          document.getElementById('custPhone')!.classList.add('hidden');
+        }
+
+        if (order.user_address) {
+          const addrEl = document.getElementById('custAddress')!;
+          addrEl.textContent = order.user_address;
+          addrEl.classList.remove('hidden');
+        }
+
+        // Shipping Details
+        if (order.shipping_name && order.shipping_name !== '-') {
+          document.getElementById('shippingInfoWrap')!.classList.remove('hidden');
+          const srv = order.shipping_service && order.shipping_service !== '-' ? ` (${order.shipping_service})` : '';
+          document.getElementById('shippingCourier')!.textContent = `${order.shipping_name}${srv}`;
+        }
+
+        // Order Notes
+        if (order.notes && order.notes.trim()) {
+          document.getElementById('notesWrap')!.classList.remove('hidden');
+          document.getElementById('orderNotes')!.textContent = order.notes.trim();
+        }
+
+        // Line Items Table
+        const itemsBody = document.getElementById('invoiceItemsBody')!;
+        let calculatedItemsSubtotal = 0;
+
+        if (order.items && order.items.length > 0) {
+          itemsBody.innerHTML = order.items.map((item, idx) => {
+            const isBook = item.item_type === 'book' || !!item.book_id;
+            const typeLabel = isBook ? 'Buku' : 'Layanan';
+            const fmt = item.format ? `(${item.format})` : '';
+            const unitPrice = item.qty > 0 ? Math.round(item.total_price / item.qty) : item.total_price;
+            calculatedItemsSubtotal += (item.total_price || 0);
+
+            return `
+              <tr class="hover:bg-stone-50/50 border-b border-stone-100">
+                <td class="py-3 px-2 text-center text-stone-400 font-bold align-top text-xs">${idx + 1}</td>
+                <td class="py-3 px-2.5 font-bold text-stone-900 break-words whitespace-normal leading-snug align-top">${item.item_name}</td>
+                <td class="py-3 px-2.5 text-stone-500 text-xs break-words whitespace-normal leading-snug align-top">${typeLabel} ${fmt}</td>
+                <td class="py-3 px-2 text-center font-bold text-stone-800 align-top">${item.qty}</td>
+                <td class="py-3 px-2.5 text-right text-stone-600 whitespace-nowrap align-top text-xs">${formatRupiah(unitPrice)}</td>
+                <td class="py-3 px-2.5 text-right font-extrabold text-primary whitespace-nowrap align-top text-xs">${formatRupiah(item.total_price)}</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          itemsBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-stone-400 italic">Tidak ada rincian item.</td></tr>`;
+        }
+
+        // Financial Breakdown
+        const subtotal = calculatedItemsSubtotal > 0 ? calculatedItemsSubtotal : (order.total_price - (order.shipping_price || 0) - (order.tax || 0) - (order.service_fee || 0) + (order.discount || 0));
+        document.getElementById('subtotalItems')!.textContent = formatRupiah(subtotal);
+
+        // Shipping
+        const shipPrice = order.shipping_price || 0;
+        document.getElementById('costShipping')!.textContent = shipPrice > 0 ? formatRupiah(shipPrice) : 'Gratis';
+
+        // Service fee
+        const sFee = order.service_fee || 0;
+        if (sFee > 0) {
+          document.getElementById('costServiceFee')!.textContent = formatRupiah(sFee);
+          document.getElementById('rowServiceFee')!.classList.remove('hidden');
+        } else {
+          document.getElementById('rowServiceFee')!.classList.add('hidden');
+        }
+
+        // Tax
+        const taxVal = order.tax || 0;
+        if (taxVal > 0) {
+          document.getElementById('costTax')!.textContent = formatRupiah(taxVal);
+          document.getElementById('rowTax')!.classList.remove('hidden');
+        } else {
+          document.getElementById('rowTax')!.classList.add('hidden');
+        }
+
+        // Discount
+        const disc = order.discount || 0;
+        if (disc > 0) {
+          document.getElementById('costDiscount')!.textContent = `-${formatRupiah(disc)}`;
+          document.getElementById('rowDiscount')!.classList.remove('hidden');
+        } else {
+          document.getElementById('rowDiscount')!.classList.add('hidden');
+        }
+
+        // Grand Total
+        document.getElementById('grandTotal')!.textContent = formatRupiah(order.total_price);
+        document.getElementById('printDate')!.textContent = new Date().toLocaleString('id-ID');
+
+        loadingState.classList.add('hidden');
+        invoiceContainer.classList.remove('hidden');
+
+      } catch (err: any) {
+        loadingState.classList.add('hidden');
+        errorState.classList.remove('hidden');
+        errorMsg.textContent = err.message || 'Gagal memuat invoice.';
+      }
+    }
+
+    // Actions
+    document.getElementById('printPdfBtn')?.addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(window.location.href);
+      const btn = document.getElementById('copyLinkBtn') as HTMLButtonElement;
+      const prevHtml = btn.innerHTML;
+      btn.innerHTML = `<span class="material-symbols-outlined text-base text-emerald-600">check</span> <span>URL Tersalin!</span>`;
+      setTimeout(() => {
+        btn.innerHTML = prevHtml;
+      }, 2000);
+    });
+
+    loadInvoice();
+  </script>
+</body>
+</html>

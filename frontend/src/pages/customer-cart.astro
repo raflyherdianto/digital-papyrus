@@ -1,0 +1,1531 @@
+---
+/**
+ * Shopping Cart Page with Quick-Add Catalog
+ * Route: /customer-cart
+ * Displays cart items, checkout form, and direct add section for books/services.
+ */
+import CustomerLayout from "../layouts/CustomerLayout.astro";
+---
+
+<CustomerLayout title="Shopping Cart | Digital Papyrus" activePage="cart">
+  <!-- Header -->
+  <div
+    class="mb-8 md:mb-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+  >
+    <div>
+      <div class="flex items-center gap-3">
+        <h2
+          class="text-2xl md:text-4xl font-extrabold tracking-tight text-primary font-headline"
+        >
+          Your Cart
+        </h2>
+      </div>
+      <p class="text-stone-500 font-body text-sm md:text-lg max-w-xl mt-2">
+        Review your selections, adjust quantities, and complete your order seamlessly.
+      </p>
+    </div>
+  </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Cart Items & Quick Add -->
+      <div class="lg:col-span-8 space-y-8">
+        
+        <!-- Cart Items Section -->
+        <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-sm p-4 sm:p-6 md:p-8">
+          <div class="flex items-center justify-between mb-6 pb-6 border-b border-stone-100">
+            <h3 class="text-xl font-bold text-primary flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl">shopping_bag</span>
+              Selected Items
+            </h3>
+            <span id="cart-item-count-badge" class="px-3 py-1 bg-stone-100 text-stone-600 font-bold text-sm rounded-full">
+              0 Items
+            </span>
+          </div>
+
+          <!-- Loading Skeleton -->
+          <div id="cart-loading" class="space-y-6">
+            {[1, 2].map(() => (
+              <div class="flex gap-6 animate-pulse">
+                <div class="w-20 h-28 bg-stone-100 rounded-2xl"></div>
+                <div class="flex-1 space-y-4 py-2">
+                  <div class="h-5 bg-stone-100 rounded w-1/3"></div>
+                  <div class="h-4 bg-stone-100 rounded w-1/4"></div>
+                  <div class="h-6 bg-stone-100 rounded w-1/6"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <!-- Empty Cart State -->
+          <div id="empty-cart-state" class="hidden py-16 text-center">
+            <div class="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span class="material-symbols-outlined text-4xl text-stone-300">shopping_cart</span>
+            </div>
+            <h4 class="text-xl font-bold text-stone-900 mb-2">Your cart is empty</h4>
+            <p class="text-stone-500 max-w-sm mx-auto">
+              Looks like you haven't added anything yet. Explore our catalog below to get started.
+            </p>
+          </div>
+
+          <!-- Cart Items List -->
+          <div id="cart-items-list" class="space-y-6 hidden">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Quick Add Catalog Section -->
+        <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-sm p-4 sm:p-6 md:p-8">
+          <div class="mb-6 pb-6 border-b border-stone-100">
+            <h3 class="text-xl font-bold text-primary flex items-center gap-3 mb-2">
+              <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl">add_circle</span>
+              Quick Add Catalog
+            </h3>
+            <p class="text-stone-500 text-sm ml-12">
+              Easily add popular books or publishing services directly to your order.
+            </p>
+          </div>
+
+          <!-- Tabs -->
+          <div class="flex gap-6 mb-6">
+            <button id="tab-add-books" class="pb-2 border-b-2 border-primary text-primary font-bold text-sm transition-all focus:outline-none">
+              Books
+            </button>
+            <button id="tab-add-services" class="pb-2 border-b-2 border-transparent text-stone-500 hover:text-stone-900 font-semibold text-sm transition-all focus:outline-none">
+              Services
+            </button>
+          </div>
+
+          <!-- Books Grid -->
+          <div id="quick-books-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="col-span-full text-center py-8 text-stone-500 text-sm animate-pulse">Loading catalog...</div>
+          </div>
+
+          <!-- Services Grid -->
+          <div id="quick-services-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 hidden">
+            <div class="col-span-full text-center py-8 text-stone-500 text-sm animate-pulse">Loading services...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Checkout Form -->
+      <div class="lg:col-span-4 sticky top-8">
+        <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-sm p-4 sm:p-6 md:p-8 space-y-8">
+          
+
+
+          <!-- Checkout Form -->
+          <form id="checkout-form" class="space-y-5">
+            <h4 class="text-sm font-bold text-primary flex items-center gap-2">
+              <span class="w-6 h-px bg-outline-variant/30"></span>
+              Shipping Information
+            </h4>
+
+            <div id="unverified-alert" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex gap-3 items-start">
+              <span class="material-symbols-outlined text-red-500 shrink-0">error</span>
+              <div>
+                <strong class="block mb-1">Profil Belum Lengkap</strong>
+                Anda harus melengkapi profil Anda (Nomor Telepon & Alamat lengkap) di <a href="/customer-profile" class="underline font-bold hover:text-red-800">halaman profil</a> sebelum dapat melakukan pesanan.
+              </div>
+            </div>
+
+            <div class="text-xs text-on-surface-variant flex gap-2 items-center bg-surface-container px-3 py-2 rounded-lg">
+              <span class="material-symbols-outlined text-sm">info</span>
+              <span>Ubah detail pengiriman di halaman <a href="/customer-profile" class="text-primary hover:underline font-bold">Profil</a>.</span>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-primary mb-2" for="shipping-name">Recipient Name</label>
+              <div class="relative flex items-center bg-surface-container-highest px-4 py-3 rounded-xl border border-outline-variant/30">
+                <span class="material-symbols-outlined text-outline text-lg mr-3">person</span>
+                <input
+                  id="shipping-name"
+                  type="text"
+                  required
+                  disabled
+                  class="bg-transparent w-full text-sm focus:outline-none text-on-surface cursor-not-allowed opacity-70"
+                  placeholder="Full Name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-primary mb-2" for="shipping-phone">Phone Number</label>
+              <div class="relative flex items-center bg-surface-container-highest px-4 py-3 rounded-xl border border-outline-variant/30">
+                <span class="material-symbols-outlined text-outline text-lg mr-3">phone</span>
+                <input
+                  id="shipping-phone"
+                  type="text"
+                  required
+                  disabled
+                  class="bg-transparent w-full text-sm focus:outline-none text-on-surface cursor-not-allowed opacity-70"
+                  placeholder="+62812..."
+                />
+              </div>
+            </div>
+
+            <div id="courier-select-container" class="hidden">
+              <label class="block text-sm font-bold text-primary mb-2" for="shipping-courier">Expedition Courier *</label>
+              <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <span class="material-symbols-outlined text-outline text-lg mr-3">local_shipping</span>
+                <select
+                  id="shipping-courier"
+                  class="bg-transparent w-full text-sm focus:outline-none text-on-surface outline-none cursor-pointer"
+                >
+                  <option value="JNE">JNE (Reguler)</option>
+                  <option value="J&T">J&T (Reguler)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-primary mb-2" for="shipping-address">Complete Address</label>
+              <div class="relative flex items-start bg-surface-container-highest px-4 py-3 rounded-xl border border-outline-variant/30">
+                <span class="material-symbols-outlined text-outline text-lg mr-3 mt-1">home</span>
+                <textarea
+                  id="shipping-address"
+                  rows="3"
+                  required
+                  disabled
+                  class="bg-transparent w-full text-sm focus:outline-none text-on-surface resize-none cursor-not-allowed opacity-70"
+                  placeholder="Street address, building, details"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Regional Info -->
+            <div class="bg-surface-container p-5 rounded-2xl border border-outline-variant/30 space-y-4">
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span class="text-outline text-xs block mb-0.5">Province</span>
+                  <span class="font-semibold text-on-surface" id="shipping-province">-</span>
+                </div>
+                <div>
+                  <span class="text-outline text-xs block mb-0.5">City/Regency</span>
+                  <span class="font-semibold text-on-surface" id="shipping-city">-</span>
+                </div>
+                <div>
+                  <span class="text-outline text-xs block mb-0.5">District</span>
+                  <span class="font-semibold text-on-surface" id="shipping-regency">-</span>
+                </div>
+                <div>
+                  <span class="text-outline text-xs block mb-0.5">Village</span>
+                  <span class="font-semibold text-on-surface" id="shipping-village">-</span>
+                </div>
+                <div>
+                  <span class="text-outline text-xs block mb-0.5">Zip Code</span>
+                  <span class="font-semibold text-on-surface" id="shipping-zip">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-primary mb-2" for="checkout-notes">Order Notes</label>
+              <div class="relative flex items-center bg-surface-container px-4 py-3 rounded-xl border border-outline-variant/30 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <span class="material-symbols-outlined text-outline text-lg mr-3">notes</span>
+                <input
+                  id="checkout-notes"
+                  type="text"
+                  placeholder="Any special requests?"
+                  class="bg-transparent w-full text-sm focus:outline-none text-on-surface"
+                />
+              </div>
+            </div>
+
+            <!-- Order Summary Moved Here -->
+            <div class="pt-6 border-t border-outline-variant/30 mt-4">
+              <h3 class="text-sm font-bold text-primary flex items-center gap-2 mb-4">
+                <span class="w-6 h-px bg-outline-variant/30"></span>
+                Order Summary
+              </h3>
+
+              <div class="space-y-4">
+                <div class="flex justify-between items-center text-on-surface-variant">
+                  <span class="text-sm">Total Items</span>
+                  <span class="font-bold text-on-surface bg-surface-container-highest px-3 py-1 rounded-full text-sm" id="summary-total-qty">0</span>
+                </div>
+                <div class="flex justify-between items-center text-on-surface-variant">
+                  <span class="text-sm">Items Total</span>
+                  <span class="font-semibold text-on-surface text-sm" id="summary-items-total">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center text-on-surface-variant hidden" id="summary-shipping-row">
+                  <span class="text-sm">Shipping Cost</span>
+                  <span class="font-semibold text-on-surface text-sm" id="summary-shipping-cost">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center text-on-surface-variant hidden" id="summary-tax-row">
+                  <span class="text-sm" id="summary-tax-label">Tax (0%)</span>
+                  <span class="font-semibold text-on-surface text-sm" id="summary-tax-amount">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center text-on-surface-variant hidden" id="summary-service-fee-row">
+                  <span class="text-sm">Service Fee</span>
+                  <span class="font-semibold text-on-surface text-sm" id="summary-service-fee">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center text-emerald-600 hidden" id="summary-discount-row">
+                  <span class="text-sm">Discount</span>
+                  <span class="font-semibold text-sm" id="summary-discount">-Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-outline-variant/20">
+                  <span class="font-bold text-on-surface text-base">Total Payment</span>
+                  <span class="font-extrabold text-primary text-xl" id="summary-subtotal">Rp 0</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              id="checkout-btn"
+              class="w-full py-4 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 mt-6"
+            >
+              <span>Place Order</span>
+              <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  <!-- Bank Transfer Payment Modal -->
+  <div id="qrisPaymentModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+    <div class="bg-surface-container-lowest rounded-[2rem] shadow-2xl p-6 md:p-8 max-w-md w-full mx-4 text-center border border-outline-variant/10 relative">
+      <button id="closeQrisBtn" class="absolute top-4 right-4 z-20 text-on-surface-variant hover:text-on-surface bg-surface-container-highest/50 backdrop-blur-md hover:bg-surface-container-highest p-2 rounded-full transition-all shadow-sm">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+
+      <!-- DISABLED QRIS HTML Syntax preserved below as comment per requirement -->
+      <!--
+      <div id="qrisImageContainer" class="hidden">
+        <img id="qrisImage" src="/QRIS.png" alt="QRIS Payment" class="w-48 h-48 object-contain" />
+      </div>
+      -->
+
+      <div class="w-14 h-14 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-3xl">account_balance</span>
+      </div>
+
+      <h3 class="text-2xl font-extrabold text-primary font-headline mb-1">Pembayaran Transfer Bank</h3>
+      <p class="text-xs md:text-sm text-on-surface-variant mb-6">Silakan lakukan transfer ke rekening resmi Digital Papyrus, kemudian verifikasi bukti transaksi via WhatsApp.</p>
+
+      <!-- Bank Details Card -->
+      <div class="bg-stone-50 p-4 rounded-2xl border border-stone-200 text-left mb-6 space-y-3">
+        <div class="flex items-center justify-between border-b border-stone-200/60 pb-2">
+          <span class="text-xs font-bold text-stone-500 uppercase">Bank Tujuan</span>
+          <span id="paymentBankName" class="text-sm font-bold text-stone-900">Bank BCA</span>
+        </div>
+
+        <div class="flex items-center justify-between border-b border-stone-200/60 pb-2">
+          <span class="text-xs font-bold text-stone-500 uppercase">Nomor Rekening</span>
+          <div class="flex items-center gap-2">
+            <span id="paymentBankAccountNumber" class="text-base font-extrabold text-primary tracking-wider">8735091234</span>
+            <button id="copyAccountBtn" type="button" class="px-2 py-0.5 bg-primary/10 text-primary hover:bg-primary/20 rounded transition-colors text-xs flex items-center gap-1 font-bold cursor-pointer" title="Salin Rekening">
+              <span class="material-symbols-outlined text-xs">content_copy</span>
+              <span>Salin</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between border-b border-stone-200/60 pb-2">
+          <span class="text-xs font-bold text-stone-500 uppercase">Atas Nama</span>
+          <span id="paymentBankAccountHolder" class="text-xs md:text-sm font-bold text-stone-900 text-right">PT Digital Papyrus Indonesia</span>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-xs font-bold text-stone-500 uppercase">Nomor Invoice</span>
+          <span id="qrisInvoiceNumber" class="text-xs font-bold text-stone-700">-</span>
+        </div>
+      </div>
+
+      <!-- Total Amount Box -->
+      <div class="bg-primary/5 rounded-2xl p-4 mb-6 border border-primary/10">
+        <div class="text-xs text-primary/70 font-bold uppercase mb-1">Total Pembayaran</div>
+        <div id="qrisTotalAmount" class="text-3xl font-extrabold text-primary mb-1">Rp 0</div>
+        <div class="text-[10px] text-amber-700 font-semibold bg-amber-50 py-1.5 px-3 rounded-xl border border-amber-200 inline-block mt-1">
+          *Mohon transfer tepat sesuai nominal di atas untuk mempercepat verifikasi admin.
+        </div>
+      </div>
+
+      <!-- Expiry Timer Info -->
+      <div class="flex items-center justify-center gap-2 mb-6">
+        <span class="material-symbols-outlined text-orange-500 text-sm">timer</span>
+        <span class="text-xs md:text-sm font-bold text-on-surface">Batas Waktu Transfer: <span id="qrisTimer" class="text-orange-600">24:00:00</span></span>
+      </div>
+
+      <!-- WhatsApp Verification Action Button -->
+      <button id="whatsappVerifyBtn" type="button" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer mb-2.5">
+        <span class="material-symbols-outlined text-[20px]">chat</span>
+        Verifikasi Transaksi via WhatsApp
+      </button>
+
+      <!-- Konfirmasi Pembayaran Button -->
+      <button id="confirmPaymentBtn" type="button" class="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer mb-2.5">
+        <span class="material-symbols-outlined text-[20px]">check_circle</span>
+        Konfirmasi Pembayaran
+      </button>
+
+      <!-- Dashboard Link Action -->
+      <button id="viewDashboardBtn" type="button" class="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer">
+        <span class="material-symbols-outlined text-sm">receipt_long</span>
+        Lihat Status Transaksi di Dashboard
+      </button>
+      
+      <p id="paymentStatusMsg" class="text-xs md:text-sm font-bold mt-3 hidden"></p>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+    <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+      <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-4xl">delete_outline</span>
+      </div>
+      <h3 class="text-xl font-bold text-primary font-headline mb-2">Hapus Item?</h3>
+      <p class="text-on-surface-variant font-body text-sm mb-6" id="deleteConfirmMsg">Apakah Anda yakin ingin menghapus item ini dari keranjang?</p>
+      <div class="flex gap-3">
+        <button id="deleteCancelBtn" class="flex-1 py-3 bg-surface-container border border-outline-variant/30 text-primary font-bold rounded-xl text-sm hover:bg-surface-container-high transition-all">Batal</button>
+        <button id="deleteConfirmBtn" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 transition-all shadow-lg shadow-red-500/10">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Error Modal -->
+  <div id="cartErrorModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/40 backdrop-blur-sm hidden transition-opacity duration-300">
+    <div class="bg-surface-container-lowest rounded-[2rem] border border-outline-variant/20 shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300">
+      <div class="p-6 md:p-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-3xl">error</span>
+        </div>
+        <h3 id="cartErrorTitle" class="text-xl font-bold text-stone-800 mb-2">Error</h3>
+        <p id="cartErrorMessage" class="text-stone-600 mb-6 text-sm leading-relaxed">Terjadi kesalahan.</p>
+        <button type="button" id="closeCartErrorBtn" class="w-full py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-colors shadow-sm text-sm">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Item Detail Modal -->
+  <div id="itemDetailModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/40 backdrop-blur-sm hidden transition-opacity duration-300">
+    <div class="bg-surface-container-lowest rounded-[2rem] border border-outline-variant/20 shadow-2xl max-w-3xl w-full mx-4 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] overflow-hidden relative transform transition-transform duration-300 scale-100">
+      
+      <!-- Close Button -->
+      <button id="closeDetailModalBtn" class="absolute top-4 right-4 z-20 text-on-surface-variant hover:text-on-surface bg-surface-container-highest/50 backdrop-blur-md hover:bg-surface-container-highest p-2 rounded-full transition-all shadow-sm" aria-label="Close details">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+
+      <!-- Left Column (Visual/Image/Icon) -->
+      <div id="detailModalLeft" class="md:w-2/5 p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-outline-variant/10 shrink-0 relative overflow-hidden">
+        <div id="detailModalImageContainer" class="relative z-10 w-full h-full flex items-center justify-center"></div>
+      </div>
+
+      <!-- Right Column (Content/Info) -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <!-- Scrollable Content -->
+        <div class="p-6 md:p-8 overflow-y-auto flex-1 space-y-6 relative">
+          <div class="space-y-3">
+            <!-- Type and Status Badges -->
+            <div class="flex flex-wrap gap-2" id="detailModalBadges"></div>
+
+            <!-- Title -->
+            <h3 id="detailModalTitle" class="text-2xl md:text-3xl font-extrabold text-primary font-headline leading-tight"></h3>
+            
+            <!-- Subtitle / Author -->
+            <p id="detailModalSubtitle" class="text-base font-medium text-on-surface-variant"></p>
+          </div>
+
+          <!-- Price -->
+          <div class="py-3 px-5 bg-primary/5 rounded-2xl inline-flex flex-col border border-primary/10">
+            <span class="text-xs text-primary/70 font-bold uppercase tracking-wider mb-1">Harga</span>
+            <span id="detailModalPrice" class="text-2xl font-extrabold text-primary"></span>
+          </div>
+
+          <hr class="border-outline-variant/20" />
+
+          <!-- Dynamic Details (Specs or Features) -->
+          <div class="space-y-4">
+            <div>
+              <h4 class="text-sm font-bold text-on-surface mb-2 font-headline" id="detailModalSectionTitle">Deskripsi</h4>
+              <p id="detailModalDescription" class="text-sm text-on-surface-variant leading-relaxed font-body"></p>
+            </div>
+            
+            <!-- Features List (for service) or Specs Table (for books) -->
+            <div id="detailModalExtraContent"></div>
+          </div>
+        </div>
+
+        <!-- Actions (Sticky Bottom) -->
+        <div class="p-6 md:p-8 bg-surface-container-lowest border-t border-outline-variant/20 flex gap-3 shrink-0">
+          <button id="detailModalCloseBtn" class="px-6 py-3.5 bg-surface-container border border-outline-variant/30 text-on-surface font-bold rounded-xl text-sm hover:bg-surface-container-high transition-all">
+            Tutup
+          </button>
+          <button id="detailModalAddToCartBtn" class="flex-1 py-3.5 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span> Tambah ke Keranjang
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</CustomerLayout>
+
+<script>
+  import { getCurrentUser, createOrder, getBooks, getServices, formatRupiah, isAuthenticated, parseFeatures, checkCustomerOrderPayment, confirmCustomerOrderPayment, cancelCustomerOrder, settingsApi, shippingApi } from "../lib/api";
+  import QRCode from "qrcode";
+
+  // Auth Guard
+  if (!isAuthenticated()) {
+    window.location.href = "/customer-login";
+  }
+
+  const loadingEl = document.getElementById("cart-loading")!;
+  const emptyEl = document.getElementById("empty-cart-state")!;
+  const listEl = document.getElementById("cart-items-list")!;
+  const countBadge = document.getElementById("cart-item-count-badge")!;
+  const totalQtyEl = document.getElementById("summary-total-qty")!;
+  const subtotalEl = document.getElementById("summary-subtotal")!;
+  
+  const shipNameInput = document.getElementById("shipping-name") as HTMLInputElement;
+  const shipPhoneInput = document.getElementById("shipping-phone") as HTMLInputElement;
+  const shipAddressInput = document.getElementById("shipping-address") as HTMLTextAreaElement;
+  const shipProvinceEl = document.getElementById("shipping-province")!;
+  const shipCityEl = document.getElementById("shipping-city")!;
+  const shipRegencyEl = document.getElementById("shipping-regency")!;
+  const shipVillageEl = document.getElementById("shipping-village")!;
+  const shipZipEl = document.getElementById("shipping-zip")!;
+  const checkoutNotesInput = document.getElementById("checkout-notes") as HTMLInputElement;
+  const checkoutForm = document.getElementById("checkout-form") as HTMLFormElement;
+  const checkoutBtn = document.getElementById("checkout-btn") as HTMLButtonElement;
+
+  const tabBooks = document.getElementById("tab-add-books")!;
+  const tabServices = document.getElementById("tab-add-services")!;
+  const containerBooks = document.getElementById("quick-books-container")!;
+  
+  const cartErrorModal = document.getElementById("cartErrorModal")!;
+  const cartErrorTitle = document.getElementById("cartErrorTitle")!;
+  const cartErrorMessage = document.getElementById("cartErrorMessage")!;
+  const closeCartErrorBtn = document.getElementById("closeCartErrorBtn")!;
+
+  function showCartError(title: string, message: string) {
+    cartErrorTitle.textContent = title;
+    cartErrorMessage.textContent = message;
+    cartErrorModal.classList.remove("hidden");
+    setTimeout(() => cartErrorModal.querySelector('div')?.classList.replace('scale-95', 'scale-100'), 10);
+  }
+
+  closeCartErrorBtn.addEventListener("click", () => {
+    cartErrorModal.classList.add("hidden");
+  });
+  const containerServices = document.getElementById("quick-services-container")!;
+
+  let cartItems: any[] = [];
+  let currentUser: any = null;
+  let pendingDeleteIndex: number | null = null;
+  
+  let loadedBooks: any[] = [];
+  let loadedServices: any[] = [];
+  let currentDetailItem: any = null;
+
+  let globalSettings: any = null;
+  let shippingCost: number = 0;
+  let courierRates: Record<string, number> = { "JNE": 0, "J&T": 0 };
+  let cachedWeight: number = -1;
+  let cachedDest: string = "";
+
+  // Delete confirmation modal
+  const deleteModal = document.getElementById('deleteConfirmModal')!;
+  const deleteCancelBtn = document.getElementById('deleteCancelBtn')!;
+  const deleteConfirmBtn = document.getElementById('deleteConfirmBtn')!;
+
+  // QRIS Payment Modal Elements
+  const qrisPaymentModal = document.getElementById("qrisPaymentModal")!;
+  const closeQrisBtn = document.getElementById("closeQrisBtn")!;
+  const qrisInvoiceNumber = document.getElementById("qrisInvoiceNumber")!;
+  const qrisTotalAmount = document.getElementById("qrisTotalAmount")!;
+  const qrisTimer = document.getElementById("qrisTimer")!;
+  const confirmPaymentBtn = document.getElementById("confirmPaymentBtn") as HTMLButtonElement;
+  const viewDashboardBtn = document.getElementById("viewDashboardBtn") as HTMLButtonElement;
+  const paymentStatusMsg = document.getElementById("paymentStatusMsg")!;
+  const qrisImage = document.getElementById("qrisImage") as HTMLImageElement;
+  let qrisInterval: any;
+  let currentOrderId: string | null = null;
+
+  const STATIC_QRIS = "00020101021126610014COM.GO-JEK.WWW01189360091434199872050210G4199872050303UMI51440014ID.CO.QRIS.WWW0215ID10254672778400303UMI5204152053033605802ID5917Morodadi Projects6006MALANG61056513562070703A0163046C6D";
+
+  function crc16ccitt(str: string): string {
+    let crc = 0xFFFF;
+    for (let i = 0; i < str.length; i++) {
+      let x = (crc >> 8) ^ str.charCodeAt(i);
+      x ^= x >> 4;
+      crc = (crc << 8) ^ (x << 12) ^ (x << 5) ^ x;
+      crc &= 0xFFFF;
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  function generateDynamicQRIS(staticQRIS: string, amount: number): string {
+    let qris = staticQRIS.replace("010211", "010212");
+    
+    const amountStr = amount.toString();
+    const amountLen = amountStr.length.toString().padStart(2, '0');
+    const tag54 = `54${amountLen}${amountStr}`;
+    
+    if (qris.includes("5802ID")) {
+      qris = qris.replace("5802ID", tag54 + "5802ID");
+    }
+    
+    const baseStr = qris.substring(0, qris.length - 4);
+    const crc = crc16ccitt(baseStr);
+    
+    return baseStr + crc;
+  }
+
+  // Detail Modal Elements
+  const itemDetailModal = document.getElementById("itemDetailModal")!;
+  const closeDetailModalBtn = document.getElementById("closeDetailModalBtn")!;
+  const detailModalCloseBtn = document.getElementById("detailModalCloseBtn")!;
+  const detailModalAddToCartBtn = document.getElementById("detailModalAddToCartBtn") as HTMLButtonElement;
+
+  const detailModalImageContainer = document.getElementById("detailModalImageContainer")!;
+  const detailModalBadges = document.getElementById("detailModalBadges")!;
+  const detailModalTitle = document.getElementById("detailModalTitle")!;
+  const detailModalSubtitle = document.getElementById("detailModalSubtitle")!;
+  const detailModalPrice = document.getElementById("detailModalPrice")!;
+  const detailModalDescription = document.getElementById("detailModalDescription")!;
+  const detailModalExtraContent = document.getElementById("detailModalExtraContent")!;
+  const detailModalLeft = document.getElementById("detailModalLeft")!;
+
+  function showDeleteModal(index: number) {
+    pendingDeleteIndex = index;
+    const item = cartItems[index];
+    const msgEl = document.getElementById('deleteConfirmMsg')!;
+    msgEl.textContent = `Apakah Anda yakin ingin menghapus "${item.title}" dari keranjang?`;
+    deleteModal.classList.remove('hidden');
+  }
+
+  deleteCancelBtn.addEventListener('click', () => {
+    pendingDeleteIndex = null;
+    deleteModal.classList.add('hidden');
+  });
+
+  deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+      pendingDeleteIndex = null;
+      deleteModal.classList.add('hidden');
+    }
+  });
+
+  deleteConfirmBtn.addEventListener('click', () => {
+    if (pendingDeleteIndex !== null) {
+      cartItems.splice(pendingDeleteIndex, 1);
+      localStorage.setItem('dp_cart', JSON.stringify(cartItems));
+      renderCart();
+    }
+    pendingDeleteIndex = null;
+    deleteModal.classList.add('hidden');
+  });
+
+  // Close detail modal events
+  closeDetailModalBtn.addEventListener("click", () => {
+    itemDetailModal.classList.add("hidden");
+    currentDetailItem = null;
+  });
+
+  detailModalCloseBtn.addEventListener("click", () => {
+    itemDetailModal.classList.add("hidden");
+    currentDetailItem = null;
+  });
+
+  itemDetailModal.addEventListener("click", (e) => {
+    if (e.target === itemDetailModal) {
+      itemDetailModal.classList.add("hidden");
+      currentDetailItem = null;
+    }
+  });
+
+  // Add to cart from detail modal
+  detailModalAddToCartBtn.addEventListener("click", () => {
+    if (!currentDetailItem) return;
+
+    const { id, type, title, author, price, image_url, weight, format } = currentDetailItem;
+    const existing = cartItems.find(item => item.id === id && item.type === type);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cartItems.push({ 
+        id, 
+        type, 
+        title, 
+        author: author || (type === "service" ? "Digital Papyrus Services" : ""), 
+        price: parseInt(price), 
+        image_url: image_url || "", 
+        qty: 1, 
+        weight: type === "book" ? (weight ? parseFloat(weight) || 0.3 : 0.3) : 0,
+        format: format || currentDetailItem.format || ""
+      });
+    }
+
+    localStorage.setItem("dp_cart", JSON.stringify(cartItems));
+    renderCart();
+    itemDetailModal.classList.add("hidden");
+    currentDetailItem = null;
+  });
+
+  // Show item details
+  function showItemDetail(id: string, type: string) {
+    const item = type === "book"
+      ? loadedBooks.find(b => b.id === id)
+      : loadedServices.find(s => s.id === id);
+
+    if (!item) return;
+    currentDetailItem = { ...item, type };
+
+    // 1. Populate Left Column (Image or Icon)
+    if (type === "book") {
+      detailModalLeft.className = "md:w-2/5 bg-surface-container p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-outline-variant/10 shrink-0 min-h-[250px] md:min-h-0 relative";
+      detailModalImageContainer.innerHTML = item.image_url
+        ? `<img src="${item.image_url}" alt="${item.title}" class="w-36 md:w-48 object-cover rounded-xl shadow-2xl border border-outline-variant/10 transform hover:scale-105 transition-transform duration-500" />`
+        : `<div class="w-36 h-52 md:w-48 md:h-64 bg-surface-container-highest rounded-xl flex items-center justify-center text-outline border border-outline-variant/20"><span class="material-symbols-outlined text-5xl">auto_stories</span></div>`;
+    } else {
+      detailModalLeft.className = "md:w-2/5 bg-primary/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-outline-variant/10 shrink-0 min-h-[200px] md:min-h-0 relative";
+      detailModalImageContainer.innerHTML = `
+        <div class="w-24 h-24 md:w-32 md:h-32 bg-surface-container-lowest rounded-full flex items-center justify-center text-primary shadow-lg border border-primary/10">
+          <span class="material-symbols-outlined text-5xl md:text-6xl">${item.icon || 'design_services'}</span>
+        </div>
+      `;
+    }
+
+    // 2. Populate Title, Subtitle, Price
+    detailModalTitle.textContent = item.title;
+    detailModalSubtitle.textContent = type === "book" ? `Oleh ${item.author}` : (item.price_label || "Paket Layanan");
+    detailModalPrice.textContent = formatRupiah(item.price);
+
+    // 3. Populate Badges
+    let badgesHtml = "";
+    if (type === "book") {
+      badgesHtml += `<span class="px-3 py-1 bg-surface-container text-on-surface text-[11px] font-bold uppercase tracking-wider rounded-lg border border-outline-variant/20">Buku</span>`;
+      if (item.category_name) {
+        badgesHtml += `<span class="px-3 py-1 bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider rounded-lg">${item.category_name}</span>`;
+      }
+      if (item.badge) {
+        badgesHtml += `<span class="px-3 py-1 bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-wider rounded-lg">${item.badge}</span>`;
+      }
+    } else {
+      badgesHtml += `<span class="px-3 py-1 bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider rounded-lg">Layanan</span>`;
+      if (item.tier) {
+        let tierColor = "bg-surface-container text-on-surface border-outline-variant/20";
+        if (item.tier === "silver") tierColor = "bg-slate-100 text-slate-700 border-slate-200";
+        if (item.tier === "gold") tierColor = "bg-amber-50 text-amber-700 border-amber-200/50";
+        if (item.tier === "platinum") tierColor = "bg-purple-50 text-purple-700 border-purple-200/50";
+        badgesHtml += `<span class="px-3 py-1 border ${tierColor} text-[11px] font-bold uppercase tracking-wider rounded-lg">${item.tier}</span>`;
+      }
+      if (item.badge) {
+        badgesHtml += `<span class="px-3 py-1 bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-wider rounded-lg">${item.badge}</span>`;
+      }
+    }
+    detailModalBadges.innerHTML = badgesHtml;
+
+    // 4. Description
+    detailModalDescription.textContent = item.description || "Tidak ada deskripsi yang tersedia.";
+
+    // 5. Extra Content (Specs or Features)
+    if (type === "book") {
+      const specs = [
+        { label: 'ISBN', value: item.isbn },
+        { label: 'Penerbit', value: item.publisher },
+        { label: 'Bahasa', value: item.language },
+        { label: 'Format', value: item.format },
+        { label: 'Halaman', value: item.pages ? `${item.pages} hlm` : null },
+        { label: 'Berat', value: item.weight ? `${item.weight} kg` : null },
+        { label: 'Stok', value: item.stock !== undefined ? `${item.stock} pcs` : null },
+      ].filter(s => s.value);
+
+      if (specs.length > 0) {
+        const specsHtml = specs.map(s => `
+          <div class="bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/20 flex flex-col justify-center">
+            <span class="text-outline text-[10px] uppercase font-bold tracking-wider mb-1">${s.label}</span>
+            <span class="font-bold text-on-surface text-sm truncate" title="${s.value}">${s.value}</span>
+          </div>
+        `).join('');
+
+        detailModalExtraContent.innerHTML = `
+          <h4 class="text-sm font-bold text-on-surface mb-3 font-headline mt-6">Spesifikasi</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            ${specsHtml}
+          </div>
+        `;
+      } else {
+        detailModalExtraContent.innerHTML = "";
+      }
+    } else {
+      let features: string[] = [];
+      if (item.features) {
+        features = parseFeatures(item.features);
+      }
+
+      if (features.length > 0) {
+        const featuresHtml = features.map(f => `
+          <li class="flex items-start gap-2.5 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-primary text-lg shrink-0 mt-0.5">check_circle</span>
+            <span class="leading-relaxed">${f}</span>
+          </li>
+        `).join('');
+
+        detailModalExtraContent.innerHTML = `
+          <h4 class="text-sm font-bold text-on-surface mb-3 font-headline mt-6">Yang Anda Dapatkan</h4>
+          <ul class="space-y-2.5">
+            ${featuresHtml}
+          </ul>
+        `;
+      } else {
+        detailModalExtraContent.innerHTML = "";
+      }
+    }
+
+    // 6. Show Modal
+    itemDetailModal.classList.remove("hidden");
+  }
+
+  // Load everything
+  async function initPage() {
+    try {
+      // 1. Fetch user data for pre-fill
+      currentUser = await getCurrentUser();
+      if (currentUser) {
+        shipNameInput.value = currentUser.name || "";
+        const phone = currentUser.phone_number || "";
+        shipPhoneInput.value = phone;
+        shipAddressInput.value = currentUser.address || "";
+        
+        let provName = currentUser.province || "-";
+        let cityName = currentUser.city || "-";
+        let regencyName = currentUser.regency || "-";
+        let villageName = currentUser.village || "-";
+
+        try {
+          if (currentUser.province) {
+            const provRes = await fetch("http://localhost:8080/api/v1/regions/provinces").then(r => r.json());
+            const p = (provRes.data || []).find((x: any) => x.code === currentUser.province);
+            if (p) provName = p.name;
+          }
+          if (currentUser.city) {
+            const cityRes = await fetch(`http://localhost:8080/api/v1/regions/provinces/${currentUser.province}/regencies`).then(r => r.json());
+            const c = (cityRes.data || []).find((x: any) => x.code === currentUser.city);
+            if (c) cityName = c.name;
+          }
+          if (currentUser.regency) {
+            const regRes = await fetch(`http://localhost:8080/api/v1/regions/regencies/${currentUser.city}/districts`).then(r => r.json());
+            const r = (regRes.data || []).find((x: any) => x.code === currentUser.regency);
+            if (r) regencyName = r.name;
+          }
+          if (currentUser.village) {
+            const villRes = await fetch(`http://localhost:8080/api/v1/regions/districts/${currentUser.regency}/villages`).then(r => r.json());
+            const v = (villRes.data || []).find((x: any) => x.code === currentUser.village);
+            if (v) villageName = v.name;
+          }
+        } catch (e) {
+          console.error("Failed to load region names", e);
+        }
+
+        shipProvinceEl.textContent = provName;
+        shipCityEl.textContent = cityName;
+        shipRegencyEl.textContent = regencyName;
+        shipVillageEl.textContent = villageName;
+        shipZipEl.textContent = currentUser.zip_code || "-";
+
+        // Check if user profile is complete
+        const isVerified = Boolean(
+          currentUser.phone_number &&
+          currentUser.address &&
+          currentUser.province &&
+          currentUser.city &&
+          currentUser.regency &&
+          currentUser.village &&
+          currentUser.zip_code
+        );
+
+        if (!isVerified) {
+          document.getElementById('unverified-alert')?.classList.remove('hidden');
+          checkoutBtn.disabled = true;
+          checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          checkoutBtn.classList.remove('hover:opacity-90');
+        }
+      }
+
+      // 2. Load cart items
+      const cartRaw = localStorage.getItem("dp_cart");
+      if (cartRaw) {
+        cartItems = JSON.parse(cartRaw);
+      }
+
+      // 3. Load catalog items
+      await Promise.all([loadQuickBooks(), loadQuickServices()]);
+
+      // 4. Load Settings
+      try {
+        const setRes = await settingsApi.get();
+        if (setRes && setRes.data) {
+          globalSettings = setRes.data;
+        }
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      }
+
+      loadingEl.classList.add("hidden");
+      await renderCart();
+    } catch (err) {
+      console.error("Failed to load page details:", err);
+      loadingEl.classList.add("hidden");
+      emptyEl.classList.remove("hidden");
+    }
+  }
+
+  // Load and render quick add books catalog
+  async function loadQuickBooks() {
+    try {
+      const { books } = await getBooks({ per_page: 6, status: "published" });
+      loadedBooks = books;
+      if (books.length === 0) {
+        containerBooks.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-stone-500">No books found.</div>`;
+        return;
+      }
+
+      containerBooks.innerHTML = books.map(book => {
+        const coverHtml = book.image_url 
+          ? `<img src="${book.image_url}" alt="${book.title}" class="w-16 h-24 object-cover rounded-xl shadow-sm border border-stone-100 shrink-0" />`
+          : `<div class="w-16 h-24 bg-stone-50 rounded-xl flex items-center justify-center text-stone-400 shrink-0 border border-stone-100"><span class="material-symbols-outlined text-2xl">auto_stories</span></div>`;
+
+        return `
+          <div class="group bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex flex-col gap-3 hover:shadow-md hover:border-primary/20 transition-all duration-300 cursor-pointer catalog-card" data-id="${book.id}" data-type="book">
+            <div class="flex gap-4">
+              ${coverHtml}
+              <div class="flex-1 min-w-0">
+                <h5 class="text-sm font-bold text-stone-900 truncate group-hover:text-primary transition-colors">${book.title}</h5>
+                <p class="text-xs text-stone-500 truncate mt-0.5">${book.author}</p>
+                <div class="text-sm font-extrabold text-primary mt-2">${formatRupiah(book.price)}</div>
+              </div>
+            </div>
+            <button 
+              class="add-to-cart-quick w-full py-2 bg-stone-50 hover:bg-primary text-primary hover:text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1 border border-stone-100 hover:border-primary"
+              data-id="${book.id}"
+              data-type="book"
+              data-title="${book.title.replace(/"/g, '&quot;')}"
+              data-author="${book.author.replace(/"/g, '&quot;')}"
+              data-price="${book.price}"
+              data-image="${book.image_url || ''}"
+              data-weight="${book.weight ? parseFloat(book.weight) || 0.3 : 0.3}"
+              data-format="${book.format || ''}"
+            >
+              <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Add
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      attachQuickAddListeners();
+    } catch {
+      containerBooks.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-red-500">Failed to load books.</div>`;
+    }
+  }
+
+  // Load and render quick add services catalog
+  async function loadQuickServices() {
+    try {
+      const services = await getServices(true);
+      loadedServices = services;
+      if (services.length === 0) {
+        containerServices.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-stone-500">No service packages found.</div>`;
+        return;
+      }
+
+      containerServices.innerHTML = services.map(service => {
+        return `
+          <div class="group bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex flex-col gap-3 hover:shadow-md hover:border-primary/20 transition-all duration-300 cursor-pointer catalog-card" data-id="${service.id}" data-type="service">
+            <div class="flex gap-4">
+              <div class="w-16 h-16 bg-primary/5 rounded-xl flex items-center justify-center text-primary shrink-0 border border-primary/10">
+                <span class="material-symbols-outlined text-3xl">${service.icon || 'design_services'}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h5 class="text-sm font-bold text-stone-900 truncate group-hover:text-primary transition-colors">${service.title}</h5>
+                <p class="text-xs text-stone-500 truncate mt-0.5">${service.price_label || 'Service Package'}</p>
+                <div class="text-sm font-extrabold text-primary mt-2">${formatRupiah(service.price)}</div>
+              </div>
+            </div>
+            <button 
+              class="add-to-cart-quick w-full py-2 bg-stone-50 hover:bg-primary text-primary hover:text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1 border border-stone-100 hover:border-primary"
+              data-id="${service.id}"
+              data-type="service"
+              data-title="${service.title.replace(/"/g, '&quot;')}"
+              data-author="Digital Papyrus Services"
+              data-price="${service.price}"
+              data-image=""
+              data-weight="0"
+            >
+              <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Add
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      attachQuickAddListeners();
+    } catch {
+      containerServices.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-red-500">Failed to load service packages.</div>`;
+    }
+  }
+
+  function attachQuickAddListeners() {
+    document.querySelectorAll(".catalog-card").forEach(card => {
+      // Prevent duplicates by cloning and replacing the card
+      const newCard = card.cloneNode(true) as HTMLDivElement;
+      card.parentNode?.replaceChild(newCard, card);
+
+      // 1. Add click listener to the card (to open detail modal)
+      newCard.addEventListener("click", () => {
+        const id = newCard.getAttribute("data-id")!;
+        const type = newCard.getAttribute("data-type")!;
+        showItemDetail(id, type);
+      });
+
+      // 2. Add click listener to the Add button inside the card
+      const addBtn = newCard.querySelector(".add-to-cart-quick") as HTMLButtonElement;
+      if (addBtn) {
+        addBtn.addEventListener("click", (e) => {
+          e.stopPropagation(); // Stop card click from firing
+          
+          const id = addBtn.getAttribute("data-id")!;
+          const type = addBtn.getAttribute("data-type")!;
+          const title = addBtn.getAttribute("data-title")!;
+          const author = addBtn.getAttribute("data-author")!;
+          const price = parseInt(addBtn.getAttribute("data-price")!);
+          const image_url = addBtn.getAttribute("data-image")!;
+          const weight = parseFloat(addBtn.getAttribute("data-weight")!);
+          const format = addBtn.getAttribute("data-format") || "";
+
+          const existing = cartItems.find(item => item.id === id && item.type === type);
+          if (existing) {
+            existing.qty += 1;
+          } else {
+            cartItems.push({ id, type, title, author, price, image_url, qty: 1, weight, format });
+          }
+
+          localStorage.setItem("dp_cart", JSON.stringify(cartItems));
+          renderCart();
+        });
+      }
+    });
+  }
+
+  async function renderCart() {
+    if (cartItems.length === 0) {
+      listEl.classList.add("hidden");
+      emptyEl.classList.remove("hidden");
+      countBadge.textContent = "0 Items";
+      totalQtyEl.textContent = "0";
+      document.getElementById("summary-items-total")!.textContent = "Rp 0";
+      subtotalEl.textContent = "Rp 0";
+      
+      // Reset shipping and layout variables
+      shippingCost = 0;
+      cachedWeight = -1;
+      cachedDest = "";
+      courierRates = { "JNE": 0, "J&T": 0 };
+      
+      document.getElementById("courier-select-container")?.classList.add("hidden");
+      document.getElementById("summary-shipping-row")?.classList.add("hidden");
+      document.getElementById("summary-tax-row")?.classList.add("hidden");
+      document.getElementById("summary-service-fee-row")?.classList.add("hidden");
+      document.getElementById("summary-discount-row")?.classList.add("hidden");
+      
+      return;
+    }
+
+    emptyEl.classList.add("hidden");
+    listEl.classList.remove("hidden");
+    listEl.innerHTML = "";
+
+    let totalQty = 0;
+    let itemsTotal = 0;
+    let totalPhysicalWeight = 0;
+
+    cartItems.forEach((item, index) => {
+      totalQty += item.qty;
+      const itemTotal = item.price * item.qty;
+      itemsTotal += itemTotal;
+      const fmt = (item.format || '').toLowerCase().trim();
+      const titleLower = (item.title || '').toLowerCase();
+      const isEbook = fmt === 'e-book' || fmt === 'ebook' || titleLower.includes('e-book') || titleLower.includes('ebook');
+
+      // Only physical books (not e-books) incur shipping weight
+      if (item.type === 'book' && !isEbook) {
+        const w = item.weight || 0.3;
+        totalPhysicalWeight += w * item.qty;
+      }
+
+      const card = document.createElement("div");
+      card.className = "flex flex-col sm:flex-row gap-5 p-5 bg-white rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow relative group";
+
+      let typeBadge = '';
+      if (item.type === 'service') {
+        typeBadge = `<span class="inline-block px-2.5 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-md mb-2">Service</span>`;
+      } else if (isEbook) {
+        typeBadge = `<span class="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider rounded-md mb-2">E-Book (Gratis Ongkir)</span>`;
+      } else {
+        typeBadge = `<span class="inline-block px-2.5 py-1 bg-stone-100 text-stone-600 text-[10px] font-bold uppercase tracking-wider rounded-md mb-2">Book</span>`;
+      }
+
+      const imageHtml = item.image_url 
+        ? `<img src="${item.image_url}" alt="${item.title}" class="w-20 h-28 object-cover rounded-xl shadow-sm border border-stone-100 shrink-0" />`
+        : `<div class="w-20 h-28 rounded-xl bg-stone-50 flex items-center justify-center text-stone-400 shrink-0 border border-stone-100"><span class="material-symbols-outlined text-3xl">design_services</span></div>`;
+
+      card.innerHTML = `
+        <div class="flex-shrink-0 flex justify-center sm:block">
+          ${imageHtml}
+        </div>
+        <div class="flex-1 flex flex-col justify-between min-w-0">
+          <div class="flex justify-between items-start gap-4">
+            <div>
+              ${typeBadge}
+              <h4 class="text-base font-bold text-stone-900 leading-tight mb-1 pr-8">${item.title}</h4>
+              <p class="text-sm text-stone-500">${item.author || ""}</p>
+            </div>
+            <button class="remove-btn absolute top-4 right-4 sm:static text-stone-400 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50" data-index="${index}" aria-label="Remove item">
+              <span class="material-symbols-outlined text-xl">delete_outline</span>
+            </button>
+          </div>
+          
+          <div class="flex flex-wrap items-end justify-between gap-4 mt-4 pt-4 border-t border-stone-50">
+            <div>
+              <span class="text-xs text-stone-500 block mb-1">Price</span>
+              <span class="font-bold text-stone-900">${formatRupiah(item.price)}</span>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-stone-50 p-1.5 rounded-xl border border-stone-200">
+              <button class="qty-btn w-8 h-8 rounded-lg bg-white shadow-sm hover:bg-stone-100 text-stone-700 font-bold flex items-center justify-center transition-colors" data-action="dec" data-index="${index}">
+                <span class="material-symbols-outlined text-sm">remove</span>
+              </button>
+              <span class="w-6 text-center text-sm font-bold text-stone-900">${item.qty}</span>
+              <button class="qty-btn w-8 h-8 rounded-lg bg-white shadow-sm hover:bg-stone-100 text-stone-700 font-bold flex items-center justify-center transition-colors" data-action="inc" data-index="${index}">
+                <span class="material-symbols-outlined text-sm">add</span>
+              </button>
+            </div>
+            
+            <div class="text-right">
+              <span class="text-xs text-stone-500 block mb-1">Total</span>
+              <span class="font-extrabold text-primary text-lg">${formatRupiah(itemTotal)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      listEl.appendChild(card);
+    });
+
+    countBadge.textContent = `${totalQty} Item${totalQty !== 1 ? 's' : ''}`;
+    totalQtyEl.textContent = String(totalQty);
+    document.getElementById("summary-items-total")!.textContent = formatRupiah(itemsTotal);
+
+    // Calculate Shipping Cost
+    const courierContainer = document.getElementById("courier-select-container");
+    if (totalPhysicalWeight > 0 && currentUser && currentUser.village) {
+      if (courierContainer) courierContainer.classList.remove("hidden");
+      const destCode = currentUser.village; // village is code in db
+      const weightKg = totalPhysicalWeight;
+
+      if (weightKg !== cachedWeight || destCode !== cachedDest) {
+        try {
+          const shRes = await shippingApi.calculateCost(destCode, weightKg);
+          if (shRes && shRes.data) {
+            courierRates["JNE"] = 0;
+            courierRates["J&T"] = 0;
+            const couriers = shRes.data.couriers || [];
+            couriers.forEach((c: any) => {
+              const cName = String(c.courier).toUpperCase();
+              let key = "";
+              if (cName.includes("JNE")) key = "JNE";
+              else if (cName.includes("J&T") || cName.includes("J AND T")) key = "J&T";
+
+              if (key && c.services && c.services.length > 0) {
+                courierRates[key] = Number(c.services[0].price) || 0;
+              }
+            });
+            cachedWeight = weightKg;
+            cachedDest = destCode;
+          }
+        } catch (err) {
+          console.error("Failed to calculate shipping cost:", err);
+        }
+      }
+      const selectedCourier = (document.getElementById("shipping-courier") as HTMLSelectElement)?.value || "JNE";
+      shippingCost = courierRates[selectedCourier] || 0;
+    } else {
+      if (courierContainer) courierContainer.classList.add("hidden");
+      shippingCost = 0;
+      cachedWeight = -1;
+      cachedDest = "";
+    }
+
+    // Apply Settings
+    let taxAmount = 0;
+    let serviceFee = 0;
+    let discount = 0;
+
+    if (globalSettings) {
+      serviceFee = Number(globalSettings.service_fee) || 0;
+      discount = Number(globalSettings.discount) || 0;
+      const taxPercent = Number(globalSettings.tax) || 0;
+      taxAmount = Math.floor((itemsTotal + shippingCost + serviceFee - discount) * (taxPercent / 100));
+      if (taxAmount < 0) taxAmount = 0;
+    }
+
+    const subtotal = itemsTotal + shippingCost + serviceFee + taxAmount - discount;
+    
+    // Update Summary UI
+    const shippingRow = document.getElementById("summary-shipping-row")!;
+    if (shippingCost > 0) {
+      shippingRow.classList.remove("hidden");
+      shippingRow.classList.add("flex");
+      document.getElementById("summary-shipping-cost")!.textContent = formatRupiah(shippingCost);
+    } else {
+      shippingRow.classList.add("hidden");
+      shippingRow.classList.remove("flex");
+    }
+
+    const taxRow = document.getElementById("summary-tax-row")!;
+    if (taxAmount > 0) {
+      taxRow.classList.remove("hidden");
+      taxRow.classList.add("flex");
+      document.getElementById("summary-tax-label")!.textContent = `Tax (${globalSettings?.tax || 0}%)`;
+      document.getElementById("summary-tax-amount")!.textContent = formatRupiah(taxAmount);
+    } else {
+      taxRow.classList.add("hidden");
+      taxRow.classList.remove("flex");
+    }
+
+    const serviceFeeRow = document.getElementById("summary-service-fee-row")!;
+    if (serviceFee > 0) {
+      serviceFeeRow.classList.remove("hidden");
+      serviceFeeRow.classList.add("flex");
+      document.getElementById("summary-service-fee")!.textContent = formatRupiah(serviceFee);
+    } else {
+      serviceFeeRow.classList.add("hidden");
+      serviceFeeRow.classList.remove("flex");
+    }
+
+    const discountRow = document.getElementById("summary-discount-row")!;
+    if (discount > 0) {
+      discountRow.classList.remove("hidden");
+      discountRow.classList.add("flex");
+      document.getElementById("summary-discount")!.textContent = "-" + formatRupiah(discount);
+    } else {
+      discountRow.classList.add("hidden");
+      discountRow.classList.remove("flex");
+    }
+
+    subtotalEl.textContent = formatRupiah(subtotal);
+
+    // Attach listeners for cart actions
+    document.querySelectorAll("#cart-items-list .qty-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const index = parseInt(target.getAttribute("data-index")!);
+        const action = target.getAttribute("data-action")!;
+        
+        if (action === "dec") {
+          if (cartItems[index].qty > 1) {
+            cartItems[index].qty -= 1;
+          } else {
+            showDeleteModal(index);
+            return;
+          }
+        } else if (action === "inc") {
+          cartItems[index].qty += 1;
+        }
+
+        localStorage.setItem("dp_cart", JSON.stringify(cartItems));
+        renderCart();
+      });
+    });
+
+    document.querySelectorAll("#cart-items-list .remove-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const index = parseInt(target.getAttribute("data-index")!);
+        showDeleteModal(index);
+      });
+    });
+  }
+
+  // Tabs toggle logic
+  if (tabBooks && tabServices) {
+    tabBooks.addEventListener("click", () => {
+      tabBooks.className = "pb-2 border-b-2 border-primary text-primary font-bold text-sm transition-all focus:outline-none";
+      tabServices.className = "pb-2 border-b-2 border-transparent text-stone-500 hover:text-stone-900 font-semibold text-sm transition-all focus:outline-none";
+      containerBooks.classList.remove("hidden");
+      containerServices.classList.add("hidden");
+    });
+
+    tabServices.addEventListener("click", () => {
+      tabServices.className = "pb-2 border-b-2 border-primary text-primary font-bold text-sm transition-all focus:outline-none";
+      tabBooks.className = "pb-2 border-b-2 border-transparent text-stone-500 hover:text-stone-900 font-semibold text-sm transition-all focus:outline-none";
+      containerServices.classList.remove("hidden");
+      containerBooks.classList.add("hidden");
+    });
+  }
+
+  // Handle Checkout submission
+  if (checkoutForm) {
+    checkoutForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (cartItems.length === 0) {
+        showCartError("Keranjang Kosong", "Keranjang belanja Anda masih kosong. Silahkan tambahkan produk terlebih dahulu.");
+        return;
+      }
+
+      if (!currentUser.address || !currentUser.province || !currentUser.city) {
+        showCartError("Profil Belum Lengkap", "Harap lengkapi alamat lengkap pengiriman pada halaman Profile Settings sebelum checkout!");
+        closeCartErrorBtn.onclick = () => {
+          cartErrorModal.classList.add("hidden");
+          window.location.href = "/customer-profile";
+        };
+        return;
+      }
+
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = "Processing Checkout...";
+
+      try {
+        let totalQty = 0;
+        let itemsTotal = 0;
+        let totalPhysicalWeight = 0;
+
+        const itemsPayload = cartItems.map(item => {
+          totalQty += item.qty;
+          itemsTotal += item.price * item.qty;
+          const fmt = (item.format || '').toLowerCase().trim();
+          const titleLower = (item.title || '').toLowerCase();
+          const isEbook = fmt === 'e-book' || fmt === 'ebook' || titleLower.includes('e-book') || titleLower.includes('ebook');
+          if (item.type === 'book' && !isEbook) {
+            const weight = item.weight || 0.3;
+            totalPhysicalWeight += weight * item.qty;
+          }
+          return {
+            id: item.id,
+            type: item.type,
+            title: item.title,
+            qty: item.qty,
+            price: item.price,
+            format: item.format || ''
+          };
+        });
+
+        if (totalPhysicalWeight <= 0) {
+          shippingCost = 0;
+        }
+
+        // Use global calculations
+        let serviceFee = 0;
+        let discount = 0;
+        let taxPercent = 0;
+
+        if (globalSettings) {
+          serviceFee = Number(globalSettings.service_fee) || 0;
+          discount = Number(globalSettings.discount) || 0;
+          taxPercent = Number(globalSettings.tax) || 0;
+        }
+
+        let taxAmount = Math.floor((itemsTotal + shippingCost + serviceFee - discount) * (taxPercent / 100));
+        if (taxAmount < 0) taxAmount = 0;
+        
+        let totalPrice = itemsTotal + shippingCost + serviceFee + taxAmount - discount;
+
+        const now = new Date();
+        const d = String(now.getDate()).padStart(2, '0');
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const y = String(now.getFullYear());
+        const seq = Date.now().toString().slice(-4);
+        const uniqueChars = Math.random().toString(36).substring(2, 6).toUpperCase();
+        
+        const invoice = `INV-${d}${m}${y}-${seq}-${uniqueChars}`;
+
+        const uniqueCode = 100 + Math.floor(Math.random() * 100); // 100 to 199
+        totalPrice += uniqueCode;
+
+        const payload = {
+          invoice: invoice,
+          user_id: currentUser.id,
+          items: JSON.stringify(itemsPayload),
+          notes: checkoutNotesInput.value.trim(),
+          total_qty: totalQty,
+          total_weight: Math.ceil(totalPhysicalWeight * 1000), // in grams for db
+          total_price: totalPrice,
+          payment_type: "Bank Transfer",
+          status: "pending",
+          shipping_name: shippingCost > 0 ? ((document.getElementById("shipping-courier") as HTMLSelectElement)?.value || "JNE") : "-",
+          shipping_service: shippingCost > 0 ? "REG" : "-",
+          shipping_price: shippingCost,
+          tax: taxAmount,
+          service_fee: serviceFee,
+          discount: discount
+        };
+
+        const createdOrder = await createOrder(payload);
+        currentOrderId = createdOrder.id;
+        localStorage.removeItem("dp_cart");
+
+        // DISABLED DYNAMIC QRIS GENERATION (Syntax preserved as requested)
+        /*
+        const dynamicQRISStr = generateDynamicQRIS(STATIC_QRIS, totalPrice);
+        try {
+          const qrDataUrl = await QRCode.toDataURL(dynamicQRISStr, {
+            errorCorrectionLevel: 'M',
+            margin: 2,
+            width: 300,
+            color: {
+              dark: '#000000',
+              light: '#ffffff'
+            }
+          });
+          if (qrisImage) qrisImage.src = qrDataUrl;
+        } catch (e) {
+          console.error("Failed to generate QR Code", e);
+        }
+        */
+
+        // Populate Bank Information
+        const bName = globalSettings?.bank_name || "Bank BCA";
+        const bNum = globalSettings?.bank_account_number || "8735091234";
+        const bHolder = globalSettings?.bank_account_holder || "PT Digital Papyrus Indonesia";
+
+        const pBankName = document.getElementById("paymentBankName");
+        if (pBankName) pBankName.textContent = bName;
+
+        const pBankNum = document.getElementById("paymentBankAccountNumber");
+        if (pBankNum) pBankNum.textContent = bNum;
+
+        const pBankHolder = document.getElementById("paymentBankAccountHolder");
+        if (pBankHolder) pBankHolder.textContent = bHolder;
+
+        // Show Modal
+        qrisInvoiceNumber.textContent = invoice;
+        qrisTotalAmount.textContent = formatRupiah(totalPrice);
+        qrisPaymentModal.classList.remove("hidden");
+        startQrisTimer();
+        
+      } catch (err: any) {
+        alert(err.message || "Gagal melakukan checkout.");
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = "Place Order";
+      }
+    });
+  }
+
+  // Copy Account Number Event
+  document.getElementById("copyAccountBtn")?.addEventListener("click", () => {
+    const accNum = document.getElementById("paymentBankAccountNumber")?.textContent || "";
+    if (accNum) {
+      navigator.clipboard.writeText(accNum);
+      alert("Nomor rekening (" + accNum + ") berhasil disalin!");
+    }
+  });
+
+  // WhatsApp Verification Event
+  document.getElementById("whatsappVerifyBtn")?.addEventListener("click", () => {
+    const rawPhone = globalSettings?.origin_phone || "+6281234567890";
+    let cleanPhone = rawPhone.replace(/\D/g, "");
+    if (cleanPhone.startsWith("0")) cleanPhone = "62" + cleanPhone.substring(1);
+    if (!cleanPhone.startsWith("62")) cleanPhone = "62" + cleanPhone;
+
+    const currentInv = qrisInvoiceNumber.textContent || "";
+    const currentAmt = qrisTotalAmount.textContent || "";
+    const bName = globalSettings?.bank_name || "Bank BCA";
+
+    const message = `Halo Admin Digital Papyrus, saya telah melakukan transfer pembayaran untuk pesanan:
+
+- Nomor Invoice: ${currentInv}
+- Total Pembayaran: ${currentAmt}
+- Bank Tujuan: ${bName}
+
+Berikut saya lampirkan bukti transaksi/transfer pembayarannya untuk diverifikasi. Terima kasih!`;
+
+    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, "_blank");
+    window.location.href = "/customer-dashboard#transactions";
+  });
+
+  function startQrisTimer() {
+    let timeLeft = 24 * 3600; // 24 hours (86400 seconds)
+    clearInterval(qrisInterval);
+    
+    qrisInterval = setInterval(async () => {
+      timeLeft--;
+      const h = Math.floor(timeLeft / 3600);
+      const m = Math.floor((timeLeft % 3600) / 60);
+      const s = timeLeft % 60;
+      qrisTimer.textContent = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      
+      if (timeLeft <= 0) {
+        clearInterval(qrisInterval);
+        qrisTimer.textContent = "00:00:00";
+        qrisTimer.classList.add("text-red-500");
+        if (confirmPaymentBtn) confirmPaymentBtn.disabled = true;
+        paymentStatusMsg.textContent = "Batas waktu transfer 24 jam telah habis. Pesanan dibatalkan otomatis.";
+        paymentStatusMsg.className = "text-center text-sm font-bold text-red-500 mb-4 block";
+        
+        if (currentOrderId) {
+          try {
+            await cancelCustomerOrder(currentOrderId);
+          } catch (e) {
+            console.error("Gagal membatalkan pesanan:", e);
+          }
+        }
+      }
+    }, 1000);
+  }
+
+  closeQrisBtn.addEventListener("click", () => {
+    qrisPaymentModal.classList.add("hidden");
+    clearInterval(qrisInterval);
+    window.location.href = "/customer-transactions";
+  });
+
+  if (confirmPaymentBtn) {
+    confirmPaymentBtn.addEventListener("click", async () => {
+      if (!currentOrderId) return;
+      const originalText = confirmPaymentBtn.innerHTML;
+      confirmPaymentBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Memproses...`;
+      confirmPaymentBtn.disabled = true;
+      paymentStatusMsg.classList.add("hidden");
+
+      try {
+        await confirmCustomerOrderPayment(currentOrderId);
+        clearInterval(qrisInterval);
+        paymentStatusMsg.textContent = "Konfirmasi pembayaran berhasil dikirim! Menunggu verifikasi admin.";
+        paymentStatusMsg.className = "text-center text-xs md:text-sm font-bold text-indigo-700 block mt-3 bg-indigo-50 py-2.5 px-3 rounded-xl border border-indigo-200";
+        confirmPaymentBtn.classList.add("hidden");
+        setTimeout(() => {
+          window.location.href = "/customer-transactions";
+        }, 1500);
+      } catch (err: any) {
+        paymentStatusMsg.textContent = "Gagal konfirmasi pembayaran: " + (err.message || "Terjadi kesalahan");
+        paymentStatusMsg.className = "text-center text-xs md:text-sm font-bold text-red-500 block mt-3 bg-red-50 py-2 px-3 rounded-xl border border-red-200";
+        confirmPaymentBtn.innerHTML = originalText;
+        confirmPaymentBtn.disabled = false;
+      }
+    });
+  }
+
+  if (viewDashboardBtn) {
+    viewDashboardBtn.addEventListener("click", () => {
+      qrisPaymentModal.classList.add("hidden");
+      clearInterval(qrisInterval);
+      window.location.href = "/customer-transactions";
+    });
+  }
+
+  const courierSelect = document.getElementById("shipping-courier") as HTMLSelectElement;
+  if (courierSelect) {
+    courierSelect.addEventListener("change", () => {
+      renderCart();
+    });
+  }
+
+  initPage();
+</script>

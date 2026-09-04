@@ -3,6 +3,8 @@
 package config
 
 import (
+	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -19,6 +21,12 @@ type Config struct {
 	Security SecurityConfig
 	Seed     SeedConfig
 	SMTP     SMTPConfig
+	API      APIConfig
+}
+
+// APIConfig holds external API keys.
+type APIConfig struct {
+	CoIdKey string
 }
 
 // SMTPConfig holds SMTP mail server settings.
@@ -38,7 +46,21 @@ type AppConfig struct {
 
 // DBConfig holds database connection settings.
 type DBConfig struct {
-	Path string
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Name     string
+	SSLMode  string
+	URL      string
+}
+
+func (c *DBConfig) DSN() string {
+	if c.URL != "" {
+		return c.URL
+	}
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		c.Host, c.Port, c.User, c.Password, c.Name, c.SSLMode)
 }
 
 // JWTConfig holds JWT authentication settings.
@@ -63,15 +85,24 @@ type SecurityConfig struct {
 	BcryptCost int
 }
 
-// SeedConfig holds initial superadmin seeding configuration.
+// SeedConfig holds initial user seeding configuration.
 type SeedConfig struct {
 	SuperAdminEmail    string
 	SuperAdminPassword string
 	SuperAdminName     string
+	DemoAuthorEmail    string
+	DemoAuthorPassword string
+	DemoAuthorName     string
+	DemoCustomerEmail    string
+	DemoCustomerPassword string
+	DemoCustomerName     string
 }
 
 // Load reads configuration from environment variables with defaults.
 func Load() *Config {
+	loadEnvFile(".env")
+	loadEnvFile("../.env")
+
 	return &Config{
 		App: AppConfig{
 			Env:  getEnv("APP_ENV", "development"),
@@ -79,7 +110,13 @@ func Load() *Config {
 			Name: getEnv("APP_NAME", "digital-papyrus-api"),
 		},
 		DB: DBConfig{
-			Path: getEnv("DB_PATH", "./data/digital_papyrus.db"),
+			Host:     getEnv("DB_HOST", "localhost"),
+			Port:     getEnv("DB_PORT", "5432"),
+			User:     getEnv("DB_USER", "postgres"),
+			Password: getEnv("DB_PASSWORD", "postgres"),
+			Name:     getEnv("DB_NAME", "digital_papyrus"),
+			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+			URL:      getEnv("DATABASE_URL", ""),
 		},
 		JWT: JWTConfig{
 			Secret:     getEnv("JWT_SECRET", "local-dev-secret-key"),
@@ -99,12 +136,21 @@ func Load() *Config {
 			SuperAdminEmail:    getEnv("SEED_SUPERADMIN_EMAIL", "admin@local.dev"),
 			SuperAdminPassword: getEnv("SEED_SUPERADMIN_PASSWORD", "local-dev-password"),
 			SuperAdminName:     getEnv("SEED_SUPERADMIN_NAME", "Local Admin"),
+			DemoAuthorEmail:    getEnv("SEED_DEMO_AUTHOR_EMAIL", "author@digitalpapyrus.web.id"),
+			DemoAuthorPassword: getEnv("SEED_DEMO_AUTHOR_PASSWORD", "Demo@2026!"),
+			DemoAuthorName:     getEnv("SEED_DEMO_AUTHOR_NAME", "Demo Author"),
+			DemoCustomerEmail:    getEnv("SEED_DEMO_CUSTOMER_EMAIL", "customer@digitalpapyrus.web.id"),
+			DemoCustomerPassword: getEnv("SEED_DEMO_CUSTOMER_PASSWORD", "Demo@2026!"),
+			DemoCustomerName:     getEnv("SEED_DEMO_CUSTOMER_NAME", "Demo Customer"),
 		},
 		SMTP: SMTPConfig{
 			Host:     getEnv("SMTP_HOST", "smtp.gmail.com"),
 			Port:     getEnv("SMTP_PORT", "587"),
 			Username: getEnv("SMTP_USERNAME", ""),
 			Password: getEnv("SMTP_PASSWORD", ""),
+		},
+		API: APIConfig{
+			CoIdKey: getEnv("API_CO_ID_KEY", ""),
 		},
 	}
 }
@@ -137,10 +183,33 @@ func getEnvAsSlice(key string, defaultVal []string, sep string) []string {
 	parts := strings.Split(valStr, sep)
 	result := make([]string, 0, len(parts))
 	for _, p := range parts {
-		trimmed := strings.TrimSpace(p)
-		if trimmed != "" {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
 			result = append(result, trimmed)
 		}
 	}
 	return result
+}
+
+func loadEnvFile(filename string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			k := strings.TrimSpace(parts[0])
+			v := strings.TrimSpace(parts[1])
+			if _, exists := os.LookupEnv(k); !exists {
+				_ = os.Setenv(k, v)
+			}
+		}
+	}
 }

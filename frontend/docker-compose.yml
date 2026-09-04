@@ -2,18 +2,36 @@ version: '3.8'
 
 services:
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/raflyherdianto/digital-papyrus-frontend:latest
     container_name: fe-papyrus
-    restart: always
+    restart: unless-stopped
     ports:
       - "4321:80"
     networks:
       - shared-network
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --spider http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
-      # Expose public uploads dir directly into nginx serving folder
-      - ./public/uploads:/usr/share/nginx/html/uploads
+      - ../uploads:/usr/share/nginx/html/uploads:ro
 
 networks:
   shared-network:

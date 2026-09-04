@@ -1,0 +1,790 @@
+---
+/**
+ * Customer Transactions Page
+ * Route: /customer-transactions
+ * Displays a complete list of user transactions with details and edit actions.
+ */
+import CustomerLayout from '../layouts/CustomerLayout.astro';
+---
+
+<CustomerLayout title="Customer Transactions | Digital Papyrus" activePage="transactions">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row items-start md:items-baseline justify-between mb-8 gap-4">
+    <div>
+      <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-primary font-headline mb-2">Transactions History</h2>
+      <p class="text-stone-500 font-body text-sm md:text-base max-w-xl">View and manage all your past and current orders.</p>
+    </div>
+  </div>
+
+  <!-- Transactions Table Panel -->
+  <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-sm overflow-hidden flex flex-col w-full max-w-full min-w-0">
+    <!-- Filters / Search -->
+    <div class="p-4 sm:p-6 border-b border-stone-200/10 bg-surface-container-low/30 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
+      <div class="relative w-full sm:w-96">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-lg">search</span>
+        <input type="text" id="searchInput" placeholder="Search by invoice number..." class="w-full bg-surface-container border border-outline-variant/30 rounded-xl py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all text-on-surface" />
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <select id="statusFilter" class="w-full sm:w-auto bg-surface-container border border-outline-variant/30 rounded-xl py-2.5 px-4 text-sm focus:outline-none focus:border-primary text-on-surface appearance-none pr-10 relative">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table content -->
+    <div class="table-responsive-container overflow-x-auto w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[750px] border-collapse">
+        <thead>
+          <tr class="bg-surface-container-low/50 text-stone-500 font-label text-xs uppercase tracking-wider border-b border-stone-200/20 whitespace-nowrap">
+            <th class="py-4 px-6 font-bold whitespace-nowrap">Invoice</th>
+            <th class="py-4 px-6 font-bold whitespace-nowrap">Date</th>
+            <th class="py-4 px-6 font-bold whitespace-nowrap">Items</th>
+            <th class="py-4 px-6 font-bold text-center whitespace-nowrap">Qty</th>
+            <th class="py-4 px-6 font-bold whitespace-nowrap">Total</th>
+            <th class="py-4 px-6 font-bold whitespace-nowrap">Status</th>
+            <th class="py-4 px-6 font-bold text-right whitespace-nowrap">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="transactionsBody" class="text-sm font-body divide-y divide-stone-200/10">
+          <tr>
+            <td colspan="7" class="py-16 text-center">
+              <span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span>
+              <p class="text-stone-400 mt-2 font-medium">Loading transactions...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="p-4 sm:p-6 border-t border-stone-200/10 bg-surface-container-low/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <p id="pagInfo" class="text-xs sm:text-sm text-stone-500 font-medium">Showing 0 to 0 of 0 entries</p>
+      <div class="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
+        <button id="btnPrev" disabled class="px-4 py-2 border border-outline-variant/30 rounded-lg text-sm font-bold text-stone-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container transition-all">Prev</button>
+        <button id="btnNext" disabled class="px-4 py-2 border border-outline-variant/30 rounded-lg text-sm font-bold text-stone-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface-container transition-all">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Modal -->
+  <div id="viewOrderModal" class="fixed inset-0 z-50 hidden bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-2xl w-full max-w-2xl transform scale-95 transition-transform duration-300">
+      <div class="px-6 md:px-8 py-5 border-b border-stone-200/10 flex justify-between items-center bg-surface-container-low/30 rounded-t-2xl">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Order Details</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="viewOrderModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="px-6 md:px-8 py-6 space-y-5 max-h-[75vh] overflow-y-auto font-body custom-scrollbar">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Invoice</p>
+            <p id="viewOrderInvoice" class="text-lg font-bold text-primary font-mono"></p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Status</p>
+            <div id="viewOrderStatus"></div>
+          </div>
+        </div>
+
+        <!-- Section Created & Updated -->
+        <div class="grid grid-cols-2 gap-4 bg-surface-container-low/40 p-3.5 rounded-xl border border-stone-200/40">
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-0.5">Created</p>
+            <p id="viewOrderCreated" class="text-xs md:text-sm font-semibold text-stone-700">-</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-0.5">Updated</p>
+            <p id="viewOrderUpdated" class="text-xs md:text-sm font-semibold text-stone-700">-</p>
+          </div>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">Items</p>
+          <div id="viewOrderItems" class="space-y-3"></div>
+        </div>
+        <div id="viewOrderNotesContainer" class="bg-surface-container-low/50 p-4 rounded-xl border border-stone-200/10">
+          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Notes</p>
+          <p id="viewOrderNotes" class="text-sm text-on-surface whitespace-pre-wrap"></p>
+        </div>
+
+        <!-- Rincian Biaya & Biaya Lain-Lain (Detailed Cost Breakdown) -->
+        <div class="bg-surface-container-low/40 p-4 md:p-5 rounded-2xl border border-stone-200/40 space-y-3">
+          <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Rincian Pembayaran</p>
+          
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between items-center text-stone-600">
+              <span>Subtotal Produk</span>
+              <span id="viewOrderSubtotalItems" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-stone-600" id="viewOrderShippingRow">
+              <span id="viewOrderShippingLabel">Biaya Pengiriman</span>
+              <span id="viewOrderShippingCost" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-stone-600" id="viewOrderServiceFeeRow">
+              <span>Biaya Layanan (Service Fee)</span>
+              <span id="viewOrderServiceFee" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-stone-600" id="viewOrderTaxRow">
+              <span>Pajak (Tax)</span>
+              <span id="viewOrderTax" class="font-semibold text-stone-800">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between items-center text-emerald-600" id="viewOrderDiscountRow">
+              <span>Potongan Diskon</span>
+              <span id="viewOrderDiscount" class="font-semibold">-Rp 0</span>
+            </div>
+
+            <!-- Kode Unik Terpisah -->
+            <div class="flex justify-between items-center bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/80 text-amber-900 mt-2" id="viewOrderUniqueCodeRow">
+              <div>
+                <span class="text-xs font-bold block">Kode Unik Transaksi</span>
+                <span class="text-[10px] text-amber-700 block">*Nominal unik verifikasi otomatis</span>
+              </div>
+              <span id="viewOrderUniqueCode" class="text-sm font-mono font-extrabold bg-amber-100/90 text-amber-900 px-3 py-1 rounded-lg border border-amber-300">0</span>
+            </div>
+
+            <div class="pt-2 border-t border-stone-200 flex justify-between items-center font-bold text-base md:text-lg text-primary">
+              <span>Total Pembayaran</span>
+              <span id="viewOrderTotalBreakdown">Rp 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank Transfer Payment Section (Matching Cart Place Order Modal) -->
+        <div id="viewOrderPaymentSection" class="hidden bg-stone-50 p-5 md:p-6 rounded-2xl border border-stone-200 text-center space-y-4">
+          <div class="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-1">
+            <span class="material-symbols-outlined text-2xl">account_balance</span>
+          </div>
+
+          <h4 class="text-xl font-extrabold text-primary font-headline mb-0.5">Pembayaran Transfer Bank</h4>
+          <p class="text-xs text-stone-500">Silakan lakukan transfer ke rekening resmi Digital Papyrus, kemudian verifikasi bukti transaksi via WhatsApp.</p>
+
+          <!-- Bank Details Card -->
+          <div class="bg-white p-4 rounded-xl border border-stone-200 text-left space-y-2.5">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-2">
+              <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Bank Tujuan</span>
+              <span id="viewOrderBankName" class="text-sm font-bold text-stone-900">Bank BCA</span>
+            </div>
+
+            <div class="flex items-center justify-between border-b border-stone-100 pb-2">
+              <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Nomor Rekening</span>
+              <div class="flex items-center gap-2">
+                <span id="viewOrderBankAccountNumber" class="text-base font-extrabold text-primary tracking-wider">8735091234</span>
+                <button id="viewOrderCopyAccountBtn" type="button" class="px-2 py-0.5 bg-primary/10 text-primary hover:bg-primary/20 rounded transition-colors text-xs flex items-center gap-1 font-bold cursor-pointer" title="Salin Rekening">
+                  <span class="material-symbols-outlined text-xs">content_copy</span>
+                  <span>Salin</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between border-b border-stone-100 pb-2">
+              <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Atas Nama</span>
+              <span id="viewOrderBankAccountHolder" class="text-xs md:text-sm font-bold text-stone-900 text-right">PT Digital Papyrus Indonesia</span>
+            </div>
+
+            <div class="flex items-center justify-between pt-0.5">
+              <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Nomor Invoice</span>
+              <span id="viewOrderPaymentInvoice" class="text-xs font-mono font-bold text-stone-700">-</span>
+            </div>
+          </div>
+
+          <!-- Total Amount Box -->
+          <div class="bg-primary/5 rounded-xl p-4 border border-primary/10 text-center">
+            <div class="text-xs text-primary/70 font-bold uppercase mb-1">Total Pembayaran</div>
+            <div id="viewOrderPaymentAmount" class="text-2xl md:text-3xl font-extrabold text-primary mb-1">Rp 0</div>
+            <div class="text-[10px] text-amber-700 font-semibold bg-amber-50 py-1.5 px-3 rounded-lg border border-amber-200 inline-block mt-1 text-left">
+              *Mohon transfer tepat sesuai nominal di atas untuk mempercepat verifikasi admin.
+            </div>
+          </div>
+
+          <!-- Expiry Timer Info -->
+          <div class="flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-orange-500 text-sm">timer</span>
+            <span class="text-xs md:text-sm font-bold text-on-surface">Batas Waktu Transfer: <span id="viewOrderPaymentTimer" class="text-orange-600">24:00:00</span></span>
+          </div>
+
+          <!-- WhatsApp Verification Action Button -->
+          <button id="viewOrderWhatsappBtn" type="button" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer mb-2.5">
+            <span class="material-symbols-outlined text-[20px]">chat</span>
+            Verifikasi Transaksi via WhatsApp
+          </button>
+
+          <!-- Konfirmasi Pembayaran Button -->
+          <button id="viewOrderConfirmPaymentBtn" type="button" class="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            Konfirmasi Pembayaran
+          </button>
+
+          <!-- Batalkan Pesanan Button -->
+          <button id="viewOrderCancelBtn" type="button" class="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl text-sm transition-all border border-red-200/80 flex items-center justify-center gap-2 cursor-pointer mt-2.5 hidden">
+            <span class="material-symbols-outlined text-[20px]">cancel</span>
+            Batalkan Pesanan
+          </button>
+          <p id="viewOrderPaymentStatusMsg" class="hidden text-xs md:text-sm font-bold mt-2.5"></p>
+        </div>
+      </div>
+      <div class="px-6 md:px-8 py-4 border-t border-stone-200/10 bg-surface-container-low/30 rounded-b-2xl flex justify-end">
+        <button class="closeModalBtn px-5 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors" data-modal="viewOrderModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editOrderModal" class="fixed inset-0 z-50 hidden bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300">
+      <div class="px-6 md:px-8 py-5 border-b border-stone-200/10 flex justify-between items-center bg-surface-container-low/30 rounded-t-2xl">
+        <h3 class="text-lg md:text-xl font-bold text-primary font-headline">Edit Order Notes</h3>
+        <button class="closeModalBtn text-stone-400 hover:text-stone-600 transition-colors" data-modal="editOrderModal"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <form id="editOrderForm" class="px-6 md:px-8 py-6 font-body">
+        <input type="hidden" id="editOrderId" />
+        <div class="mb-4">
+          <label class="block text-sm font-bold text-on-surface mb-2">Order Notes</label>
+          <textarea id="editOrderNotes" rows="4" class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all text-on-surface placeholder:text-stone-400" placeholder="Special requests..."></textarea>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" class="closeModalBtn px-5 py-2.5 rounded-xl text-sm font-bold bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors" data-modal="editOrderModal">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cancel Confirmation Modal -->
+  <div id="cancelConfirmModal" class="fixed inset-0 z-[60] hidden bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300">
+      <div class="p-6">
+        <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-2xl">warning</span>
+        </div>
+        <h3 class="text-xl font-bold text-stone-800 mb-2">Batalkan Pesanan</h3>
+        <p class="text-stone-600 mb-6 text-sm">Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.</p>
+        <div class="flex justify-end gap-3">
+          <button type="button" class="closeModalBtn px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 font-medium transition-colors text-sm" data-modal="cancelConfirmModal">Kembali</button>
+          <button type="button" id="confirmCancelBtn" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium transition-colors shadow-sm text-sm">Ya, Batalkan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Confirmation Modal -->
+  <div id="successPaymentModal" class="fixed inset-0 z-[60] hidden bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-surface-container-lowest rounded-2xl border border-stone-200/10 shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300">
+      <div class="p-6 text-center">
+        <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-green-600">check_circle</span>
+        </div>
+        <h3 class="text-xl font-bold text-stone-800 mb-2">Pembayaran Berhasil!</h3>
+        <p class="text-stone-600 mb-6 text-sm">Pembayaran Anda telah berhasil dikonfirmasi dan pesanan Anda sedang diproses.</p>
+        <div class="flex justify-center">
+          <button type="button" class="closeModalBtn px-6 py-2.5 bg-primary text-white font-medium rounded-xl text-sm hover:bg-primary/95 transition-colors shadow-sm" data-modal="successPaymentModal">Selesai</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getCustomerOrders, getCustomerOrder, cancelCustomerOrder, checkCustomerOrderPayment, confirmCustomerOrderPayment, formatRupiah, isAuthenticated, removeToken, settingsApi } from '../lib/api';
+
+    let globalSettings: any = null;
+    let viewOrderPaymentInterval: any;
+    let currentViewingOrder: any = null;
+
+    settingsApi.get().then(res => {
+      if (res && res.data) globalSettings = res.data;
+    }).catch(err => console.warn("Failed to load settings:", err));
+
+    // Auth guard
+    if (!isAuthenticated()) {
+      window.location.href = '/customer-login';
+    }
+
+    let currentPage = 1;
+    let currentData: any[] = [];
+    const perPage = 10;
+
+    const tbody = document.getElementById('transactionsBody')!;
+    const pagInfo = document.getElementById('pagInfo')!;
+    const btnPrev = document.getElementById('btnPrev') as HTMLButtonElement;
+    const btnNext = document.getElementById('btnNext') as HTMLButtonElement;
+
+    // Status helper
+    function getStatusHTML(status: string) {
+      const map: Record<string, { badge: string; dot: string; label: string }> = {
+        completed: { badge: 'bg-teal-100 text-teal-800', dot: 'bg-teal-600', label: 'Completed' },
+        processed: { badge: 'bg-sky-100 text-sky-800', dot: 'bg-sky-600', label: 'Diproses' },
+        diproses: { badge: 'bg-sky-100 text-sky-800', dot: 'bg-sky-600', label: 'Diproses' },
+        processing: { badge: 'bg-sky-100 text-sky-800', dot: 'bg-sky-600', label: 'Diproses' },
+        confirmed: { badge: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-600', label: 'Confirmed' },
+        shipped: { badge: 'bg-purple-100 text-purple-800', dot: 'bg-purple-600', label: 'Shipped' },
+        delivered: { badge: 'bg-green-100 text-green-800', dot: 'bg-green-600', label: 'Delivered' },
+        pending: { badge: 'bg-orange-100 text-orange-800', dot: 'bg-orange-600', label: 'Pending' },
+        waiting_confirmation: { badge: 'bg-indigo-100 text-indigo-800', dot: 'bg-indigo-600', label: 'Waiting Confirmation' },
+        'menunggu konfirmasi': { badge: 'bg-indigo-100 text-indigo-800', dot: 'bg-indigo-600', label: 'Waiting Confirmation' },
+        unpaid: { badge: 'bg-red-100 text-red-800', dot: 'bg-red-600', label: 'Unpaid' },
+        cancelled: { badge: 'bg-stone-200 text-stone-600', dot: 'bg-stone-400', label: 'Cancelled' },
+      };
+      const st = map[status.toLowerCase()] || map.pending;
+      return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${st.badge}"><span class="w-1.5 h-1.5 rounded-full ${st.dot}"></span>${st.label}</span>`;
+    }
+
+    function formatDateTimeWIB(dateStr: string): string {
+      if (!dateStr) return '--';
+      const d = new Date(dateStr);
+      const datePart = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${datePart}, ${hours}:${minutes} WIB`;
+    }
+
+    async function loadTransactions(page: number = 1) {
+      try {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-16 text-center"><span class="material-symbols-outlined text-4xl text-stone-300 animate-spin">progress_activity</span></td></tr>`;
+        
+        const { orders, meta } = await getCustomerOrders({ page, per_page: perPage });
+        currentData = orders;
+        
+        if (!orders || orders.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="py-16 text-center text-stone-400">No transactions found.</td></tr>`;
+          pagInfo.textContent = "Showing 0 to 0 of 0 entries";
+          btnPrev.disabled = true;
+          btnNext.disabled = true;
+          return;
+        }
+
+        tbody.innerHTML = orders.map(order => {
+          const createdAt = new Date(order.created_at).getTime();
+          const expireTime = createdAt + 24 * 60 * 60 * 1000;
+          const isExpired = Date.now() > expireTime;
+
+          const stLower = order.status.toLowerCase();
+          if ((stLower === 'pending' || stLower === 'waiting_confirmation') && isExpired) {
+            order.status = 'cancelled';
+            cancelCustomerOrder(order.id).catch(err => console.error("Failed auto-cancel order:", err));
+          }
+
+          let itemsLabel = 'Order';
+          if (order.items && order.items.length > 0) {
+            const hasBook = order.items.some((i: any) => i.book_id);
+            const hasService = order.items.some((i: any) => i.service_id);
+            if (hasBook && hasService) itemsLabel = 'Order Service & Book';
+            else if (hasBook) itemsLabel = 'Order Book';
+            else if (hasService) itemsLabel = 'Order Service';
+          }
+
+          return `
+          <tr class="group hover:bg-surface-container-low transition-colors whitespace-nowrap">
+            <td class="py-4 px-6 font-bold text-primary whitespace-nowrap">${order.invoice}</td>
+            <td class="py-4 px-6 text-stone-600 text-sm whitespace-nowrap">${new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+            <td class="py-4 px-6 text-stone-600 whitespace-nowrap">${itemsLabel}</td>
+            <td class="py-4 px-6 text-stone-500 text-center font-medium whitespace-nowrap">${order.total_qty}</td>
+            <td class="py-4 px-6 font-bold text-primary whitespace-nowrap">${formatRupiah(order.total_price)}</td>
+            <td class="py-4 px-6 whitespace-nowrap">${getStatusHTML(order.status)}</td>
+            <td class="py-4 px-6 text-right space-x-1 whitespace-nowrap">
+              <button class="viewBtn inline-flex items-center justify-center p-2 rounded-lg bg-surface-container text-primary hover:bg-primary/10 hover:text-primary transition-all" title="Detail" data-id="${order.id}">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>
+              </button>
+              <button class="editBtn inline-flex items-center justify-center p-2 rounded-lg bg-surface-container text-primary hover:bg-primary/10 hover:text-primary transition-all ${order.status.toLowerCase() !== 'unpaid' && order.status.toLowerCase() !== 'pending' ? 'opacity-50 cursor-not-allowed' : ''}" title="Edit" data-id="${order.id}" ${order.status.toLowerCase() !== 'unpaid' && order.status.toLowerCase() !== 'pending' ? 'disabled' : ''}>
+                <span class="material-symbols-outlined text-[18px]">edit</span>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+
+        // Attach event listeners for buttons
+        document.querySelectorAll('.viewBtn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = (e.currentTarget as HTMLButtonElement).dataset.id;
+            if (id) await openViewModal(id);
+          });
+        });
+        document.querySelectorAll('.editBtn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = (e.currentTarget as HTMLButtonElement).dataset.id;
+            if (id) openEditModal(id);
+          });
+        });
+
+        const startIdx = (meta.page - 1) * meta.per_page + 1;
+        const endIdx = Math.min(meta.page * meta.per_page, meta.total);
+        pagInfo.textContent = `Showing ${startIdx} to ${endIdx} of ${meta.total} entries`;
+        
+        btnPrev.disabled = meta.page <= 1;
+        btnNext.disabled = meta.page >= meta.total_pages;
+        currentPage = meta.page;
+
+      } catch (err: any) {
+        if (err?.status === 401) {
+          removeToken();
+          localStorage.removeItem('dp_user');
+          window.location.href = '/customer-login';
+          return;
+        }
+        tbody.innerHTML = `<tr><td colspan="7" class="py-16 text-center text-red-400">Failed to load transactions</td></tr>`;
+      }
+    }
+
+    btnPrev.addEventListener('click', () => {
+      if (currentPage > 1) loadTransactions(currentPage - 1);
+    });
+
+    btnNext.addEventListener('click', () => {
+      loadTransactions(currentPage + 1);
+    });
+
+    // Initial load
+    loadTransactions();
+
+    // Modal logic
+    function openModal(id: string) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          modal.classList.remove('opacity-0');
+          modal.firstElementChild?.classList.remove('scale-95');
+        }, 10);
+      }
+    }
+
+    function closeModal(id: string) {
+      if (id === 'viewOrderModal') {
+        clearInterval(viewOrderPaymentInterval);
+      }
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.add('opacity-0');
+        modal.firstElementChild?.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+      }
+    }
+
+    document.querySelectorAll('.closeModalBtn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const id = (e.currentTarget as HTMLElement).dataset.modal;
+        if (id) closeModal(id);
+      });
+    });
+
+    // Copy bank account button
+    document.getElementById('viewOrderCopyAccountBtn')?.addEventListener('click', () => {
+      const accNum = document.getElementById('viewOrderBankAccountNumber')?.textContent || '';
+      if (accNum) {
+        navigator.clipboard.writeText(accNum);
+        alert('Nomor rekening berhasil disalin!');
+      }
+    });
+
+    // WhatsApp verification button
+    document.getElementById('viewOrderWhatsappBtn')?.addEventListener('click', () => {
+      const currentInv = document.getElementById('viewOrderPaymentInvoice')?.textContent || '';
+      const currentAmt = document.getElementById('viewOrderPaymentAmount')?.textContent || '';
+      const bName = globalSettings?.bank_name || 'Bank BCA';
+      const rawPhone = globalSettings?.origin_phone || '+6281234567890';
+      let cleanPhone = rawPhone.replace(/\D/g, '');
+      if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+
+      const message = `Halo Admin Digital Papyrus, saya ingin konfirmasi pembayaran:
+- Nomor Invoice: ${currentInv}
+- Total Bayar: ${currentAmt}
+- Bank Tujuan: ${bName}
+- Tanggal: ${new Date().toLocaleString('id-ID')}
+
+Berikut saya lampirkan bukti transfernya. Terima kasih!`;
+
+      const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank');
+    });
+
+    // Confirm payment button
+    document.getElementById('viewOrderConfirmPaymentBtn')?.addEventListener('click', async () => {
+      if (!currentViewingOrder) return;
+      const confirmBtn = document.getElementById('viewOrderConfirmPaymentBtn') as HTMLButtonElement;
+      const originalText = confirmBtn.innerHTML;
+      confirmBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Memproses...`;
+      confirmBtn.disabled = true;
+      const statusMsg = document.getElementById('viewOrderPaymentStatusMsg')!;
+      statusMsg.classList.add('hidden');
+
+      try {
+        await confirmCustomerOrderPayment(currentViewingOrder.id);
+        clearInterval(viewOrderPaymentInterval);
+        statusMsg.textContent = "Konfirmasi pembayaran berhasil dikirim! Menunggu verifikasi admin.";
+        statusMsg.className = "text-center text-xs md:text-sm font-bold text-indigo-700 block mt-2.5 bg-indigo-50 py-2.5 px-3 rounded-xl border border-indigo-200";
+        statusMsg.classList.remove('hidden');
+        confirmBtn.classList.add('hidden');
+        document.getElementById('viewOrderCancelBtn')?.classList.add('hidden');
+        currentViewingOrder.status = 'waiting_confirmation';
+        document.getElementById('viewOrderStatus')!.innerHTML = getStatusHTML('waiting_confirmation');
+        loadTransactions(currentPage);
+      } catch (err: any) {
+        statusMsg.textContent = "Gagal konfirmasi pembayaran: " + (err.message || "Terjadi kesalahan");
+        statusMsg.className = "text-center text-xs md:text-sm font-bold text-red-500 block mt-2.5 bg-red-50 py-2 px-3 rounded-xl border border-red-200";
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+      }
+    });
+
+    async function openViewModal(id: string) {
+      try {
+        const order = await getCustomerOrder(id);
+        if (!order) return;
+        currentViewingOrder = order;
+
+        const createdAt = new Date(order.created_at).getTime();
+        const expireTime = createdAt + 24 * 60 * 60 * 1000;
+        const isExpired = Date.now() > expireTime;
+
+        const stLower = order.status.toLowerCase();
+        if ((stLower === 'pending' || stLower === 'waiting_confirmation') && isExpired) {
+          order.status = 'cancelled';
+          cancelCustomerOrder(order.id).catch(err => console.error("Failed auto-cancel order in modal:", err));
+        }
+
+        document.getElementById('viewOrderInvoice')!.textContent = order.invoice;
+        document.getElementById('viewOrderStatus')!.innerHTML = getStatusHTML(order.status);
+        document.getElementById('viewOrderCreated')!.textContent = formatDateTimeWIB(order.created_at);
+        document.getElementById('viewOrderUpdated')!.textContent = formatDateTimeWIB(order.updated_at);
+        
+        const notesContainer = document.getElementById('viewOrderNotesContainer')!;
+        if (order.notes && order.notes.trim()) {
+          notesContainer.classList.remove('hidden');
+          document.getElementById('viewOrderNotes')!.textContent = order.notes.trim();
+        } else {
+          notesContainer.classList.add('hidden');
+        }
+
+        const itemsWrap = document.getElementById('viewOrderItems')!;
+        if (order.items && order.items.length > 0) {
+          itemsWrap.innerHTML = order.items.map((item: any) => {
+            const isBook = item.item_type === 'book';
+            const typeLabel = isBook ? 'Book' : 'Service';
+            const typeBadgeColor = isBook ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800';
+            
+            let formatBadge = '';
+            if (isBook && item.format) {
+              const formatClean = item.format.toLowerCase() === 'e-book' ? 'E-Book' : (item.format.charAt(0).toUpperCase() + item.format.slice(1));
+              formatBadge = `<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded font-bold text-[10px]">${formatClean}</span>`;
+            }
+
+            return `
+            <div class="bg-white p-3 rounded-lg border border-stone-200">
+              <div class="flex items-center justify-between mb-2">
+                <p class="font-bold text-primary text-sm">${item.item_name}</p>
+                <p class="text-sm font-bold text-stone-600">${formatRupiah(item.total_price)}</p>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-stone-500 font-medium">
+                <span class="bg-surface-container px-2 py-0.5 rounded font-semibold text-stone-600">Qty: ${item.qty}</span>
+                <span class="${typeBadgeColor} px-2 py-0.5 rounded font-bold">${typeLabel}</span>
+                ${formatBadge}
+              </div>
+            </div>
+            `;
+          }).join('');
+        } else {
+          itemsWrap.innerHTML = '<p class="text-sm text-stone-500 italic">No items found.</p>';
+        }
+
+        // Detailed Cost Breakdown
+        const itemsTotal = order.items ? order.items.reduce((sum: number, item: any) => sum + (item.total_price || 0), 0) : 0;
+        const shippingPrice = order.shipping_price || 0;
+        const serviceFee = order.service_fee || 0;
+        const tax = order.tax || 0;
+        const discount = order.discount || 0;
+        const totalPrice = order.total_price || 0;
+        const baseCalculated = itemsTotal + shippingPrice + serviceFee + tax - discount;
+        const uniqueCode = totalPrice > baseCalculated ? (totalPrice - baseCalculated) : 0;
+
+        document.getElementById('viewOrderSubtotalItems')!.textContent = formatRupiah(itemsTotal);
+        
+        const shippingRow = document.getElementById('viewOrderShippingRow')!;
+        const shippingLabel = document.getElementById('viewOrderShippingLabel')!;
+        const shippingCostEl = document.getElementById('viewOrderShippingCost')!;
+        if (shippingPrice > 0) {
+          const courierName = order.shipping_name && order.shipping_name !== '-' ? order.shipping_name : 'Kurir';
+          const courierService = order.shipping_service && order.shipping_service !== '-' ? ` (${order.shipping_service})` : '';
+          shippingLabel.textContent = `Biaya Pengiriman (${courierName}${courierService})`;
+          shippingCostEl.textContent = formatRupiah(shippingPrice);
+          shippingRow.classList.remove('hidden');
+        } else {
+          shippingLabel.textContent = 'Biaya Pengiriman';
+          shippingCostEl.textContent = 'Gratis Ongkir (E-Book / Layanan)';
+          shippingRow.classList.remove('hidden');
+        }
+
+        const serviceFeeRow = document.getElementById('viewOrderServiceFeeRow')!;
+        if (serviceFee > 0) {
+          serviceFeeRow.classList.remove('hidden');
+          document.getElementById('viewOrderServiceFee')!.textContent = formatRupiah(serviceFee);
+        } else {
+          serviceFeeRow.classList.add('hidden');
+        }
+
+        const taxRow = document.getElementById('viewOrderTaxRow')!;
+        if (tax > 0) {
+          taxRow.classList.remove('hidden');
+          document.getElementById('viewOrderTax')!.textContent = formatRupiah(tax);
+        } else {
+          taxRow.classList.add('hidden');
+        }
+
+        const discountRow = document.getElementById('viewOrderDiscountRow')!;
+        if (discount > 0) {
+          discountRow.classList.remove('hidden');
+          document.getElementById('viewOrderDiscount')!.textContent = `-${formatRupiah(discount)}`;
+        } else {
+          discountRow.classList.add('hidden');
+        }
+
+        const uniqueCodeRow = document.getElementById('viewOrderUniqueCodeRow')!;
+        if (uniqueCode > 0) {
+          uniqueCodeRow.classList.remove('hidden');
+          document.getElementById('viewOrderUniqueCode')!.textContent = String(uniqueCode);
+        } else {
+          uniqueCodeRow.classList.add('hidden');
+        }
+
+        document.getElementById('viewOrderTotalBreakdown')!.textContent = formatRupiah(totalPrice);
+
+        // Bank Transfer Section logic
+        clearInterval(viewOrderPaymentInterval);
+        const paymentSection = document.getElementById('viewOrderPaymentSection')!;
+        const paymentTimer = document.getElementById('viewOrderPaymentTimer')!;
+        const confirmPaymentBtn = document.getElementById('viewOrderConfirmPaymentBtn') as HTMLButtonElement;
+        const paymentStatusMsg = document.getElementById('viewOrderPaymentStatusMsg')!;
+
+        paymentSection.classList.add('hidden');
+        paymentStatusMsg.classList.add('hidden');
+
+        const orderStatusLower = order.status.toLowerCase();
+        const bName = globalSettings?.bank_name || "Bank BCA";
+        const bNum = globalSettings?.bank_account_number || "8735091234";
+        const bHolder = globalSettings?.bank_account_holder || "PT Digital Papyrus Indonesia";
+
+        document.getElementById('viewOrderBankName')!.textContent = bName;
+        document.getElementById('viewOrderBankAccountNumber')!.textContent = bNum;
+        document.getElementById('viewOrderBankAccountHolder')!.textContent = bHolder;
+        document.getElementById('viewOrderPaymentInvoice')!.textContent = order.invoice;
+        document.getElementById('viewOrderPaymentAmount')!.textContent = formatRupiah(order.total_price);
+        paymentStatusMsg.classList.add('hidden');
+
+        if ((orderStatusLower === 'waiting_confirmation' || orderStatusLower === 'menunggu konfirmasi') && !isExpired) {
+          paymentSection.classList.remove('hidden');
+          if (confirmPaymentBtn) confirmPaymentBtn.classList.add('hidden');
+          paymentStatusMsg.textContent = "Bukti konfirmasi pembayaran Anda telah dikirim dan sedang diverifikasi oleh admin.";
+          paymentStatusMsg.className = "text-center text-xs md:text-sm font-bold text-indigo-700 block mt-2.5 bg-indigo-50 py-2.5 px-3 rounded-xl border border-indigo-200";
+          paymentStatusMsg.classList.remove('hidden');
+
+          const updateTimer = () => {
+            const now = Date.now();
+            const diff = Math.floor((expireTime - now) / 1000);
+            if (diff <= 0) {
+              paymentTimer.textContent = "00:00:00 (Expired)";
+              clearInterval(viewOrderPaymentInterval);
+              paymentStatusMsg.textContent = "Batas waktu transfer 24 jam telah habis. Pesanan dibatalkan otomatis.";
+              paymentStatusMsg.className = "text-center text-xs font-bold text-red-500 block mt-2";
+              cancelCustomerOrder(order.id).catch(err => console.error("Failed auto-cancel order:", err));
+            } else {
+              const hours = Math.floor(diff / 3600);
+              const minutes = Math.floor((diff % 3600) / 60);
+              const seconds = diff % 60;
+              paymentTimer.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+          };
+
+          updateTimer();
+          viewOrderPaymentInterval = setInterval(updateTimer, 1000);
+        } else if (orderStatusLower === 'pending' && !isExpired) {
+          paymentSection.classList.remove('hidden');
+          if (confirmPaymentBtn) {
+            confirmPaymentBtn.classList.remove('hidden');
+            confirmPaymentBtn.disabled = false;
+          }
+
+          const updateTimer = () => {
+            const now = Date.now();
+            const diff = Math.floor((expireTime - now) / 1000);
+            if (diff <= 0) {
+              paymentTimer.textContent = "00:00:00 (Expired)";
+              clearInterval(viewOrderPaymentInterval);
+              if (confirmPaymentBtn) confirmPaymentBtn.disabled = true;
+              paymentStatusMsg.textContent = "Batas waktu transfer 24 jam telah habis. Pesanan dibatalkan otomatis.";
+              paymentStatusMsg.className = "text-center text-xs font-bold text-red-500 block mt-2";
+              cancelCustomerOrder(order.id).catch(err => console.error("Failed auto-cancel order:", err));
+            } else {
+              const hours = Math.floor(diff / 3600);
+              const minutes = Math.floor((diff % 3600) / 60);
+              const seconds = diff % 60;
+              paymentTimer.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+          };
+
+          updateTimer();
+          viewOrderPaymentInterval = setInterval(updateTimer, 1000);
+        }
+
+        const viewOrderCancelBtn = document.getElementById('viewOrderCancelBtn') as HTMLButtonElement;
+        if (viewOrderCancelBtn) {
+          if (order.status.toLowerCase() === 'pending' && !isExpired) {
+            viewOrderCancelBtn.classList.remove('hidden');
+            viewOrderCancelBtn.onclick = () => {
+              openModal('cancelConfirmModal');
+              const confirmBtn = document.getElementById('confirmCancelBtn') as HTMLButtonElement;
+              
+              confirmBtn.onclick = async () => {
+                try {
+                  confirmBtn.disabled = true;
+                  confirmBtn.textContent = 'Membatalkan...';
+                  await cancelCustomerOrder(order.id);
+                  clearInterval(viewOrderPaymentInterval);
+                  closeModal('cancelConfirmModal');
+                  closeModal('viewOrderModal');
+                  loadTransactions(currentPage);
+                } catch (err) {
+                  console.error("Failed to cancel order:", err);
+                  alert("Failed to cancel order. Please try again.");
+                } finally {
+                  confirmBtn.disabled = false;
+                  confirmBtn.textContent = 'Ya, Batalkan';
+                }
+              };
+            };
+          } else {
+            viewOrderCancelBtn.classList.add('hidden');
+          }
+        }
+
+        openModal('viewOrderModal');
+      } catch (err) {
+        console.error("Error loading order detail:", err);
+      }
+    }
+
+
+    function openEditModal(id: string) {
+      const order = currentData.find(o => o.id === id);
+      if (!order) return;
+
+      const editOrderId = document.getElementById('editOrderId') as HTMLInputElement;
+      const editOrderNotes = document.getElementById('editOrderNotes') as HTMLTextAreaElement;
+      
+      editOrderId.value = order.id;
+      editOrderNotes.value = order.notes || '';
+
+      openModal('editOrderModal');
+    }
+
+    document.getElementById('editOrderForm')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      // Editing orders capability is not explicitly built out in API
+      alert('Fitur update catatan pesanan sedang dalam pengembangan. Menutup modal.');
+      closeModal('editOrderModal');
+    });
+  </script>
+</CustomerLayout>

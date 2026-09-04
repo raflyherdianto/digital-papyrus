@@ -14,16 +14,25 @@ const navItems = [
   { id: 'service', icon: 'design_services', label: 'Services & Packages', href: '/admin-service' },
   { id: 'reviews', icon: 'reviews', label: 'Reviews', href: '/admin-reviews' },
   { id: 'orders', icon: 'shopping_cart', label: 'Orders', href: '/admin-orders' },
+  { id: 'accounting', icon: 'account_balance', label: 'Accounting', href: '/admin-accounting' },
   { id: 'users', icon: 'group', label: 'Users', href: '/admin-user' },
-  { id: 'settings', icon: 'settings', label: 'Settings', href: '#' },
+  { id: 'settings', icon: 'settings', label: 'Settings', href: '/admin-settings' },
 ];
 ---
 
-<aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 bg-stone-100 flex flex-col py-8 px-4 z-50 transition-all duration-300 overflow-x-hidden">
-  <!-- Branding -->
-  <div class="mb-10 mt-4">
-    <a href="/admin-dashboard" class="flex flex-col items-center justify-center text-center gap-4 overflow-hidden">
-      <img src="/logo.png" alt="Digital Papyrus Logo" class="h-24 w-auto shrink-0" width="96" height="96" loading="eager" />
+<aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 bg-stone-100 flex flex-col py-6 md:py-8 px-4 z-50 transition-transform duration-300 overflow-x-hidden -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
+  <!-- Branding & Mobile Close Button -->
+  <div class="mb-8 mt-2 relative">
+    <button
+      id="mobileSidebarClose"
+      type="button"
+      class="md:hidden absolute -top-2 right-0 p-2 text-stone-500 hover:text-stone-900 rounded-xl hover:bg-stone-200/60 transition-colors focus:outline-none"
+      aria-label="Close sidebar menu"
+    >
+      <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <a href="/admin-dashboard" class="flex flex-col items-center justify-center text-center gap-3 md:gap-4 overflow-hidden pt-2 md:pt-0">
+      <img src="/logo.png" alt="Digital Papyrus Logo" class="h-20 md:h-24 w-auto shrink-0" width="96" height="96" loading="eager" />
       <div class="sidebar-text transition-all duration-200 min-w-0 w-full">
         <h1 class="text-xl font-bold text-primary tracking-tight font-headline truncate leading-tight">Digital Papyrus</h1>
         <p class="text-xs font-bold text-stone-500 uppercase tracking-[0.15em] mt-1.5 truncate">Admin Console</p>

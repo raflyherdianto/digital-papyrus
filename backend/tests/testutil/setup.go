@@ -4,7 +4,6 @@ package testutil
 import (
 	"database/sql"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -29,16 +28,53 @@ type TestEnv struct {
 	UserRepo       *repository.UserRepository
 	BookRepo       *repository.BookRepository
 	ServiceRepo    *repository.ServiceRepository
+	OrderRepo      *repository.OrderRepository
 }
 
-// SetupTestEnv creates a clean test environment with an in-memory-like temp SQLite database.
+// SetupTestEnv creates a clean test environment with a PostgreSQL database.
 func SetupTestEnv(t *testing.T) *TestEnv {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
-	// Create temp directory for test database
-	tmpDir := t.TempDir()
-	dbPath := filepath.Join(tmpDir, "test.db")
+	dbHost := os.Getenv("TEST_DB_HOST")
+	if dbHost == "" {
+		dbHost = os.Getenv("DB_HOST")
+		if dbHost == "" {
+			dbHost = "localhost"
+		}
+	}
+
+	dbPort := os.Getenv("TEST_DB_PORT")
+	if dbPort == "" {
+		dbPort = os.Getenv("DB_PORT")
+		if dbPort == "" {
+			dbPort = "5432"
+		}
+	}
+
+	dbUser := os.Getenv("TEST_DB_USER")
+	if dbUser == "" {
+		dbUser = os.Getenv("DB_USER")
+		if dbUser == "" {
+			dbUser = "postgres"
+		}
+	}
+
+	dbPassword := os.Getenv("TEST_DB_PASSWORD")
+	if dbPassword == "" {
+		dbPassword = os.Getenv("DB_PASSWORD")
+		if dbPassword == "" {
+			dbPassword = "postgres"
+		}
+	}
+
+	dbName := os.Getenv("TEST_DB_NAME")
+	if dbName == "" {
+		dbName = os.Getenv("DB_NAME")
+		if dbName == "" {
+			dbName = "digital_papyrus"
+		}
+	}
 
 	cfg := &config.Config{
 		App: config.AppConfig{
@@ -47,7 +83,12 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 			Name: "digital-papyrus-test",
 		},
 		DB: config.DBConfig{
-			Path: dbPath,
+			Host:     dbHost,
+			Port:     dbPort,
+			User:     dbUser,
+			Password: dbPassword,
+			Name:     dbName,
+			SSLMode:  "disable",
 		},
 		JWT: config.JWTConfig{
 			Secret:     "test-secret-for-unit-tests-only-not-production",
@@ -70,7 +111,7 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 		},
 	}
 
-	db, err := database.New(dbPath)
+	db, err := database.New(cfg.DB.DSN())
 	if err != nil {
 		t.Fatalf("failed to create test database: %v", err)
 	}
@@ -87,10 +128,11 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 	userRepo := repository.NewUserRepository(db)
 	bookRepo := repository.NewBookRepository(db)
 	serviceRepo := repository.NewServiceRepository(db)
+	orderRepo := repository.NewOrderRepository(db)
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, cfg)
-	bookService := service.NewBookService(bookRepo)
+	bookService := service.NewBookService(bookRepo, userRepo, orderRepo, cfg)
 	serviceService := service.NewServiceService(serviceRepo)
 
 	// Initialize handlers
@@ -105,7 +147,6 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 
 	t.Cleanup(func() {
 		db.Close()
-		os.RemoveAll(tmpDir)
 	})
 
 	return &TestEnv{
@@ -118,5 +159,6 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 		UserRepo:       userRepo,
 		BookRepo:       bookRepo,
 		ServiceRepo:    serviceRepo,
+		OrderRepo:      orderRepo,
 	}
 }

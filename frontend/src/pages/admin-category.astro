@@ -29,16 +29,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
   </div>
 
-  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left min-w-[700px]">
+  <div class="bg-surface-container-lowest rounded-xl p-4 md:p-8 border border-stone-200/10 shadow-sm w-full max-w-full min-w-0 overflow-hidden">
+    <div class="table-responsive-container overflow-x-auto w-full max-w-full block" style="-webkit-overflow-scrolling: touch;">
+      <table class="w-full text-left min-w-[700px] border-collapse">
         <thead>
-          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30">
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Category Name</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Slug Preview</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Created</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold">Updated</th>
-            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right">Actions</th>
+          <tr class="text-stone-400 font-label text-[10px] uppercase tracking-widest border-b border-stone-200/30 whitespace-nowrap">
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Category Name</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Slug Preview</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Created</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 font-semibold whitespace-nowrap">Updated</th>
+            <th class="pb-4 md:pb-6 px-3 md:px-4 text-right whitespace-nowrap">Actions</th>
           </tr>
         </thead>
         <tbody id="categoryTableBody" class="text-sm font-body">
@@ -266,14 +266,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       tableBody.innerHTML = paged.map((category, idx) => {
         const borderCls = idx < paged.length - 1 ? 'border-b border-stone-200/10' : '';
-        return `<tr class="group hover:bg-surface-container-low/50 transition-colors ${borderCls}" data-id="${category.id}">
-          <td class="py-4 md:py-5 px-3 md:px-4">
+        return `<tr class="group hover:bg-surface-container-low/50 transition-colors whitespace-nowrap ${borderCls}" data-id="${category.id}">
+          <td class="py-4 md:py-5 px-3 md:px-4 whitespace-nowrap">
             <p class="font-bold text-primary text-sm md:text-base">${category.name}</p>
           </td>
-          <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 font-mono text-xs">${category.slug || slugifyCategory(category.name)}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${formatDate(category.created_at)}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600">${formatDate(category.updated_at)}</td>
-          <td class="py-4 md:py-5 px-3 md:px-4 text-right">
+          <td class="py-4 md:py-5 px-3 md:px-4 text-stone-600 font-mono text-xs whitespace-nowrap">${category.slug || slugifyCategory(category.name)}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600 whitespace-nowrap">${formatDate(category.created_at)}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 font-medium text-stone-600 whitespace-nowrap">${formatDate(category.updated_at)}</td>
+          <td class="py-4 md:py-5 px-3 md:px-4 text-right whitespace-nowrap">
             <div class="flex items-center justify-end gap-2">
               <button class="viewBtn w-8 h-8 rounded-lg flex items-center justify-center text-stone-500 hover:text-primary hover:bg-stone-200/50 transition-all" title="View" data-id="${category.id}">
                 <span class="material-symbols-outlined text-lg">visibility</span>

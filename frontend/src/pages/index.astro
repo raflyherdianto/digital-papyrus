@@ -1,37 +1,64 @@
 ---
 /**
- * Landing Page — Homepage for Digital Papyrus.
+ * Landing Page — Homepage for Digital Papyrus
  * Route: /
  */
-import BaseLayout from '../layouts/BaseLayout.astro';
-import ServiceCard from '../components/ServiceCard.astro';
-
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ServiceCard from "../components/ServiceCard.astro";
 ---
 
-<BaseLayout title="Penerbitan Buku Profesional | Digital Papyrus" readingProgress={30}>
-
+<BaseLayout
+  title="Penerbitan Buku Profesional | Digital Papyrus"
+  readingProgress={30}
+>
   <!-- Hero Section -->
-  <header class="relative px-4 md:px-8 lg:px-24 py-12 md:py-20 lg:py-32 overflow-hidden">
-    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 md:gap-16">
+  <header
+    class="relative px-4 md:px-8 lg:px-24 py-12 md:py-20 lg:py-32 overflow-hidden"
+  >
+    <div
+      class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 md:gap-16"
+    >
       <div class="flex-1 space-y-6 md:space-y-8 text-left">
-        <h1 class="font-headline text-4xl md:text-[3.5rem] lg:text-[5.25rem] leading-[1.05] font-extrabold tracking-[-0.02em] text-primary">
-          Warisan Karya <span class="text-tertiary block">Bertemu Era Digital.</span>
+        <h1
+          class="font-headline text-4xl md:text-[3.5rem] lg:text-[5.25rem] leading-[1.05] font-extrabold tracking-[-0.02em] text-primary"
+        >
+          Warisan Karya <span class="text-tertiary block"
+            >Bertemu Era Digital</span
+          >
         </h1>
-        <p class="text-base md:text-lg lg:text-xl text-on-surface-variant max-w-xl leading-relaxed">
-          Wujudkan impian penerbitan Anda bersama <strong>Digital Papyrus</strong>. Percayakan seluruh proses kepada tim ahli kami—mulai dari tata letak profesional, desain kover memikat, hingga manajemen legalitas terbitan.
+        <p
+          class="text-base md:text-lg lg:text-xl text-on-surface-variant max-w-xl leading-relaxed"
+        >
+          Wujudkan impian penerbitan Anda bersama <strong
+            >Digital Papyrus</strong
+          >. Percayakan seluruh proses kepada tim ahli kami—mulai dari tata
+          letak profesional, desain kover memikat, hingga manajemen legalitas
+          terbitan.
         </p>
         <div class="flex flex-wrap gap-4 pt-4">
-          <a href="#promo" class="px-6 md:px-8 py-3 md:py-4 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 group shadow-xl text-sm md:text-base">
+          <a
+            href="/customer-cart"
+            class="px-6 md:px-8 py-3 md:py-4 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 group shadow-xl text-sm md:text-base"
+          >
             Mulai Menerbitkan
-            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <span
+              class="material-symbols-outlined group-hover:translate-x-1 transition-transform"
+              >arrow_forward</span
+            >
           </a>
-          <a href="/katalog" class="px-6 md:px-8 py-3 md:py-4 bg-transparent border-2 border-outline-variant text-primary rounded-xl font-bold hover:bg-surface-container-low transition-all items-center justify-center flex text-sm md:text-base">
+          <a
+            href="/katalog"
+            class="px-6 md:px-8 py-3 md:py-4 bg-transparent border-2 border-outline-variant text-primary rounded-xl font-bold hover:bg-surface-container-low transition-all items-center justify-center flex text-sm md:text-base"
+          >
             Jelajahi Katalog
           </a>
         </div>
       </div>
       <div class="flex-1 relative w-full aspect-square lg:aspect-auto">
-        <div class="absolute -top-10 -right-10 w-64 h-64 bg-tertiary-fixed-dim/20 rounded-full blur-3xl"></div>
+        <div
+          class="absolute -top-10 -right-10 w-64 h-64 bg-tertiary-fixed-dim/20 rounded-full blur-3xl"
+        >
+        </div>
         <div class="relative rounded-2xl overflow-hidden shadow-2xl">
           <img
             class="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700"
@@ -39,24 +66,72 @@ import ServiceCard from '../components/ServiceCard.astro';
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuB62RXZaFGHmFX-atd05bXkB4qRcBBnfOhJ-qOeT9WzPe9iici4GQHLABWwo1mT8dcQEbXyp7PF_o3_0xK54IAuUuX3fH__MPwHMwNEkS0MxIS2mNtIVlu8YrQ6BZN7k-32kWBG4FelmGZc3PSzkGS81G3r5foSQZ56h6rvpV7VHFB2mcMzsXf9RPQmUKeutK2_BpcDZlvi8rtlLK-FQUEAnZSDSVbrEqldqPC7E2kNWzWVKBSZef6y5K7B3nxKJ1eMGmI4PX5Og38"
             loading="eager"
           />
-          <div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"
+          >
+          </div>
         </div>
       </div>
     </div>
   </header>
 
   <!-- Layanan Kami Section (Hidden as requested) -->
-  <section id="layanan" class="py-16 md:py-24 px-4 md:px-8 lg:px-24 bg-surface-container-low hidden">
+  <section
+    id="layanan"
+    class="py-16 md:py-24 px-4 md:px-8 lg:px-24 bg-surface-container-low hidden"
+  >
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-12 md:mb-16 space-y-4">
-        <h2 class="font-headline text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary">Layanan Kami</h2>
-        <p class="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg leading-relaxed">Berbagai penawaran terkait penerbitan untuk memastikan proses publikasi karya Anda menjadi lebih mudah dan berkualitas tinggi.</p>
+        <h2
+          class="font-headline text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary"
+        >
+          Layanan Kami
+        </h2>
+        <p
+          class="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg leading-relaxed"
+        >
+          Berbagai penawaran terkait penerbitan untuk memastikan proses
+          publikasi karya Anda menjadi lebih mudah dan berkualitas tinggi.
+        </p>
       </div>
-      <div id="layanan-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+      <div
+        id="layanan-grid"
+        class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
+      >
         <!-- Loading skeletons -->
-        <div class="animate-pulse bg-surface-container p-8 rounded-2xl"><div class="w-14 h-14 bg-surface-container-high rounded-full mb-6"></div><div class="h-6 bg-surface-container-high rounded w-3/4 mb-4"></div><div class="space-y-3"><div class="h-4 bg-surface-container-high rounded w-full"></div><div class="h-4 bg-surface-container-high rounded w-5/6"></div><div class="h-4 bg-surface-container-high rounded w-4/5"></div></div></div>
-        <div class="animate-pulse bg-surface-container p-8 rounded-2xl"><div class="w-14 h-14 bg-surface-container-high rounded-full mb-6"></div><div class="h-6 bg-surface-container-high rounded w-3/4 mb-4"></div><div class="space-y-3"><div class="h-4 bg-surface-container-high rounded w-full"></div><div class="h-4 bg-surface-container-high rounded w-5/6"></div><div class="h-4 bg-surface-container-high rounded w-4/5"></div></div></div>
-        <div class="animate-pulse bg-surface-container p-8 rounded-2xl"><div class="w-14 h-14 bg-surface-container-high rounded-full mb-6"></div><div class="h-6 bg-surface-container-high rounded w-3/4 mb-4"></div><div class="space-y-3"><div class="h-4 bg-surface-container-high rounded w-full"></div><div class="h-4 bg-surface-container-high rounded w-5/6"></div><div class="h-4 bg-surface-container-high rounded w-4/5"></div></div></div>
+        <div class="animate-pulse bg-surface-container p-8 rounded-2xl">
+          <div class="w-14 h-14 bg-surface-container-high rounded-full mb-6">
+          </div><div class="h-6 bg-surface-container-high rounded w-3/4 mb-4">
+          </div><div class="space-y-3">
+            <div class="h-4 bg-surface-container-high rounded w-full"></div><div
+              class="h-4 bg-surface-container-high rounded w-5/6"
+            >
+            </div><div class="h-4 bg-surface-container-high rounded w-4/5">
+            </div>
+          </div>
+        </div>
+        <div class="animate-pulse bg-surface-container p-8 rounded-2xl">
+          <div class="w-14 h-14 bg-surface-container-high rounded-full mb-6">
+          </div><div class="h-6 bg-surface-container-high rounded w-3/4 mb-4">
+          </div><div class="space-y-3">
+            <div class="h-4 bg-surface-container-high rounded w-full"></div><div
+              class="h-4 bg-surface-container-high rounded w-5/6"
+            >
+            </div><div class="h-4 bg-surface-container-high rounded w-4/5">
+            </div>
+          </div>
+        </div>
+        <div class="animate-pulse bg-surface-container p-8 rounded-2xl">
+          <div class="w-14 h-14 bg-surface-container-high rounded-full mb-6">
+          </div><div class="h-6 bg-surface-container-high rounded w-3/4 mb-4">
+          </div><div class="space-y-3">
+            <div class="h-4 bg-surface-container-high rounded w-full"></div><div
+              class="h-4 bg-surface-container-high rounded w-5/6"
+            >
+            </div><div class="h-4 bg-surface-container-high rounded w-4/5">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -65,72 +140,250 @@ import ServiceCard from '../components/ServiceCard.astro';
   <section class="py-16 md:py-24 px-4 md:px-8 lg:px-24">
     <div class="max-w-7xl mx-auto">
       <div class="mb-8 md:mb-12">
-        <h2 class="font-headline text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-primary mb-2">Karya Penerbitan Kami</h2>
-        <p class="text-on-surface-variant max-w-xl text-base md:text-lg">Jelajahi karya fiksi maupun antologi yang sukses menembus pasaran.</p>
+        <h2
+          class="font-headline text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-primary mb-2"
+        >
+          Karya Penerbitan Kami
+        </h2>
+        <p class="text-on-surface-variant max-w-xl text-base md:text-lg">
+          Jelajahi karya fiksi maupun antologi yang sukses menembus pasaran.
+        </p>
       </div>
-      <div id="katalog-slider" class="flex gap-4 md:gap-6 overflow-x-auto pb-8 snap-x snap-mandatory cursor-grab active:cursor-grabbing no-scrollbar select-none">
+      <div
+        id="katalog-slider"
+        class="flex gap-4 md:gap-6 overflow-x-auto pb-8 snap-x snap-mandatory cursor-grab active:cursor-grabbing no-scrollbar select-none"
+      >
         <!-- Loading skeleton cards -->
-        <div class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"><div class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
-        <div class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"><div class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
-        <div class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"><div class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
-        <div class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"><div class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"></div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div><div class="h-3 bg-surface-container-low rounded w-1/2"></div></div>
+        <div
+          class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"
+        >
+          <div
+            class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"
+          >
+          </div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2">
+          </div><div class="h-3 bg-surface-container-low rounded w-1/2"></div>
+        </div>
+        <div
+          class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"
+        >
+          <div
+            class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"
+          >
+          </div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2">
+          </div><div class="h-3 bg-surface-container-low rounded w-1/2"></div>
+        </div>
+        <div
+          class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"
+        >
+          <div
+            class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"
+          >
+          </div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2">
+          </div><div class="h-3 bg-surface-container-low rounded w-1/2"></div>
+        </div>
+        <div
+          class="skeleton-card w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start animate-pulse"
+        >
+          <div
+            class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-3"
+          >
+          </div><div class="h-4 bg-surface-container-low rounded w-3/4 mb-2">
+          </div><div class="h-3 bg-surface-container-low rounded w-1/2"></div>
+        </div>
       </div>
       <div class="mt-8 flex justify-center">
-        <a href="/katalog" class="inline-flex px-6 md:px-8 py-3 md:py-4 bg-primary text-on-primary font-bold rounded-xl hover:bg-primary/90 transition-all items-center gap-2 shadow-lg group text-sm md:text-base">
+        <a
+          href="/katalog"
+          class="inline-flex px-6 md:px-8 py-3 md:py-4 bg-primary text-on-primary font-bold rounded-xl hover:bg-primary/90 transition-all items-center gap-2 shadow-lg group text-sm md:text-base"
+        >
           Cek Katalog Lainnya
-          <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>
+          <span
+            class="material-symbols-outlined group-hover:translate-x-1 transition-transform"
+            >east</span
+          >
         </a>
       </div>
     </div>
   </section>
 
   <!-- Promo Section (Hidden as requested) -->
-  <section id="promo" class="bg-surface-container-low py-16 md:py-24 px-4 md:px-8 lg:px-24 hidden">
+  <section
+    id="promo"
+    class="bg-surface-container-low py-16 md:py-24 px-4 md:px-8 lg:px-24 hidden"
+  >
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-12 md:mb-16 space-y-4">
-        <h2 class="font-headline text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary">Promo Terbaik</h2>
-        <p class="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg leading-relaxed">Nikmati penawaran eksklusif dan beli paket penerbitan dengan diskon terbaik untuk kemudahan karya Anda.</p>
+        <h2
+          class="font-headline text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-primary"
+        >
+          Promo Terbaik
+        </h2>
+        <p
+          class="text-on-surface-variant max-w-2xl mx-auto text-base md:text-lg leading-relaxed"
+        >
+          Nikmati penawaran eksklusif dan beli paket penerbitan dengan diskon
+          terbaik untuk kemudahan karya Anda.
+        </p>
       </div>
-      <div id="promo-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <div class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"><div class="h-4 bg-surface-container-low rounded w-1/3 mb-3"></div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6"></div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8"></div><div class="space-y-3"><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded w-4/5"></div></div></div>
-        <div class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"><div class="h-4 bg-surface-container-low rounded w-1/3 mb-3"></div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6"></div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8"></div><div class="space-y-3"><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded w-4/5"></div></div></div>
-        <div class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"><div class="h-4 bg-surface-container-low rounded w-1/3 mb-3"></div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6"></div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8"></div><div class="space-y-3"><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded w-4/5"></div></div></div>
-        <div class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"><div class="h-4 bg-surface-container-low rounded w-1/3 mb-3"></div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6"></div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8"></div><div class="space-y-3"><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded"></div><div class="h-3 bg-surface-container-low rounded w-4/5"></div></div></div>
+      <div
+        id="promo-grid"
+        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6"
+      >
+        <div
+          class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"
+        >
+          <div class="h-4 bg-surface-container-low rounded w-1/3 mb-3">
+          </div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6">
+          </div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8">
+          </div><div class="space-y-3">
+            <div class="h-3 bg-surface-container-low rounded"></div><div
+              class="h-3 bg-surface-container-low rounded"
+            >
+            </div><div class="h-3 bg-surface-container-low rounded w-4/5"></div>
+          </div>
+        </div>
+        <div
+          class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"
+        >
+          <div class="h-4 bg-surface-container-low rounded w-1/3 mb-3">
+          </div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6">
+          </div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8">
+          </div><div class="space-y-3">
+            <div class="h-3 bg-surface-container-low rounded"></div><div
+              class="h-3 bg-surface-container-low rounded"
+            >
+            </div><div class="h-3 bg-surface-container-low rounded w-4/5"></div>
+          </div>
+        </div>
+        <div
+          class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"
+        >
+          <div class="h-4 bg-surface-container-low rounded w-1/3 mb-3">
+          </div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6">
+          </div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8">
+          </div><div class="space-y-3">
+            <div class="h-3 bg-surface-container-low rounded"></div><div
+              class="h-3 bg-surface-container-low rounded"
+            >
+            </div><div class="h-3 bg-surface-container-low rounded w-4/5"></div>
+          </div>
+        </div>
+        <div
+          class="animate-pulse bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/20"
+        >
+          <div class="h-4 bg-surface-container-low rounded w-1/3 mb-3">
+          </div><div class="h-6 bg-surface-container-low rounded w-1/2 mb-6">
+          </div><div class="h-8 bg-surface-container-low rounded w-2/3 mb-8">
+          </div><div class="space-y-3">
+            <div class="h-3 bg-surface-container-low rounded"></div><div
+              class="h-3 bg-surface-container-low rounded"
+            >
+            </div><div class="h-3 bg-surface-container-low rounded w-4/5"></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Package Modal -->
-  <div id="package-modal-overlay" class="fixed inset-0 bg-[#001f25]/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-    <div id="package-modal" class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[85vh] transform scale-95 opacity-0 transition-all duration-300">
-      <div class="p-6 border-b border-outline-variant/20 flex justify-between items-center">
-        <div><h3 id="modal-title" class="font-headline font-bold text-2xl text-primary">Paket</h3><p id="modal-price" class="text-xl font-bold text-tertiary-container mt-1"></p></div>
-        <button id="modal-close-btn" class="text-outline hover:text-error transition-colors p-2 rounded-full hover:bg-surface-container-high" aria-label="Close modal"><span class="material-symbols-outlined relative top-0.5">close</span></button>
+  <div
+    id="package-modal-overlay"
+    class="fixed inset-0 bg-[#001f25]/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-4"
+  >
+    <div
+      id="package-modal"
+      class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[85vh] transform scale-95 opacity-0 transition-all duration-300"
+    >
+      <div
+        class="p-6 border-b border-outline-variant/20 flex justify-between items-center"
+      >
+        <div>
+          <h3
+            id="modal-title"
+            class="font-headline font-bold text-2xl text-primary"
+          >
+            Paket
+          </h3><p
+            id="modal-price"
+            class="text-xl font-bold text-tertiary-container mt-1"
+          >
+          </p>
+        </div>
+        <button
+          id="modal-close-btn"
+          class="text-outline hover:text-error transition-colors p-2 rounded-full hover:bg-surface-container-high"
+          aria-label="Close modal"
+          ><span class="material-symbols-outlined relative top-0.5">close</span
+          ></button
+        >
       </div>
-      <div class="p-6 overflow-y-auto flex-grow"><ul id="modal-features-list" class="space-y-4"></ul></div>
-      <div class="p-6 border-t border-outline-variant/20 bg-surface-container-low rounded-b-2xl">
-        <button id="pesan-paket-btn" class="w-full py-4 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors">
-          <span class="material-symbols-outlined text-sm">shopping_cart_checkout</span> Pesan Paket Ini
+      <div class="p-6 overflow-y-auto flex-grow">
+        <ul id="modal-features-list" class="space-y-4"></ul>
+      </div>
+      <div
+        class="p-6 border-t border-outline-variant/20 bg-surface-container-low rounded-b-2xl"
+      >
+        <button
+          id="pesan-paket-btn"
+          class="w-full py-4 bg-primary text-on-primary font-bold rounded-xl shadow-md hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors"
+        >
+          <span class="material-symbols-outlined text-sm"
+            >shopping_cart_checkout</span
+          > Pesan Paket Ini
         </button>
       </div>
     </div>
   </div>
 
   <!-- Contact Section -->
-  <section id="contact" class="py-16 md:py-24 px-4 md:px-8 lg:px-24 bg-surface-container-low">
+  <section
+    id="contact"
+    class="py-16 md:py-24 px-4 md:px-8 lg:px-24 bg-surface-container-low"
+  >
     <div class="max-w-4xl mx-auto text-center space-y-8 md:space-y-12">
-      <h2 class="font-headline text-3xl md:text-4xl font-extrabold text-primary">Hubungi Kami</h2>
-      <p class="text-base md:text-lg text-on-surface-variant">Memiliki pertanyaan terkait penerbitan? Tim Customer Service kami siap menghubungkan ide Anda menjadi mahakarya.</p>
+      <h2
+        class="font-headline text-3xl md:text-4xl font-extrabold text-primary"
+      >
+        Hubungi Kami
+      </h2>
+      <p class="text-base md:text-lg text-on-surface-variant">
+        Memiliki pertanyaan terkait penerbitan? Tim Customer Service kami siap
+        menghubungkan ide Anda menjadi mahakarya.
+      </p>
       <div class="flex flex-col md:flex-row justify-center gap-6 md:gap-8">
-        <a href="mailto:digitalpapyrus15@gmail.com" class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/20 shadow-md flex-1 text-center group cursor-pointer hover:-translate-y-1 transition-transform block">
-          <span class="material-symbols-outlined text-4xl md:text-5xl text-tertiary mb-4 block group-hover:scale-110 transition-transform">mail</span>
-          <h3 class="font-bold text-lg md:text-xl mb-2 text-on-surface">Email</h3>
-          <span class="text-secondary font-medium group-hover:text-primary transition-colors text-sm md:text-base">digitalpapyrus15@gmail.com</span>
+        <a
+          href="mailto:digitalpapyrus15@gmail.com"
+          class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/20 shadow-md flex-1 text-center group cursor-pointer hover:-translate-y-1 transition-transform block"
+        >
+          <span
+            class="material-symbols-outlined text-4xl md:text-5xl text-tertiary mb-4 block group-hover:scale-110 transition-transform"
+            >mail</span
+          >
+          <h3 class="font-bold text-lg md:text-xl mb-2 text-on-surface">
+            Email
+          </h3>
+          <span
+            class="text-secondary font-medium group-hover:text-primary transition-colors text-sm md:text-base"
+            >digitalpapyrus15@gmail.com</span
+          >
         </a>
-        <a href="https://wa.me/6285196206398" target="_blank" rel="noopener noreferrer" class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/20 shadow-md flex-1 text-center group cursor-pointer hover:-translate-y-1 transition-transform block">
-          <span class="material-symbols-outlined text-4xl md:text-5xl text-[#25D366] mb-4 block group-hover:scale-110 transition-transform">chat</span>
-          <h3 class="font-bold text-lg md:text-xl mb-2 text-on-surface">WhatsApp</h3>
-          <span class="text-secondary font-medium group-hover:text-primary transition-colors text-sm md:text-base">0851 9620 6398</span>
+        <a
+          href="https://wa.me/6285196206398"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/20 shadow-md flex-1 text-center group cursor-pointer hover:-translate-y-1 transition-transform block"
+        >
+          <span
+            class="material-symbols-outlined text-4xl md:text-5xl text-[#25D366] mb-4 block group-hover:scale-110 transition-transform"
+            >chat</span
+          >
+          <h3 class="font-bold text-lg md:text-xl mb-2 text-on-surface">
+            WhatsApp
+          </h3>
+          <span
+            class="text-secondary font-medium group-hover:text-primary transition-colors text-sm md:text-base"
+            >0851 9620 6398</span
+          >
         </a>
       </div>
     </div>
@@ -139,16 +392,40 @@ import ServiceCard from '../components/ServiceCard.astro';
   <!-- Marketplace Section -->
   <section class="py-12 md:py-16 px-4 md:px-8 lg:px-24 bg-surface">
     <div class="max-w-7xl mx-auto text-center space-y-8 md:space-y-10">
-      <h2 class="font-headline text-xs md:text-sm font-bold text-outline uppercase tracking-widest">Temukan Buku Kami di Marketplace Berikut</h2>
-      <div class="flex flex-wrap items-center justify-center gap-8 md:gap-12 lg:gap-20">
-        <a href="https://shopee.co.id/shop/1791205431" target="_blank" rel="noopener noreferrer" class="text-lg md:text-xl font-bold text-[#EE4D2D] hover:scale-110 transition-transform cursor-pointer flex items-center justify-center">
-          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2">shopping_bag</span>SHOPEE
+      <h2
+        class="font-headline text-xs md:text-sm font-bold text-outline uppercase tracking-widest"
+      >
+        Temukan Buku Kami di Marketplace Berikut
+      </h2>
+      <div
+        class="flex flex-wrap items-center justify-center gap-8 md:gap-12 lg:gap-20"
+      >
+        <a
+          href="https://shopee.co.id/shop/1791205431"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-lg md:text-xl font-bold text-[#EE4D2D] hover:scale-110 transition-transform cursor-pointer flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2"
+            >shopping_bag</span
+          >SHOPEE
         </a>
-        <div class="text-lg md:text-xl font-bold text-[#FF9900] hover:scale-110 transition-transform cursor-pointer flex items-center justify-center">
-          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2">storefront</span>AMAZON
+        <div
+          class="text-lg md:text-xl font-bold text-[#FF9900] hover:scale-110 transition-transform cursor-pointer flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2"
+            >storefront</span
+          >AMAZON
         </div>
-        <a href="https://qrcbn.com/" target="_blank" rel="noopener noreferrer" class="text-lg md:text-xl font-bold text-primary hover:scale-110 transition-transform cursor-pointer flex items-center justify-center">
-          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2">qr_code_2</span><span>QRCBN</span>
+        <a
+          href="https://qrcbn.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-lg md:text-xl font-bold text-primary hover:scale-110 transition-transform cursor-pointer flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined text-3xl md:text-4xl mr-2"
+            >qr_code_2</span
+          ><span>QRCBN</span>
         </a>
       </div>
     </div>
@@ -156,53 +433,81 @@ import ServiceCard from '../components/ServiceCard.astro';
 </BaseLayout>
 
 <script>
-  import { getServices, getBooks, formatRupiah, parseFeatures, slugifyCategory, getCoreServices, isAuthenticated } from '../lib/api';
-  import type { Service, CoreService } from '../lib/api';
+  import {
+    getServices,
+    getBooks,
+    formatRupiah,
+    parseFeatures,
+    slugifyCategory,
+    getCoreServices,
+    isAuthenticated,
+  } from "../lib/api";
+  import type { Service, CoreService } from "../lib/api";
 
   // ─── Modal Logic ────────────────────────────────────
-  const modalOverlay = document.getElementById('package-modal-overlay');
-  const modalBox = document.getElementById('package-modal');
-  const modalTitle = document.getElementById('modal-title');
-  const modalPrice = document.getElementById('modal-price');
-  const modalFeaturesList = document.getElementById('modal-features-list');
-  const modalCloseBtn = document.getElementById('modal-close-btn');
+  const modalOverlay = document.getElementById("package-modal-overlay");
+  const modalBox = document.getElementById("package-modal");
+  const modalTitle = document.getElementById("modal-title");
+  const modalPrice = document.getElementById("modal-price");
+  const modalFeaturesList = document.getElementById("modal-features-list");
+  const modalCloseBtn = document.getElementById("modal-close-btn");
 
   let allPackages: Service[] = [];
 
   function openPackageModal(svc: Service) {
-    if (!modalTitle || !modalPrice || !modalFeaturesList || !modalOverlay || !modalBox) return;
+    if (
+      !modalTitle ||
+      !modalPrice ||
+      !modalFeaturesList ||
+      !modalOverlay ||
+      !modalBox
+    )
+      return;
     const features = parseFeatures(svc.features);
     modalTitle.textContent = svc.title;
     modalPrice.textContent = svc.price_label || formatRupiah(svc.price);
-    modalFeaturesList.innerHTML = features.map(f =>
-      `<li class="flex items-start gap-4"><div class="min-w-6 text-primary flex items-center justify-center pt-0.5"><span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span></div><span class="text-on-surface-variant leading-relaxed text-[15px]">${f}</span></li>`
-    ).join('');
-    modalOverlay.classList.remove('hidden');
-    modalOverlay.classList.add('flex');
-    setTimeout(() => { modalBox.classList.remove('scale-95','opacity-0'); modalBox.classList.add('scale-100','opacity-100'); }, 10);
+    modalFeaturesList.innerHTML = features
+      .map(
+        (f) =>
+          `<li class="flex items-start gap-4"><div class="min-w-6 text-primary flex items-center justify-center pt-0.5"><span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span></div><span class="text-on-surface-variant leading-relaxed text-[15px]">${f}</span></li>`,
+      )
+      .join("");
+    modalOverlay.classList.remove("hidden");
+    modalOverlay.classList.add("flex");
+    setTimeout(() => {
+      modalBox.classList.remove("scale-95", "opacity-0");
+      modalBox.classList.add("scale-100", "opacity-100");
+    }, 10);
   }
 
   function closeModal() {
     if (!modalBox || !modalOverlay) return;
-    modalBox.classList.remove('scale-100','opacity-100');
-    modalBox.classList.add('scale-95','opacity-0');
-    setTimeout(() => { modalOverlay.classList.remove('flex'); modalOverlay.classList.add('hidden'); }, 300);
+    modalBox.classList.remove("scale-100", "opacity-100");
+    modalBox.classList.add("scale-95", "opacity-0");
+    setTimeout(() => {
+      modalOverlay.classList.remove("flex");
+      modalOverlay.classList.add("hidden");
+    }, 300);
   }
 
-  modalCloseBtn?.addEventListener('click', closeModal);
-  modalOverlay?.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+  modalCloseBtn?.addEventListener("click", closeModal);
+  modalOverlay?.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
 
   // ─── Order Button Logic ─────────────────────────────
-  const pesanPaketBtn = document.getElementById('pesan-paket-btn');
-  pesanPaketBtn?.addEventListener('click', () => {
+  const pesanPaketBtn = document.getElementById("pesan-paket-btn");
+  pesanPaketBtn?.addEventListener("click", () => {
     if (!isAuthenticated()) {
-      window.location.href = '/customer-login';
+      window.location.href = "/customer-login";
       return;
     }
     // If authenticated, we could redirect to a checkout page or similar
     // For now, we'll just show an alert or proceed as needed by the user later
-    alert('Silakan hubungi tim kami melalui WhatsApp untuk pemesanan paket ini.');
-    window.open('https://wa.me/6285196206398', '_blank');
+    alert(
+      "Silakan hubungi tim kami melalui WhatsApp untuk pemesanan paket ini.",
+    );
+    window.open("https://wa.me/6285196206398", "_blank");
   });
 
   // ─── Load Services ──────────────────────────────────
@@ -212,42 +517,44 @@ import ServiceCard from '../components/ServiceCard.astro';
       allPackages = services.sort((a, b) => a.sort_order - b.sort_order);
 
       // Render Promo (pricing cards)
-      const promoGrid = document.getElementById('promo-grid');
+      const promoGrid = document.getElementById("promo-grid");
       if (promoGrid && services.length > 0) {
-        promoGrid.innerHTML = services.map(svc => {
-          const isFeatured = svc.is_featured;
-          const features = parseFeatures(svc.features);
-          const previewFeatures = features.slice(0, 3);
+        promoGrid.innerHTML = services
+          .map((svc) => {
+            const isFeatured = svc.is_featured;
+            const features = parseFeatures(svc.features);
+            const previewFeatures = features.slice(0, 3);
 
-          if (isFeatured) {
-            return `
+            if (isFeatured) {
+              return `
             <div class="promo-card bg-primary text-on-primary p-6 md:p-8 rounded-2xl flex flex-col h-full shadow-[0px_20px_40px_rgba(20,56,63,0.3)] relative scale-100 xl:scale-105 z-10 cursor-pointer hover:-translate-y-1 transition-all duration-300" data-svc-id="${svc.id}">
               <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-md">Terpopuler</div>
               <div class="mb-6"><span class="text-xs font-label uppercase tracking-widest opacity-70">${svc.badge || svc.tier}</span><h3 class="text-xl font-headline font-bold mt-2">${svc.title}</h3></div>
               <div class="text-3xl font-headline font-extrabold mb-6">${svc.price_label || formatRupiah(svc.price)} <span class="text-xs font-body font-normal opacity-70 tracking-normal block mt-1">/ naskah</span></div>
               <ul class="space-y-3 mb-8 flex-grow text-sm">
-                ${previewFeatures.map(f => `<li class="flex items-start gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim text-sm mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>${f}</span></li>`).join('')}
+                ${previewFeatures.map((f) => `<li class="flex items-start gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim text-sm mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>${f}</span></li>`).join("")}
               </ul>
               <button class="w-full py-3 bg-tertiary-fixed text-on-tertiary-fixed font-bold rounded-xl hover:bg-tertiary-fixed-dim transition-colors">Lihat Detail</button>
             </div>`;
-          }
+            }
 
-          return `
+            return `
           <div class="promo-card bg-surface-container-lowest p-6 md:p-8 rounded-2xl flex flex-col h-full border border-outline-variant/20 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300" data-svc-id="${svc.id}">
             <div class="mb-6"><span class="text-xs font-label uppercase tracking-widest text-outline">${svc.badge || svc.tier}</span><h3 class="text-xl font-headline font-bold text-primary mt-2">${svc.title}</h3></div>
             <div class="text-3xl font-headline font-extrabold text-primary mb-6">${svc.price_label || formatRupiah(svc.price)} <span class="text-xs font-body font-normal text-on-surface-variant tracking-normal block mt-1">/ naskah</span></div>
             <ul class="space-y-3 mb-8 flex-grow text-sm">
-              ${previewFeatures.map(f => `<li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>${f}</span></li>`).join('')}
+              ${previewFeatures.map((f) => `<li class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span><span>${f}</span></li>`).join("")}
             </ul>
             <button class="w-full py-3 border border-outline-variant text-primary font-bold rounded-xl hover:bg-surface-container transition-colors">Lihat Detail</button>
           </div>`;
-        }).join('');
+          })
+          .join("");
 
         // Bind click events on promo cards
-        promoGrid.querySelectorAll('.promo-card').forEach(card => {
-          card.addEventListener('click', () => {
+        promoGrid.querySelectorAll(".promo-card").forEach((card) => {
+          card.addEventListener("click", () => {
             const id = (card as HTMLElement).dataset.svcId;
-            const svc = allPackages.find(s => s.id === id);
+            const svc = allPackages.find((s) => s.id === id);
             if (svc) openPackageModal(svc);
           });
         });
@@ -260,11 +567,15 @@ import ServiceCard from '../components/ServiceCard.astro';
   async function loadCoreServices() {
     try {
       const coreServices = await getCoreServices();
-      const activeCore = coreServices.filter(s => s.is_active).sort((a, b) => a.sort_order - b.sort_order);
-      const layananGrid = document.getElementById('layanan-grid');
-      
+      const activeCore = coreServices
+        .filter((s) => s.is_active)
+        .sort((a, b) => a.sort_order - b.sort_order);
+      const layananGrid = document.getElementById("layanan-grid");
+
       if (layananGrid && activeCore.length > 0) {
-        layananGrid.innerHTML = activeCore.map(svc => `
+        layananGrid.innerHTML = activeCore
+          .map(
+            (svc) => `
           <div class="bg-surface-container hover:bg-surface-container-high p-8 rounded-2xl transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-outline-variant/10 group cursor-default">
             <div class="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors">
               <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">${svc.icon}</span>
@@ -272,41 +583,77 @@ import ServiceCard from '../components/ServiceCard.astro';
             <h3 class="font-headline text-xl lg:text-2xl font-bold text-primary mb-4">${svc.title}</h3>
             <p class="text-on-surface-variant leading-relaxed">${svc.description}</p>
           </div>
-        `).join('');
+        `,
+          )
+          .join("");
       }
     } catch (err) {
-      console.error('Failed to load core services', err);
+      console.error("Failed to load core services", err);
     }
   }
 
   // ─── Draggable Slider ───────────────────────────────
   function initSlider() {
-    const slider = document.getElementById('katalog-slider');
+    const slider = document.getElementById("katalog-slider");
     if (!slider) return;
-    let isDown = false, isDragging = false, startX: number, scrollLeft: number;
-    slider.addEventListener('dragstart', (e) => e.preventDefault());
-    slider.addEventListener('mousedown', (e) => { isDown = true; isDragging = false; slider.style.scrollSnapType = 'none'; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
-    slider.addEventListener('mouseleave', () => { isDown = false; slider.style.scrollSnapType = 'x mandatory'; });
-    slider.addEventListener('mouseup', () => { isDown = false; slider.style.scrollSnapType = 'x mandatory'; });
-    slider.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2.5; if (Math.abs(walk) > 5) isDragging = true; slider.scrollLeft = scrollLeft - walk; });
-    slider.addEventListener('click', (e) => { if (isDragging) { e.preventDefault(); e.stopPropagation(); } }, true);
+    let isDown = false,
+      isDragging = false,
+      startX: number,
+      scrollLeft: number;
+    slider.addEventListener("dragstart", (e) => e.preventDefault());
+    slider.addEventListener("mousedown", (e) => {
+      isDown = true;
+      isDragging = false;
+      slider.style.scrollSnapType = "none";
+      startX = e.pageX - slider.offsetLeft;
+      scrollLeft = slider.scrollLeft;
+    });
+    slider.addEventListener("mouseleave", () => {
+      isDown = false;
+      slider.style.scrollSnapType = "x mandatory";
+    });
+    slider.addEventListener("mouseup", () => {
+      isDown = false;
+      slider.style.scrollSnapType = "x mandatory";
+    });
+    slider.addEventListener("mousemove", (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startX) * 2.5;
+      if (Math.abs(walk) > 5) isDragging = true;
+      slider.scrollLeft = scrollLeft - walk;
+    });
+    slider.addEventListener(
+      "click",
+      (e) => {
+        if (isDragging) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      true,
+    );
   }
   initSlider();
 
   // ─── Load Books ─────────────────────────────────────
   async function loadFeaturedBooks() {
-    const slider = document.getElementById('katalog-slider');
+    const slider = document.getElementById("katalog-slider");
     if (!slider) return;
     try {
-      const { books } = await getBooks({ per_page: 8, status: 'published' });
+      const { books } = await getBooks({ per_page: 8, status: "published" });
       if (books.length === 0) return;
-      slider.innerHTML = books.map(book => {
-        return `
+      slider.innerHTML = books
+        .map((book) => {
+          return `
         <a href="/details-book?id=${book.id}" class="w-[200px] md:w-[240px] lg:w-[260px] flex-shrink-0 snap-start group cursor-pointer select-none">
           <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 shadow-md transform group-hover:-translate-y-2 transition-transform duration-300">
-            ${book.image_url
-              ? `<img class="absolute inset-0 w-full h-full object-cover pointer-events-none" draggable="false" alt="Cover ${book.title}" src="${book.image_url}" loading="lazy" />`
-              : `<div class="absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container"><span class="material-symbols-outlined text-5xl text-stone-300">auto_stories</span></div>`}
+            ${
+              book.image_url
+                ? `<img class="absolute inset-0 w-full h-full object-cover pointer-events-none" draggable="false" alt="Cover ${book.title}" src="${book.image_url}" loading="lazy" />`
+                : `<div class="absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container"><span class="material-symbols-outlined text-5xl text-stone-300">auto_stories</span></div>`
+            }
           </div>
           <h3 class="font-headline font-bold text-primary text-base md:text-lg group-hover:text-tertiary transition-colors leading-snug">${book.title}</h3>
           <p class="text-sm text-on-surface-variant mt-1">${book.author}</p>
@@ -318,7 +665,8 @@ import ServiceCard from '../components/ServiceCard.astro';
             </div>
           </div>
         </a>`;
-      }).join('');
+        })
+        .join("");
     } catch (err) {
       slider.innerHTML = `<div class="flex items-center justify-center w-full py-12 text-on-surface-variant"><span class="material-symbols-outlined mr-2">cloud_off</span> Gagal memuat buku</div>`;
     }

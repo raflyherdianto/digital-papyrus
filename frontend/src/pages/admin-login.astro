@@ -109,11 +109,27 @@ import AuthLayout from '../layouts/AuthLayout.astro';
 </AuthLayout>
 
 <script>
-  import { login, setToken, isAuthenticated } from '../lib/api';
+  import { login, setToken, isAuthenticated, removeToken } from '../lib/api';
 
-  // Redirect if already logged in
+  // Redirect if already logged in as superadmin
   if (isAuthenticated()) {
-    window.location.href = '/admin-dashboard';
+    const userData = localStorage.getItem('dp_user');
+    let isSuperAdmin = false;
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        if (user.role === 'superadmin') {
+          isSuperAdmin = true;
+        }
+      } catch (e) {}
+    }
+    
+    if (isSuperAdmin) {
+      window.location.href = '/admin-dashboard';
+    } else {
+      removeToken();
+      localStorage.removeItem('dp_user');
+    }
   }
 
   // Toggle password visibility
@@ -285,6 +301,13 @@ import AuthLayout from '../layouts/AuthLayout.astro';
 
       try {
         const result = await login(email, password);
+        
+        if (result.user.role !== 'superadmin') {
+          showError('Access denied. Superadmin privileges required.');
+          setLoading(false);
+          return;
+        }
+
         setToken(result.token);
         // Store user info for dashboard
         localStorage.setItem('dp_user', JSON.stringify(result.user));

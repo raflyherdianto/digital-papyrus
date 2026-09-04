@@ -102,3 +102,38 @@ body {
   background: var(--color-tertiary-fixed-dim);
   z-index: 100;
 }
+
+/* ─── Responsive Table Scrollable Utility (Mobile: < 1024px, Desktop: Visible/Fit) ─── */
+.table-responsive-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 1023px) {
+  .table-responsive-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(113, 120, 122, 0.3) transparent;
+  }
+  .table-responsive-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  .table-responsive-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .table-responsive-container::-webkit-scrollbar-thumb {
+    background: rgba(113, 120, 122, 0.3);
+    border-radius: 9999px;
+  }
+  .table-responsive-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(113, 120, 122, 0.5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .table-responsive-container {
+    overflow-x: visible;
+  }
+}

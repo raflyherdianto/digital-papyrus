@@ -5,21 +5,51 @@
  * Fetches books and categories dynamically from the backend API.
  * All filters (category, price range, min rating, sort) are fully functional.
  */
-import BaseLayout from '../layouts/BaseLayout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Katalog Buku | Digital Papyrus" description="Jelajahi koleksi buku Digital Papyrus. Berbagai genre, dari fiksi kontemporer hingga teknologi & sains." readingProgress={35}>
+<BaseLayout
+  title="Katalog Buku | Digital Papyrus"
+  description="Jelajahi koleksi buku Digital Papyrus. Berbagai genre, dari fiksi kontemporer hingga teknologi & sains."
+  readingProgress={35}
+>
   <div class="pb-16 md:pb-24 px-4 md:px-8 max-w-7xl mx-auto">
     <!-- Header -->
-    <header class="mb-10 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8">
+    <header
+      class="mb-10 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8"
+    >
       <div class="max-w-2xl">
-        <span class="font-label text-xs font-semibold tracking-widest text-tertiary uppercase mb-3 md:mb-4 block">Eksplorasi Katalog</span>
-        <h1 class="font-headline text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-primary leading-tight">Kurasi Literasi Digital Abad Ini.</h1>
+        <span
+          class="font-label text-xs font-semibold tracking-widest text-tertiary uppercase mb-3 md:mb-4 block"
+          >Eksplorasi Katalog</span
+        >
+        <h1
+          class="font-headline text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-primary leading-tight"
+        >
+          Kurasi Literasi Digital Kami
+        </h1>
       </div>
-      <div class="flex items-center gap-2 md:gap-4 bg-surface-container-low p-2 rounded-xl self-start md:self-auto">
-        <button id="sortAll" data-sort="" class="sort-tab px-3 md:px-4 py-2 rounded-lg bg-surface-container-lowest shadow-sm font-semibold text-sm text-primary transition-all">Semua</button>
-        <button id="sortNew" data-sort="newest" class="sort-tab px-3 md:px-4 py-2 rounded-lg text-sm text-secondary hover:bg-surface-container transition-colors">Terbaru</button>
-        <button id="sortPopular" data-sort="popular" class="sort-tab px-3 md:px-4 py-2 rounded-lg text-sm text-secondary hover:bg-surface-container transition-colors">Populer</button>
+      <div
+        class="flex items-center gap-2 md:gap-4 bg-surface-container-low p-2 rounded-xl self-start md:self-auto"
+      >
+        <button
+          id="sortAll"
+          data-sort=""
+          class="sort-tab px-3 md:px-4 py-2 rounded-lg bg-surface-container-lowest shadow-sm font-semibold text-sm text-primary transition-all"
+          >Semua</button
+        >
+        <button
+          id="sortNew"
+          data-sort="newest"
+          class="sort-tab px-3 md:px-4 py-2 rounded-lg text-sm text-secondary hover:bg-surface-container transition-colors"
+          >Terbaru</button
+        >
+        <button
+          id="sortPopular"
+          data-sort="popular"
+          class="sort-tab px-3 md:px-4 py-2 rounded-lg text-sm text-secondary hover:bg-surface-container transition-colors"
+          >Populer</button
+        >
       </div>
     </header>
 
@@ -28,20 +58,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <aside class="w-full lg:w-64 space-y-8 md:space-y-10 shrink-0">
         <!-- Category Filter -->
         <div>
-          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">Kategori</h3>
+          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">
+            Kategori
+          </h3>
           <div class="space-y-3" id="categoryFilters">
             <div class="animate-pulse space-y-3">
-              {[1,2,3,4].map(() => (
-                <div class="h-5 bg-surface-container-low rounded w-3/4"></div>
-              ))}
+              {
+                [1, 2, 3, 4].map(() => (
+                  <div class="h-5 bg-surface-container-low rounded w-3/4" />
+                ))
+              }
             </div>
           </div>
         </div>
 
         <!-- Badge Filter -->
         <div>
-          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">Badge</h3>
-          <select id="badgeFilter" class="w-full bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-outline-variant/40 focus:ring-2 focus:ring-primary/20 text-on-surface-variant outline-none">
+          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">
+            Badge
+          </h3>
+          <select
+            id="badgeFilter"
+            class="w-full bg-surface-container py-2.5 pl-4 pr-10 cursor-pointer rounded-xl text-sm border border-outline-variant/40 focus:ring-2 focus:ring-primary/20 text-on-surface-variant outline-none"
+          >
             <option value="">Semua Badge</option>
             <option value="Regular">Regular</option>
             <option value="Limited Edition">Limited Edition</option>
@@ -51,17 +90,39 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         <!-- Price Range Filter -->
         <div>
-          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">Rentang Harga</h3>
+          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">
+            Rentang Harga
+          </h3>
           <div class="px-2">
             <div class="relative h-6 flex items-center">
-              <div class="absolute inset-x-0 h-1 bg-surface-container-high rounded-full"></div>
-              <div class="absolute h-1 bg-primary rounded-full" id="priceRange"></div>
-              <input id="priceMin" type="range" min="0" max="500000" step="10000" value="0"
-                class="absolute w-full h-1 appearance-none bg-transparent cursor-pointer range-thumb z-20" />
-              <input id="priceMax" type="range" min="0" max="500000" step="10000" value="500000"
-                class="absolute w-full h-1 appearance-none bg-transparent cursor-pointer range-thumb z-20" />
+              <div
+                class="absolute inset-x-0 h-1 bg-surface-container-high rounded-full"
+              >
+              </div>
+              <div class="absolute h-1 bg-primary rounded-full" id="priceRange">
+              </div>
+              <input
+                id="priceMin"
+                type="range"
+                min="0"
+                max="500000"
+                step="10000"
+                value="0"
+                class="absolute w-full h-1 appearance-none bg-transparent cursor-pointer range-thumb z-20"
+              />
+              <input
+                id="priceMax"
+                type="range"
+                min="0"
+                max="500000"
+                step="10000"
+                value="500000"
+                class="absolute w-full h-1 appearance-none bg-transparent cursor-pointer range-thumb z-20"
+              />
             </div>
-            <div class="flex justify-between mt-4 text-xs font-medium text-outline">
+            <div
+              class="flex justify-between mt-4 text-xs font-medium text-outline"
+            >
               <span id="priceMinLabel">Rp 0</span>
               <span id="priceMaxLabel">Rp 500.000</span>
             </div>
@@ -70,24 +131,36 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         <!-- Minimum Rating Filter -->
         <div>
-          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">Maksimum Rating</h3>
+          <h3 class="font-headline font-bold text-lg mb-4 md:mb-6 text-primary">
+            Maksimum Rating
+          </h3>
           <div class="flex gap-2" id="ratingFilter">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                class:list={[
-                  'rating-star-btn w-10 h-10 rounded-md flex items-center justify-center transition-colors',
-                  'bg-surface-container text-primary hover:bg-tertiary-fixed',
-                ]}
-                data-rating={star}
-              >
-                <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
-              </button>
-            ))}
+            {
+              [1, 2, 3, 4, 5].map((star) => (
+                <button
+                  class:list={[
+                    "rating-star-btn w-10 h-10 rounded-md flex items-center justify-center transition-colors",
+                    "bg-surface-container text-primary hover:bg-tertiary-fixed",
+                  ]}
+                  data-rating={star}
+                >
+                  <span
+                    class="material-symbols-outlined text-lg"
+                    style="font-variation-settings: 'FILL' 1;"
+                  >
+                    star
+                  </span>
+                </button>
+              ))
+            }
           </div>
         </div>
 
         <!-- Reset All -->
-        <button id="resetAllFilters" class="w-full py-2.5 rounded-xl border border-outline-variant text-sm text-secondary hover:bg-surface-container transition-all font-semibold">
+        <button
+          id="resetAllFilters"
+          class="w-full py-2.5 rounded-xl border border-outline-variant text-sm text-secondary hover:bg-surface-container transition-all font-semibold"
+        >
           Reset Semua Filter
         </button>
       </aside>
@@ -96,9 +169,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="flex-1">
         <!-- Search -->
         <div class="mb-4 md:mb-6 relative w-full">
-          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
-          <input id="searchInput" type="search" placeholder="Cari judul, penulis…"
-            class="w-full pl-11 pr-4 py-3 rounded-xl border border-outline-variant/40 bg-surface-container-low text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+          <span
+            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl"
+            >search</span
+          >
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Cari judul, penulis…"
+            class="w-full pl-11 pr-4 py-3 rounded-xl border border-outline-variant/40 bg-surface-container-low text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          />
         </div>
 
         <!-- Result count -->
@@ -107,38 +187,68 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         </div>
 
         <!-- Loading State -->
-        <div id="bookGridLoading" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-10 md:gap-y-16 gap-x-6 md:gap-x-8">
-          {[1,2,3,4,5,6].map(() => (
-            <div class="animate-pulse">
-              <div class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-4"></div>
-              <div class="h-4 bg-surface-container-low rounded w-3/4 mb-2"></div>
-              <div class="h-3 bg-surface-container-low rounded w-1/2"></div>
-            </div>
-          ))}
+        <div
+          id="bookGridLoading"
+          class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-10 md:gap-y-16 gap-x-6 md:gap-x-8"
+        >
+          {
+            [1, 2, 3, 4, 5, 6].map(() => (
+              <div class="animate-pulse">
+                <div class="relative w-full aspect-[3/4] bg-surface-container-low rounded-xl mb-4" />
+                <div class="h-4 bg-surface-container-low rounded w-3/4 mb-2" />
+                <div class="h-3 bg-surface-container-low rounded w-1/2" />
+              </div>
+            ))
+          }
         </div>
 
         <!-- Dynamic book grid -->
-        <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-10 md:gap-y-16 gap-x-6 md:gap-x-8 hidden"></div>
+        <div
+          id="bookGrid"
+          class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-y-10 md:gap-y-16 gap-x-6 md:gap-x-8 hidden"
+        >
+        </div>
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden col-span-full py-16 text-center">
-          <span class="material-symbols-outlined text-5xl text-stone-300 mb-4 block">search_off</span>
+          <span
+            class="material-symbols-outlined text-5xl text-stone-300 mb-4 block"
+            >search_off</span
+          >
           <p class="text-on-surface-variant">Tidak ada buku ditemukan.</p>
         </div>
 
         <!-- Error State -->
         <div id="errorState" class="hidden col-span-full py-16 text-center">
-          <span class="material-symbols-outlined text-5xl text-red-300 mb-4 block">error</span>
-          <p class="text-on-surface-variant">Gagal memuat katalog. Silakan coba lagi.</p>
+          <span
+            class="material-symbols-outlined text-5xl text-red-300 mb-4 block"
+            >error</span
+          >
+          <p class="text-on-surface-variant">
+            Gagal memuat katalog. Silakan coba lagi.
+          </p>
         </div>
 
         <!-- Pagination -->
-        <div id="catalogPagination" class="mt-16 md:mt-24 flex items-center justify-center gap-4 hidden">
-          <button id="prevPage" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-surface-container-low transition-all" aria-label="Previous page">
+        <div
+          id="catalogPagination"
+          class="mt-16 md:mt-24 flex items-center justify-center gap-4 hidden"
+        >
+          <button
+            id="prevPage"
+            class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-surface-container-low transition-all"
+            aria-label="Previous page"
+          >
             <span class="material-symbols-outlined">chevron_left</span>
           </button>
-          <span id="pageInfo" class="text-sm font-bold text-primary px-4">Halaman 1 dari 1</span>
-          <button id="nextPage" class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-surface-container-low transition-all" aria-label="Next page">
+          <span id="pageInfo" class="text-sm font-bold text-primary px-4"
+            >Halaman 1 dari 1</span
+          >
+          <button
+            id="nextPage"
+            class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-surface-container-low transition-all"
+            aria-label="Next page"
+          >
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
@@ -155,7 +265,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     border-radius: 50%;
     background: var(--md-sys-color-primary, #14383f);
     border: 2px solid white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     pointer-events: all;
   }
@@ -165,14 +275,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     border-radius: 50%;
     background: var(--md-sys-color-primary, #14383f);
     border: 2px solid white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     cursor: pointer;
   }
 </style>
 
 <script>
-  import { getBooks, getCategories, formatRupiah, slugifyCategory } from '../lib/api';
-  import type { Book, Category } from '../lib/api';
+  import {
+    getBooks,
+    getCategories,
+    formatRupiah,
+    slugifyCategory,
+  } from "../lib/api";
+  import type { Book, Category } from "../lib/api";
 
   // ─── State ──────────────────────────────────────────────────────────
   let currentPage = 1;
@@ -180,46 +295,62 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   let dynamicMaxPrice = 500000;
 
   let filters = {
-    category_id: '',
-    badge: '',
+    category_id: "",
+    badge: "",
     min_price: 0,
     max_price: 0,
     max_rating: 0,
-    sort: '' as '' | 'newest' | 'popular',
-    search: '',
+    sort: "" as "" | "newest" | "popular",
+    search: "",
   };
 
   // ─── DOM refs ───────────────────────────────────────────────────────
-  const bookGrid       = document.getElementById('bookGrid')!;
-  const bookGridLoad   = document.getElementById('bookGridLoading')!;
-  const emptyState     = document.getElementById('emptyState')!;
-  const errorState     = document.getElementById('errorState')!;
-  const paginationDiv  = document.getElementById('catalogPagination')!;
-  const pageInfo       = document.getElementById('pageInfo')!;
-  const prevBtn        = document.getElementById('prevPage')!;
-  const nextBtn        = document.getElementById('nextPage')!;
-  const resultCount    = document.getElementById('resultCount')!;
-  const searchInput    = document.getElementById('searchInput') as HTMLInputElement;
-  const priceMinSlider = document.getElementById('priceMin') as HTMLInputElement;
-  const priceMaxSlider = document.getElementById('priceMax') as HTMLInputElement;
-  const priceMinLabel  = document.getElementById('priceMinLabel')!;
-  const priceMaxLabel  = document.getElementById('priceMaxLabel')!;
-  const priceRangeBar  = document.getElementById('priceRange')!;
-  const badgeFilter    = document.getElementById('badgeFilter') as HTMLSelectElement;
-  const categoryFilters = document.getElementById('categoryFilters')!;
-  
-  console.log('[Katalog Init] badgeFilter element found:', !!badgeFilter, badgeFilter);
+  const bookGrid = document.getElementById("bookGrid")!;
+  const bookGridLoad = document.getElementById("bookGridLoading")!;
+  const emptyState = document.getElementById("emptyState")!;
+  const errorState = document.getElementById("errorState")!;
+  const paginationDiv = document.getElementById("catalogPagination")!;
+  const pageInfo = document.getElementById("pageInfo")!;
+  const prevBtn = document.getElementById("prevPage")!;
+  const nextBtn = document.getElementById("nextPage")!;
+  const resultCount = document.getElementById("resultCount")!;
+  const searchInput = document.getElementById(
+    "searchInput",
+  ) as HTMLInputElement;
+  const priceMinSlider = document.getElementById(
+    "priceMin",
+  ) as HTMLInputElement;
+  const priceMaxSlider = document.getElementById(
+    "priceMax",
+  ) as HTMLInputElement;
+  const priceMinLabel = document.getElementById("priceMinLabel")!;
+  const priceMaxLabel = document.getElementById("priceMaxLabel")!;
+  const priceRangeBar = document.getElementById("priceRange")!;
+  const badgeFilter = document.getElementById(
+    "badgeFilter",
+  ) as HTMLSelectElement;
+  const categoryFilters = document.getElementById("categoryFilters")!;
 
-  function formatRp(v: number) { return 'Rp ' + v.toLocaleString('id-ID'); }
+  console.log(
+    "[Katalog Init] badgeFilter element found:",
+    !!badgeFilter,
+    badgeFilter,
+  );
+
+  function formatRp(v: number) {
+    return "Rp " + v.toLocaleString("id-ID");
+  }
 
   function renderBookCard(book: Book): string {
-    const priceStr = book.price > 0 ? formatRupiah(book.price) : '--';
+    const priceStr = book.price > 0 ? formatRupiah(book.price) : "--";
     return `
       <a href="/details-book?id=${book.id}" class="group block cursor-pointer">
         <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-4 md:mb-6 shadow-md transform group-hover:-translate-y-2 transition-transform duration-300">
-          ${book.image_url
-            ? `<img class="absolute inset-0 w-full h-full object-cover" src="${book.image_url}" alt="Cover ${book.title}" loading="lazy" />`
-            : `<div class="absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container"><span class="material-symbols-outlined text-5xl text-stone-300">auto_stories</span></div>`}
+          ${
+            book.image_url
+              ? `<img class="absolute inset-0 w-full h-full object-cover" src="${book.image_url}" alt="Cover ${book.title}" loading="lazy" />`
+              : `<div class="absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container"><span class="material-symbols-outlined text-5xl text-stone-300">auto_stories</span></div>`
+          }
         </div>
         <h3 class="font-headline font-bold text-primary text-base md:text-lg group-hover:text-tertiary transition-colors leading-snug">${book.title}</h3>
         <p class="text-sm text-on-surface-variant mt-1">${book.author}</p>
@@ -235,51 +366,62 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   // ─── Load Books ─────────────────────────────────────────────────────
   async function loadBooks() {
-    bookGridLoad.classList.remove('hidden');
-    bookGrid.classList.add('hidden');
-    emptyState.classList.add('hidden');
-    errorState.classList.add('hidden');
-    paginationDiv.classList.add('hidden');
-    resultCount.textContent = '';
+    bookGridLoad.classList.remove("hidden");
+    bookGrid.classList.add("hidden");
+    emptyState.classList.add("hidden");
+    errorState.classList.add("hidden");
+    paginationDiv.classList.add("hidden");
+    resultCount.textContent = "";
 
     try {
-      console.log('[Load Books] Filters:', filters);
+      console.log("[Load Books] Filters:", filters);
       const { books, meta } = await getBooks({
         page: currentPage,
         per_page: perPage,
-        status: 'published',
+        status: "published",
         category_id: filters.category_id || undefined,
         badge: filters.badge || undefined,
         min_price: filters.min_price > 0 ? filters.min_price : undefined,
-        max_price: (filters.max_price > 0 && filters.max_price < dynamicMaxPrice) ? filters.max_price : undefined,
+        max_price:
+          filters.max_price > 0 && filters.max_price < dynamicMaxPrice
+            ? filters.max_price
+            : undefined,
         max_rating: filters.max_rating > 0 ? filters.max_rating : undefined,
-        sort: (filters.sort as 'newest' | 'popular') || undefined,
+        sort: (filters.sort as "newest" | "popular") || undefined,
         search: filters.search || undefined,
       });
-      console.log('[Load Books] Response books count:', books.length, 'Total:', meta.total);
+      console.log(
+        "[Load Books] Response books count:",
+        books.length,
+        "Total:",
+        meta.total,
+      );
 
-      bookGridLoad.classList.add('hidden');
+      bookGridLoad.classList.add("hidden");
 
       if (books.length === 0) {
-        emptyState.classList.remove('hidden');
+        emptyState.classList.remove("hidden");
         return;
       }
 
-      bookGrid.innerHTML = books.map(renderBookCard).join('');
-      bookGrid.classList.remove('hidden');
+      bookGrid.innerHTML = books.map(renderBookCard).join("");
+      bookGrid.classList.remove("hidden");
       resultCount.textContent = `${meta.total} buku ditemukan`;
 
       if (meta.total_pages > 1) {
-        paginationDiv.classList.remove('hidden');
+        paginationDiv.classList.remove("hidden");
         pageInfo.textContent = `Halaman ${meta.page} dari ${meta.total_pages}`;
-        prevBtn.classList.toggle('opacity-30', meta.page <= 1);
-        prevBtn.classList.toggle('pointer-events-none', meta.page <= 1);
-        nextBtn.classList.toggle('opacity-30', meta.page >= meta.total_pages);
-        nextBtn.classList.toggle('pointer-events-none', meta.page >= meta.total_pages);
+        prevBtn.classList.toggle("opacity-30", meta.page <= 1);
+        prevBtn.classList.toggle("pointer-events-none", meta.page <= 1);
+        nextBtn.classList.toggle("opacity-30", meta.page >= meta.total_pages);
+        nextBtn.classList.toggle(
+          "pointer-events-none",
+          meta.page >= meta.total_pages,
+        );
       }
     } catch (err) {
-      bookGridLoad.classList.add('hidden');
-      errorState.classList.remove('hidden');
+      bookGridLoad.classList.add("hidden");
+      errorState.classList.remove("hidden");
     }
   }
 
@@ -288,7 +430,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     try {
       const categories: Category[] = await getCategories();
       if (categories.length === 0) {
-        categoryFilters.innerHTML = '<p class="text-sm text-outline italic">Tidak ada kategori.</p>';
+        categoryFilters.innerHTML =
+          '<p class="text-sm text-outline italic">Tidak ada kategori.</p>';
         return;
       }
 
@@ -301,7 +444,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <input class="hidden category-radio" type="radio" name="catFilter" value="" checked />
           <span class="text-sm font-semibold text-primary transition-colors cat-label">Semua Kategori</span>
         </label>
-        ${categories.map(cat => `
+        ${categories
+          .map(
+            (cat) => `
           <label class="flex items-center gap-3 cursor-pointer group">
             <div class="w-5 h-5 rounded-full border border-outline-variant group-hover:border-primary transition-colors flex items-center justify-center cat-dot-box">
               <div class="w-2.5 h-2.5 rounded-full cat-dot hidden"></div>
@@ -309,39 +454,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <input class="hidden category-radio" type="radio" name="catFilter" value="${cat.id}" />
             <span class="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors cat-label">${cat.name}</span>
           </label>
-        `).join('')}
+        `,
+          )
+          .join("")}
       `;
 
-      categoryFilters.querySelectorAll('.category-radio').forEach(radio => {
-        radio.addEventListener('change', () => {
+      categoryFilters.querySelectorAll(".category-radio").forEach((radio) => {
+        radio.addEventListener("change", () => {
           const r = radio as HTMLInputElement;
           filters.category_id = r.value;
           currentPage = 1;
 
           // Visual: only selected radio gets filled dot
-          categoryFilters.querySelectorAll('label').forEach(lbl => {
-            const box = lbl.querySelector('.cat-dot-box') as HTMLElement;
-            const dot = lbl.querySelector('.cat-dot') as HTMLElement;
-            const label = lbl.querySelector('.cat-label') as HTMLElement;
-            const inp = lbl.querySelector('.category-radio') as HTMLInputElement;
+          categoryFilters.querySelectorAll("label").forEach((lbl) => {
+            const box = lbl.querySelector(".cat-dot-box") as HTMLElement;
+            const dot = lbl.querySelector(".cat-dot") as HTMLElement;
+            const label = lbl.querySelector(".cat-label") as HTMLElement;
+            const inp = lbl.querySelector(
+              ".category-radio",
+            ) as HTMLInputElement;
             if (!box || !dot || !inp) return;
 
             if (inp.checked) {
-              box.classList.add('border-primary');
-              box.classList.remove('border-outline-variant');
-              box.style.borderWidth = '2px';
-              dot.classList.remove('hidden');
-              dot.classList.add('bg-primary');
-              label.classList.add('text-primary', 'font-semibold');
-              label.classList.remove('text-on-surface-variant', 'font-medium');
+              box.classList.add("border-primary");
+              box.classList.remove("border-outline-variant");
+              box.style.borderWidth = "2px";
+              dot.classList.remove("hidden");
+              dot.classList.add("bg-primary");
+              label.classList.add("text-primary", "font-semibold");
+              label.classList.remove("text-on-surface-variant", "font-medium");
             } else {
-              box.classList.remove('border-primary');
-              box.classList.add('border-outline-variant');
-              box.style.borderWidth = '1px';
-              dot.classList.add('hidden');
-              dot.classList.remove('bg-primary');
-              label.classList.remove('text-primary', 'font-semibold');
-              label.classList.add('text-on-surface-variant', 'font-medium');
+              box.classList.remove("border-primary");
+              box.classList.add("border-outline-variant");
+              box.style.borderWidth = "1px";
+              dot.classList.add("hidden");
+              dot.classList.remove("bg-primary");
+              label.classList.remove("text-primary", "font-semibold");
+              label.classList.add("text-on-surface-variant", "font-medium");
             }
           });
 
@@ -349,7 +498,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
       });
     } catch {
-      categoryFilters.innerHTML = '<p class="text-sm text-outline italic">Gagal memuat kategori.</p>';
+      categoryFilters.innerHTML =
+        '<p class="text-sm text-outline italic">Gagal memuat kategori.</p>';
     }
   }
 
@@ -357,14 +507,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   async function initPriceRange() {
     // Fetch all books to find max price
     try {
-      const { books } = await getBooks({ per_page: 100, status: 'published' });
+      const { books } = await getBooks({ per_page: 100, status: "published" });
       if (books.length > 0) {
-        const maxBookPrice = Math.max(...books.map(b => b.price));
+        const maxBookPrice = Math.max(...books.map((b) => b.price));
         // Round up to nearest 50k
         dynamicMaxPrice = Math.ceil(maxBookPrice / 50000) * 50000;
         if (dynamicMaxPrice < 50000) dynamicMaxPrice = 50000;
       }
-    } catch { /* keep default */ }
+    } catch {
+      /* keep default */
+    }
 
     priceMinSlider.max = String(dynamicMaxPrice);
     priceMaxSlider.max = String(dynamicMaxPrice);
@@ -382,8 +534,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     const max = parseInt(priceMaxSlider.value);
     const pct1 = (min / dynamicMaxPrice) * 100;
     const pct2 = (max / dynamicMaxPrice) * 100;
-    priceRangeBar.style.left = pct1 + '%';
-    priceRangeBar.style.right = (100 - pct2) + '%';
+    priceRangeBar.style.left = pct1 + "%";
+    priceRangeBar.style.right = 100 - pct2 + "%";
     priceMinLabel.textContent = formatRp(min);
     priceMaxLabel.textContent = formatRp(max);
   }
@@ -392,33 +544,44 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   function onPriceChange() {
     let min = parseInt(priceMinSlider.value);
     let max = parseInt(priceMaxSlider.value);
-    if (min > max) { [min, max] = [max, min]; }
+    if (min > max) {
+      [min, max] = [max, min];
+    }
     filters.min_price = min;
     filters.max_price = max;
     updatePriceRange();
     clearTimeout(priceDebounce);
-    priceDebounce = setTimeout(() => { currentPage = 1; loadBooks(); }, 600);
+    priceDebounce = setTimeout(() => {
+      currentPage = 1;
+      loadBooks();
+    }, 600);
   }
 
-  priceMinSlider.addEventListener('input', onPriceChange);
-  priceMaxSlider.addEventListener('input', onPriceChange);
+  priceMinSlider.addEventListener("input", onPriceChange);
+  priceMaxSlider.addEventListener("input", onPriceChange);
 
   // ─── Rating Filter ──────────────────────────────────────────────────
   let activeRating = 0;
-  document.querySelectorAll('.rating-star-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const r = parseInt((btn as HTMLElement).dataset.rating || '0');
+  document.querySelectorAll(".rating-star-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const r = parseInt((btn as HTMLElement).dataset.rating || "0");
       activeRating = activeRating === r ? 0 : r;
       filters.max_rating = activeRating;
 
-      document.querySelectorAll('.rating-star-btn').forEach(b => {
-        const br = parseInt((b as HTMLElement).dataset.rating || '0');
+      document.querySelectorAll(".rating-star-btn").forEach((b) => {
+        const br = parseInt((b as HTMLElement).dataset.rating || "0");
         if (activeRating > 0 && br <= activeRating) {
-          b.classList.add('bg-tertiary-fixed', 'text-on-tertiary-fixed-variant');
-          b.classList.remove('bg-surface-container', 'text-primary');
+          b.classList.add(
+            "bg-tertiary-fixed",
+            "text-on-tertiary-fixed-variant",
+          );
+          b.classList.remove("bg-surface-container", "text-primary");
         } else {
-          b.classList.remove('bg-tertiary-fixed', 'text-on-tertiary-fixed-variant');
-          b.classList.add('bg-surface-container', 'text-primary');
+          b.classList.remove(
+            "bg-tertiary-fixed",
+            "text-on-tertiary-fixed-variant",
+          );
+          b.classList.add("bg-surface-container", "text-primary");
         }
       });
 
@@ -428,15 +591,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   });
 
   // ─── Sort Tabs ──────────────────────────────────────────────────────
-  document.querySelectorAll('.sort-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      filters.sort = (tab as HTMLElement).dataset.sort as '' | 'newest' | 'popular';
-      document.querySelectorAll('.sort-tab').forEach(t => {
-        t.classList.remove('bg-surface-container-lowest', 'shadow-sm', 'font-semibold', 'text-primary');
-        t.classList.add('text-secondary');
+  document.querySelectorAll(".sort-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      filters.sort = (tab as HTMLElement).dataset.sort as
+        "" | "newest" | "popular";
+      document.querySelectorAll(".sort-tab").forEach((t) => {
+        t.classList.remove(
+          "bg-surface-container-lowest",
+          "shadow-sm",
+          "font-semibold",
+          "text-primary",
+        );
+        t.classList.add("text-secondary");
       });
-      tab.classList.add('bg-surface-container-lowest', 'shadow-sm', 'font-semibold', 'text-primary');
-      tab.classList.remove('text-secondary');
+      tab.classList.add(
+        "bg-surface-container-lowest",
+        "shadow-sm",
+        "font-semibold",
+        "text-primary",
+      );
+      tab.classList.remove("text-secondary");
       currentPage = 1;
       loadBooks();
     });
@@ -444,7 +618,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   // ─── Search ─────────────────────────────────────────────────────────
   let searchDebounce: ReturnType<typeof setTimeout>;
-  searchInput.addEventListener('input', () => {
+  searchInput.addEventListener("input", () => {
     clearTimeout(searchDebounce);
     searchDebounce = setTimeout(() => {
       filters.search = searchInput.value.trim();
@@ -455,40 +629,76 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   // ─── Badge Filter ───────────────────────────────────────────────────
   if (badgeFilter) {
-    badgeFilter.addEventListener('change', () => {
+    badgeFilter.addEventListener("change", () => {
       filters.badge = badgeFilter.value;
-      console.log('[Badge Filter] Changed to:', filters.badge);
+      console.log("[Badge Filter] Changed to:", filters.badge);
       currentPage = 1;
       loadBooks();
     });
   }
 
   // ─── Pagination ─────────────────────────────────────────────────────
-  prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; loadBooks(); } });
-  nextBtn.addEventListener('click', () => { currentPage++; loadBooks(); });
+  prevBtn.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      loadBooks();
+    }
+  });
+  nextBtn.addEventListener("click", () => {
+    currentPage++;
+    loadBooks();
+  });
 
   // ─── Reset All ──────────────────────────────────────────────────────
-  document.getElementById('resetAllFilters')?.addEventListener('click', () => {
-    filters = { category_id: '', badge: '', min_price: 0, max_price: 0, max_rating: 0, sort: '', search: '' };
+  document.getElementById("resetAllFilters")?.addEventListener("click", () => {
+    filters = {
+      category_id: "",
+      badge: "",
+      min_price: 0,
+      max_price: 0,
+      max_rating: 0,
+      sort: "",
+      search: "",
+    };
     currentPage = 1;
     activeRating = 0;
-    searchInput.value = '';
-    badgeFilter.value = '';
-    priceMinSlider.value = '0';
+    searchInput.value = "";
+    badgeFilter.value = "";
+    priceMinSlider.value = "0";
     priceMaxSlider.value = String(dynamicMaxPrice);
     updatePriceRange();
 
-    document.querySelectorAll('.rating-star-btn').forEach(b => {
-      b.classList.remove('bg-tertiary-fixed', 'text-on-tertiary-fixed-variant');
-      b.classList.add('bg-surface-container', 'text-primary');
+    document.querySelectorAll(".rating-star-btn").forEach((b) => {
+      b.classList.remove("bg-tertiary-fixed", "text-on-tertiary-fixed-variant");
+      b.classList.add("bg-surface-container", "text-primary");
     });
-    document.querySelectorAll('.sort-tab').forEach((t, i) => {
-      if (i === 0) { t.classList.add('bg-surface-container-lowest', 'shadow-sm', 'font-semibold', 'text-primary'); t.classList.remove('text-secondary'); }
-      else { t.classList.remove('bg-surface-container-lowest', 'shadow-sm', 'font-semibold', 'text-primary'); t.classList.add('text-secondary'); }
+    document.querySelectorAll(".sort-tab").forEach((t, i) => {
+      if (i === 0) {
+        t.classList.add(
+          "bg-surface-container-lowest",
+          "shadow-sm",
+          "font-semibold",
+          "text-primary",
+        );
+        t.classList.remove("text-secondary");
+      } else {
+        t.classList.remove(
+          "bg-surface-container-lowest",
+          "shadow-sm",
+          "font-semibold",
+          "text-primary",
+        );
+        t.classList.add("text-secondary");
+      }
     });
 
-    const allRadio = categoryFilters.querySelector('.category-radio') as HTMLInputElement;
-    if (allRadio) { allRadio.checked = true; allRadio.dispatchEvent(new Event('change')); }
+    const allRadio = categoryFilters.querySelector(
+      ".category-radio",
+    ) as HTMLInputElement;
+    if (allRadio) {
+      allRadio.checked = true;
+      allRadio.dispatchEvent(new Event("change"));
+    }
 
     loadBooks();
   });

@@ -1,7 +1,7 @@
 // Digital Papyrus API — Main entry point.
 //
 // A production-grade RESTful backend for the Digital Papyrus
-// book publishing platform, built with Gin and SQLite.
+// book publishing platform, built with Gin and PostgreSQL.
 package main
 
 import (
@@ -33,7 +33,7 @@ func main() {
 	log.Printf("[APP] Starting %s (env=%s, port=%s)", cfg.App.Name, cfg.App.Env, cfg.App.Port)
 
 	// Initialize database
-	db, err := database.New(cfg.DB.Path)
+	db, err := database.New(cfg.DB.DSN())
 	if err != nil {
 		log.Fatalf("[FATAL] Database connection failed: %v", err)
 	}
@@ -57,15 +57,16 @@ func main() {
 	coreServiceRepo := repository.NewCoreServiceRepository(db)
 	orderRepo := repository.NewOrderRepository(db)
 	reviewRepo := repository.NewReviewRepository(db)
+	settingRepo := repository.NewSettingRepo(db)
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, cfg)
-	bookService := service.NewBookService(bookRepo)
+	bookService := service.NewBookService(bookRepo, userRepo, orderRepo, cfg)
 	serviceService := service.NewServiceService(serviceRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
 	coreServiceSvc := service.NewCoreServiceService(coreServiceRepo)
 	userService := service.NewUserService(userRepo)
-	orderService := service.NewOrderService(orderRepo, userRepo)
+	orderService := service.NewOrderService(orderRepo, userRepo, cfg)
 	reviewService := service.NewReviewService(reviewRepo)
 
 	// Initialize handlers
@@ -75,15 +76,17 @@ func main() {
 		Book:        handler.NewBookHandler(bookService),
 		Service:     handler.NewServiceHandler(serviceService),
 		Category:    handler.NewCategoryHandler(categoryService),
-		Upload:      handler.NewUploadHandler(),
+		Upload:      handler.NewUploadHandler(userService, orderService),
 		CoreService: handler.NewCoreServiceHandler(coreServiceSvc),
 		User:        handler.NewUserHandler(userService),
 		Review:      handler.NewReviewHandler(reviewService),
-		Order:       handler.NewOrderHandler(orderService),
+		Order:       handler.NewOrderHandler(orderService, cfg, settingRepo),
+		Region:      handler.NewRegionHandler(db),
+		Setting:     handler.NewSettingHandler(settingRepo),
 	}
 
 	// Configure router
-        engine := router.Setup(cfg, authService, handlers)
+	engine := router.Setup(cfg, authService, handlers)
 
 	// Create HTTP server with production-grade timeouts
 	srv := &http.Server{

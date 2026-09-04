@@ -27,6 +27,7 @@ type CreateServiceInput struct {
 	Icon        string `json:"icon"`
 	Tier        string `json:"tier"`
 	Price       int    `json:"price"`
+	BaseCost    int    `json:"base_cost"`
 	PriceLabel  string `json:"price_label"`
 	Features    string `json:"features"` // JSON array string
 	IsFeatured  bool   `json:"is_featured"`
@@ -82,6 +83,7 @@ func (s *ServiceService) CreateService(input CreateServiceInput) (*model.Service
 		Icon:        input.Icon,
 		Tier:        input.Tier,
 		Price:       input.Price,
+		BaseCost:    input.BaseCost,
 		PriceLabel:  input.PriceLabel,
 		Features:    input.Features,
 		IsFeatured:  input.IsFeatured,
@@ -103,6 +105,7 @@ type UpdateServiceInput struct {
 	Icon        *string `json:"icon"`
 	Tier        *string `json:"tier"`
 	Price       *int    `json:"price"`
+	BaseCost    *int    `json:"base_cost"`
 	PriceLabel  *string `json:"price_label"`
 	Features    *string `json:"features"`
 	IsFeatured  *bool   `json:"is_featured"`
@@ -135,6 +138,9 @@ func (s *ServiceService) UpdateService(id string, input UpdateServiceInput) (*mo
 	}
 	if input.Price != nil {
 		svc.Price = *input.Price
+	}
+	if input.BaseCost != nil {
+		svc.BaseCost = *input.BaseCost
 	}
 	if input.PriceLabel != nil {
 		svc.PriceLabel = *input.PriceLabel

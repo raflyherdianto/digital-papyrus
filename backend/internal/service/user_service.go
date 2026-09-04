@@ -50,10 +50,16 @@ type CreateUserInput struct {
 	Address     string `json:"address"`
 	Province    string `json:"province"`
 	City        string `json:"city"`
+	Regency     string `json:"regency"`
+	District    string `json:"district"`
+	Village     string `json:"village"`
 	ZipCode     string `json:"zip_code"`
 }
 
 func (s *UserService) CreateUser(input CreateUserInput) (*model.User, error) {
+	if input.Regency == "" && input.District != "" {
+		input.Regency = input.District
+	}
 	existing, err := s.userRepo.FindByEmail(input.Email)
 	if err != nil {
 		return nil, fmt.Errorf("user_service: check email: %w", err)
@@ -79,6 +85,8 @@ func (s *UserService) CreateUser(input CreateUserInput) (*model.User, error) {
 		Address:      input.Address,
 		Province:     input.Province,
 		City:         input.City,
+		Regency:      input.Regency,
+		Village:      input.Village,
 		ZipCode:      input.ZipCode,
 		CreatedAt:    now,
 		UpdatedAt:    now,
@@ -101,10 +109,16 @@ type UpdateUserInput struct {
 	Address     string `json:"address"`
 	Province    string `json:"province"`
 	City        string `json:"city"`
+	Regency     string `json:"regency"`
+	District    string `json:"district"`
+	Village     string `json:"village"`
 	ZipCode     string `json:"zip_code"`
 }
 
 func (s *UserService) UpdateUser(id string, input UpdateUserInput) (*model.User, error) {
+	if input.Regency == "" && input.District != "" {
+		input.Regency = input.District
+	}
 	u, err := s.userRepo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("user_service: %w", err)
@@ -131,6 +145,8 @@ func (s *UserService) UpdateUser(id string, input UpdateUserInput) (*model.User,
 	u.Address = input.Address
 	u.Province = input.Province
 	u.City = input.City
+	u.Regency = input.Regency
+	u.Village = input.Village
 	u.ZipCode = input.ZipCode
 
 	if err := s.userRepo.Update(u); err != nil {

@@ -18,6 +18,7 @@ type Service struct {
 	Icon       string    `json:"icon,omitempty"`
 	Tier       string    `json:"tier"`
 	Price      int       `json:"price"`       // price in smallest currency unit
+	BaseCost   int       `json:"base_cost"`   // COGS/modal cost for publishing package
 	PriceLabel string    `json:"price_label"` // display label e.g. "Rp 275k"
 	Features   string    `json:"features"`    // JSON array of feature strings
 	IsFeatured bool      `json:"is_featured"`
