@@ -37,6 +37,9 @@ type CreateBookInput struct {
 	Title           string  `json:"title"`
 	Author          string  `json:"author"`
 	ISBN            string  `json:"isbn"`
+	Badge           string  `json:"badge"`
+	GGKEY           string  `json:"ggkey"`
+	QRCBN           string  `json:"qrcbn"`
 	Price           int     `json:"price"`
 	Rating          float64 `json:"rating"`
 	Description     string  `json:"description"`
@@ -63,6 +66,9 @@ func (i *CreateBookInput) Validate() map[string]string {
 	errs := make(map[string]string)
 	i.Title = validator.SanitizeString(i.Title)
 	i.Author = validator.SanitizeString(i.Author)
+	i.Badge = strings.TrimSpace(i.Badge)
+	i.GGKEY = strings.TrimSpace(i.GGKEY)
+	i.QRCBN = strings.TrimSpace(i.QRCBN)
 
 	if i.Title == "" {
 		errs["title"] = "title is required"
@@ -109,6 +115,9 @@ func (s *BookService) CreateBook(input CreateBookInput) (*model.Book, error) {
 		Title:           input.Title,
 		Author:          input.Author,
 		ISBN:            input.ISBN,
+		Badge:           input.Badge,
+		GGKEY:           input.GGKEY,
+		QRCBN:           input.QRCBN,
 		Price:           input.Price,
 		Rating:          input.Rating,
 		Description:     input.Description,
@@ -141,6 +150,9 @@ type UpdateBookInput struct {
 	Title           *string  `json:"title"`
 	Author          *string  `json:"author"`
 	ISBN            *string  `json:"isbn"`
+	Badge           *string  `json:"badge"`
+	GGKEY           *string  `json:"ggkey"`
+	QRCBN           *string  `json:"qrcbn"`
 	Price           *int     `json:"price"`
 	Rating          *float64 `json:"rating"`
 	ReviewCount     *int     `json:"review_count"`
@@ -183,6 +195,15 @@ func (s *BookService) UpdateBook(id string, input UpdateBookInput) (*model.Book,
 	}
 	if input.ISBN != nil {
 		book.ISBN = *input.ISBN
+	}
+	if input.Badge != nil {
+		book.Badge = strings.TrimSpace(*input.Badge)
+	}
+	if input.GGKEY != nil {
+		book.GGKEY = strings.TrimSpace(*input.GGKEY)
+	}
+	if input.QRCBN != nil {
+		book.QRCBN = strings.TrimSpace(*input.QRCBN)
 	}
 	if input.Price != nil {
 		book.Price = *input.Price

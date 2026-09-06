@@ -3,9 +3,11 @@ package tests
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/digitalpapyrus/backend/pkg/response"
 	"github.com/digitalpapyrus/backend/tests/testutil"
@@ -98,10 +100,14 @@ func TestCreateBook_Authenticated(t *testing.T) {
 	env := testutil.SetupTestEnv(t)
 	token := loginAndGetToken(t, env, "test-admin@test.com", "TestAdmin@2026!")
 
+	testISBN := fmt.Sprintf("978-%d", time.Now().UnixNano()%10000000000)
 	body, _ := json.Marshal(map[string]interface{}{
 		"title":    "Test Book Creation",
 		"author":   "Test Author",
-		"isbn":     "978-0-00-000000-1",
+		"isbn":     testISBN,
+		"badge":    "Limited Edition",
+		"ggkey":    "GGK-TEST-001",
+		"qrcbn":    "QRC-TEST-001",
 		"price":    100000,
 		"status":   "draft",
 		"stock":    50,
@@ -117,6 +123,48 @@ func TestCreateBook_Authenticated(t *testing.T) {
 
 	if w.Code != http.StatusCreated {
 		t.Fatalf("expected status 201, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var res struct {
+		Success bool `json:"success"`
+		Data    struct {
+			ID    string `json:"id"`
+			Badge string `json:"badge"`
+			GGKEY string `json:"ggkey"`
+			QRCBN string `json:"qrcbn"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if res.Data.GGKEY != "GGK-TEST-001" {
+		t.Errorf("expected ggkey 'GGK-TEST-001', got '%s'", res.Data.GGKEY)
+	}
+	if res.Data.QRCBN != "QRC-TEST-001" {
+		t.Errorf("expected qrcbn 'QRC-TEST-001', got '%s'", res.Data.QRCBN)
+	}
+	if res.Data.Badge != "Limited Edition" {
+		t.Errorf("expected badge 'Limited Edition', got '%s'", res.Data.Badge)
+	}
+
+	// Verify persistence via GET
+	getReq := httptest.NewRequest(http.MethodGet, "/api/v1/books/"+res.Data.ID, nil)
+	getW := httptest.NewRecorder()
+	env.Router.ServeHTTP(getW, getReq)
+	if getW.Code != http.StatusOK {
+		t.Fatalf("expected status 200 on get, got %d", getW.Code)
+	}
+	var getRes struct {
+		Data struct {
+			Badge string `json:"badge"`
+			GGKEY string `json:"ggkey"`
+			QRCBN string `json:"qrcbn"`
+		} `json:"data"`
+	}
+	json.Unmarshal(getW.Body.Bytes(), &getRes)
+	if getRes.Data.GGKEY != "GGK-TEST-001" || getRes.Data.QRCBN != "QRC-TEST-001" || getRes.Data.Badge != "Limited Edition" {
+		t.Errorf("persisted values mismatch: %+v", getRes.Data)
 	}
 }
 

@@ -96,7 +96,7 @@ func (h *BookHandler) CreateBook(c *gin.Context) {
 
 	book, err := h.bookService.CreateBook(input)
 	if err != nil {
-		if strings.Contains(err.Error(), "UNIQUE") {
+		if strings.Contains(strings.ToLower(err.Error()), "unique") {
 			response.BadRequest(c, "ISBN sudah digunakan oleh buku lain", map[string]string{"isbn": "ISBN ini sudah terdaftar, gunakan ISBN yang berbeda"})
 			return
 		}
@@ -123,7 +123,7 @@ func (h *BookHandler) UpdateBook(c *gin.Context) {
 
 	book, err := h.bookService.UpdateBook(id, input)
 	if err != nil {
-		if strings.Contains(err.Error(), "UNIQUE") {
+		if strings.Contains(strings.ToLower(err.Error()), "unique") {
 			response.BadRequest(c, "ISBN sudah digunakan oleh buku lain", map[string]string{"isbn": "ISBN ini sudah terdaftar, gunakan ISBN yang berbeda"})
 			return
 		}

@@ -166,8 +166,13 @@ const pendingBookId = Astro.url.searchParams.get('add_to_cart');
   function formatWeight(weight: string | number | null | undefined): string {
     if (weight === null || weight === undefined) return '-';
     const value = String(weight).trim();
-    if (!value) return '-';
+    if (!value || value === 'null') return '-';
     return /kg$/i.test(value) ? value : `${value} kg`;
+  }
+
+  function formatMeta(val: string | null | undefined): string {
+    if (!val || val === 'null' || val.trim() === '') return '-';
+    return val.trim();
   }
 
   function getBadgeClasses(badge: string): string {
@@ -248,20 +253,20 @@ const pendingBookId = Astro.url.searchParams.get('add_to_cart');
         <p><strong>Publisher:</strong> ${book.publisher || '-'}<br/>
         <strong>Publication Date:</strong> ${book.publication_date || '-'}<br/>
         <strong>Badge:</strong> ${book.badge || 'Regular'}<br/>
-        <strong>GGKEY:</strong> ${book.ggkey || '-'}<br/>
-        <strong>QRCBN:</strong> ${book.qrcbn || '-'}<br/>
-        <strong>Dimensions:</strong> ${book.dimensions || '-'}<br/>
+        <strong>GGKEY:</strong> ${formatMeta(book.ggkey)}<br/>
+        <strong>QRCBN:</strong> ${formatMeta(book.qrcbn)}<br/>
+        <strong>Dimensions:</strong> ${formatMeta(book.dimensions)}<br/>
         <strong>Weight:</strong> ${formatWeight(book.weight)}<br/>
-        <strong>ISBN:</strong> ${book.isbn || '-'}<br/>
+        <strong>ISBN:</strong> ${formatMeta(book.isbn)}<br/>
         <strong>Amazon Books:</strong> ${book.amazon_url && book.amazon_url.trim() !== '' ? `<a href="${book.amazon_url}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-tertiary underline font-semibold inline-flex items-center gap-1">Buka di Amazon <span class="material-symbols-outlined text-xs">open_in_new</span></a>` : '-'}<br/>
         <strong>Google Play Books:</strong> ${book.gplay_books_url && book.gplay_books_url.trim() !== '' ? `<a href="${book.gplay_books_url}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-tertiary underline font-semibold inline-flex items-center gap-1">Buka di Google Play Books <span class="material-symbols-outlined text-xs">open_in_new</span></a>` : '-'}</p>`;
 
       // Specs
       let specsHtml = `
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Badge</p><p class="font-bold text-primary text-sm md:text-base">${book.badge || 'Regular'}</p></div>
-        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">ISBN-13</p><p class="font-bold text-primary text-sm md:text-base">${book.isbn || '-'}</p></div>
-        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">GGKEY</p><p class="font-bold text-primary text-sm md:text-base">${book.ggkey || '-'}</p></div>
-        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">QRCBN</p><p class="font-bold text-primary text-sm md:text-base">${book.qrcbn || '-'}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">ISBN-13</p><p class="font-bold text-primary text-sm md:text-base">${formatMeta(book.isbn)}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">GGKEY</p><p class="font-bold text-primary text-sm md:text-base">${formatMeta(book.ggkey)}</p></div>
+        <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">QRCBN</p><p class="font-bold text-primary text-sm md:text-base">${formatMeta(book.qrcbn)}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Pages</p><p class="font-bold text-primary text-sm md:text-base">${book.pages || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Format</p><p class="font-bold text-primary text-sm md:text-base">${book.format || '-'}</p></div>
         <div><p class="text-[10px] uppercase tracking-widest text-outline mb-1">Language</p><p class="font-bold text-primary text-sm md:text-base">${book.language || '-'}</p></div>`;

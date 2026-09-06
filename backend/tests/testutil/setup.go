@@ -15,6 +15,7 @@ import (
 	"github.com/digitalpapyrus/backend/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // TestEnv holds all test dependencies.
@@ -122,6 +123,15 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 
 	if err := database.Seed(db, cfg); err != nil {
 		t.Fatalf("failed to seed test database: %v", err)
+	}
+
+	// Ensure test admin exists with the test password
+	adminHash, _ := bcrypt.GenerateFromPassword([]byte(cfg.Seed.SuperAdminPassword), cfg.Security.BcryptCost)
+	if _, err := db.Exec(`INSERT INTO users (id, email, password_hash, name, role, is_active, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, 'superadmin', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+		ON CONFLICT (email) DO UPDATE SET password_hash = $3, role = 'superadmin', is_active = 1`,
+		"test-admin-id", cfg.Seed.SuperAdminEmail, string(adminHash), cfg.Seed.SuperAdminName); err != nil {
+		t.Fatalf("failed to insert test admin: %v", err)
 	}
 
 	// Initialize repositories

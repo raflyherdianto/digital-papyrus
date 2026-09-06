@@ -385,6 +385,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <div class="grid grid-cols-2 gap-y-4">
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Badge</p><p id="viewBookBadge" class="text-sm font-bold text-primary"></p></div>
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">ISBN</p><p id="viewBookISBN" class="text-sm font-medium text-stone-700"></p></div>
+              <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">GGKEY</p><p id="viewBookGGKEY" class="text-sm font-medium text-stone-700"></p></div>
+              <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">QRCBN</p><p id="viewBookQRCBN" class="text-sm font-medium text-stone-700"></p></div>
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Price</p><p id="viewBookPrice" class="text-sm font-bold text-primary"></p></div>
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Stock Units</p><p id="viewBookStock" class="text-sm font-medium text-teal-700"></p></div>
               <div><p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Date Added</p><p id="viewBookDate" class="text-sm font-medium text-stone-700"></p></div>
@@ -798,6 +800,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             document.getElementById('viewBookCategory')!.textContent = book.category_name || '-';
             document.getElementById('viewBookBadge')!.textContent = book.badge || 'Regular';
             document.getElementById('viewBookISBN')!.textContent = book.isbn || 'Belum Terbit';
+            const ggkeyEl = document.getElementById('viewBookGGKEY');
+            if (ggkeyEl) ggkeyEl.textContent = (book.ggkey === "null" || !book.ggkey) ? '-' : book.ggkey;
+            const qrcbnEl = document.getElementById('viewBookQRCBN');
+            if (qrcbnEl) qrcbnEl.textContent = (book.qrcbn === "null" || !book.qrcbn) ? '-' : book.qrcbn;
             document.getElementById('viewBookPrice')!.textContent = formatRupiah(book.price);
             document.getElementById('viewBookStock')!.textContent = book.stock > 0 ? `${book.stock} Units` : '--';
             document.getElementById('viewBookDate')!.textContent = formatDate(book.created_at);
