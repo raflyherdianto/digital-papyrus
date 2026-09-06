@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/digitalpapyrus/backend/internal/service"
@@ -67,7 +69,8 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 
 	svc, err := h.serviceService.CreateService(input)
 	if err != nil {
-		response.InternalError(c, "Failed to create service")
+		log.Printf("[SERVICE ERROR] Failed to create service: %v", err)
+		response.InternalError(c, "Failed to create service: "+err.Error())
 		return
 	}
 
@@ -90,7 +93,8 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 
 	svc, err := h.serviceService.UpdateService(id, input)
 	if err != nil {
-		response.InternalError(c, "Failed to update service")
+		log.Printf("[SERVICE ERROR] Failed to update service: %v", err)
+		response.InternalError(c, "Failed to update service: "+err.Error())
 		return
 	}
 	if svc == nil {
@@ -110,6 +114,7 @@ func (h *ServiceHandler) DeleteService(c *gin.Context) {
 	}
 
 	if err := h.serviceService.DeleteService(id); err != nil {
+		log.Printf("[SERVICE ERROR] Failed to delete service: %v", err)
 		response.NotFound(c, "Service not found")
 		return
 	}

@@ -66,13 +66,18 @@ func (r *CoreServiceRepository) Create(s *model.CoreService) error {
 	s.CreatedAt = now
 	s.UpdatedAt = now
 
+	isActive := 0
+	if s.IsActive {
+		isActive = 1
+	}
+
 	query := `INSERT INTO core_services 
 		(id, title, description, icon, sort_order, is_active, created_at, updated_at) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	
 	_, err := r.db.Exec(query,
 		s.ID, s.Title, s.Description, s.Icon,
-		s.SortOrder, s.IsActive, s.CreatedAt, s.UpdatedAt,
+		s.SortOrder, isActive, s.CreatedAt, s.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("core_service repo: create: %w", err)
@@ -83,12 +88,17 @@ func (r *CoreServiceRepository) Create(s *model.CoreService) error {
 func (r *CoreServiceRepository) Update(s *model.CoreService) error {
 	s.UpdatedAt = time.Now().UTC()
 
+	isActive := 0
+	if s.IsActive {
+		isActive = 1
+	}
+
 	query := `UPDATE core_services SET 
 		title = $1, description = $2, icon = $3, sort_order = $4, is_active = $5, updated_at = $6 
 		WHERE id = $7`
 	
 	_, err := r.db.Exec(query,
-		s.Title, s.Description, s.Icon, s.SortOrder, s.IsActive, s.UpdatedAt, s.ID,
+		s.Title, s.Description, s.Icon, s.SortOrder, isActive, s.UpdatedAt, s.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("core_service repo: update: %w", err)

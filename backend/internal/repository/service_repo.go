@@ -80,6 +80,15 @@ func (r *ServiceRepository) Create(s *model.Service) error {
 	s.CreatedAt = now
 	s.UpdatedAt = now
 
+	isFeatured := 0
+	if s.IsFeatured {
+		isFeatured = 1
+	}
+	isActive := 0
+	if s.IsActive {
+		isActive = 1
+	}
+
 	_, err := r.db.Exec(
 		`INSERT INTO services (
 			id, title, description, icon, tier, price, base_cost, price_label,
@@ -87,8 +96,8 @@ func (r *ServiceRepository) Create(s *model.Service) error {
 			created_at, updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
 		s.ID, s.Title, s.Description, s.Icon, s.Tier,
-		s.Price, s.BaseCost, s.PriceLabel, s.Features, s.IsFeatured,
-		s.Badge, s.SortOrder, s.IsActive,
+		s.Price, s.BaseCost, s.PriceLabel, s.Features, isFeatured,
+		s.Badge, s.SortOrder, isActive,
 		s.CreatedAt, s.UpdatedAt,
 	)
 	if err != nil {
@@ -100,6 +109,16 @@ func (r *ServiceRepository) Create(s *model.Service) error {
 // Update modifies an existing service record.
 func (r *ServiceRepository) Update(s *model.Service) error {
 	s.UpdatedAt = time.Now().UTC()
+
+	isFeatured := 0
+	if s.IsFeatured {
+		isFeatured = 1
+	}
+	isActive := 0
+	if s.IsActive {
+		isActive = 1
+	}
+
 	_, err := r.db.Exec(
 		`UPDATE services SET
 			title = $1, description = $2, icon = $3, tier = $4, price = $5, base_cost = $6, price_label = $7,
@@ -107,7 +126,7 @@ func (r *ServiceRepository) Update(s *model.Service) error {
 			updated_at = $13
 		 WHERE id = $14`,
 		s.Title, s.Description, s.Icon, s.Tier, s.Price, s.BaseCost, s.PriceLabel,
-		s.Features, s.IsFeatured, s.Badge, s.SortOrder, s.IsActive,
+		s.Features, isFeatured, s.Badge, s.SortOrder, isActive,
 		s.UpdatedAt, s.ID,
 	)
 	if err != nil {
